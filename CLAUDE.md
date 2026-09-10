@@ -1,4 +1,4 @@
-# Raphael.Driver — .NET MAUI
+﻿# Raphael.Driver — .NET MAUI
 
 App del conductor. Parte del ecosistema Raphael (NEMT). Reglas globales: `../CLAUDE.md`.
 
@@ -23,12 +23,13 @@ actual el proyecto compila correctamente y la estructura no se toca.**
 - Al liberar: cambiar **solo los números**, en el PropertyGroup general (línea 17) y en el de
   `Release|net8.0-android` a la vez. Nunca reestructurar.
 - Punto de retorno si algo se rompe: `git checkout rollback/pre-version-cleanup -- Raphael.Driver.csproj`
-- Versión en producción: **1.1.0**, tag `v1.1.0`. Distribución: APK por sideload.
+- Versión en producción: **1.4.0**, tag `v1.4.0`. Distribución: APK por sideload.
+- ⚠️ `main` lleva sin liberar el margen de 5 min en viajes `Return` (RE-012). Sale en el próximo APK.
 
 ## Contrato con la API
 - Auth: **JWT**. `Services/AuthService.cs` + `Services/AuthHeaderHandler.cs`
 - Config/base URL: `PrivateSettings.cs`
-- DTOs espejo: `DTOs/` (6) — **copias manuales** de `Raphael.Backend/Raphael.Shared/DTOs/`
+- DTOs espejo: `DTOs/` (13 tipos en 10 ficheros, 10 copiados del backend) — **copias manuales** de `Raphael.Backend/Raphael.Shared/DTOs/`
 
 ⚠️ **Drift abierto:** `DTOs/ScheduleDto.cs` tiene `PassengerSignature`, que el backend no expone en
 ese DTO, y le falta `Status`. Antes de construir sobre `ScheduleDto`, resolver de dónde sale cada
