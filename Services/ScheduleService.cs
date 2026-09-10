@@ -546,6 +546,19 @@ namespace Raphael.Driver.Services
         private static readonly TimeSpan EarlyArrivalLimit = TimeSpan.FromMinutes(15);
 
         /// <summary>
+        /// The same limit on a return leg, where it is shorter.
+        /// </summary>
+        /// <remarks>
+        /// ⚠️ Raphael.Desktop has always used five minutes here and this app used fifteen for
+        /// everything, so on a return trip the dispatcher and the driver were reading arrival
+        /// hours ten minutes apart for the same stop — each one right by its own arithmetic. The
+        /// dispatcher's rule is the one that stands: on a return the patient has finished at the
+        /// clinic and is waiting to be collected, so holding the vehicle a quarter of an hour
+        /// down the road buys nobody anything.
+        /// </remarks>
+        private static readonly TimeSpan ReturnEarlyArrivalLimit = TimeSpan.FromMinutes(5);
+
+        /// <summary>
         /// Caps an ETA that would put the driver at a pickup too early.
         /// </summary>
         /// <remarks>
@@ -568,7 +581,15 @@ namespace Raphael.Driver.Services
             if (nextEvent.Pickup is not { } windowStart)
                 return calculatedEta;
 
-            var earliestAllowed = windowStart - EarlyArrivalLimit;
+            // Plain ordinal equality, like every other place in this ecosystem that asks the same
+            // question — the two converters next door and SchedulesViewModel.ChainEtas. Being
+            // cleverer here than the screen this has to agree with is how the ten minutes got
+            // lost in the first place.
+            var limit = nextEvent.TripType == "Return"
+                ? ReturnEarlyArrivalLimit
+                : EarlyArrivalLimit;
+
+            var earliestAllowed = windowStart - limit;
 
             return calculatedEta < earliestAllowed
                 ? earliestAllowed
