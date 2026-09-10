@@ -13,6 +13,17 @@ namespace Raphael.Driver.DTOs
         public TimeSpan? ETA { get; set; }
         public double? Distance { get; set; }
         public TimeSpan? Travel { get; set; }
+
+        /// <summary>
+        /// How long this pickup leaves the driver waiting for the hour to come round, or null
+        /// when there is no wait.
+        /// </summary>
+        /// <remarks>
+        /// Derived and written by the server. Nothing in this app draws it yet; it is here so the
+        /// copy stays in step with <c>Raphael.Shared/DTOs/ScheduleDto.cs</c>, which is the source
+        /// of truth, and so a driver's screen can show it without a round of contract work first.
+        /// </remarks>
+        public TimeSpan? Wait { get; set; }
         public int? On { get; set; }
         public string Address { get; set; }
         public double ScheduleLatitude { get; set; }
