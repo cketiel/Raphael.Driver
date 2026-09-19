@@ -109,7 +109,7 @@ namespace Raphael.Driver.Configuration
         /// Runs something that wipes all preferences, and puts this configuration back.
         /// </summary>
         /// <remarks>
-        /// ⚠️ <c>AuthService.Logout()</c> calls <c>Preferences.Clear()</c>. Without this, signing
+        /// ⚠️ <c>AuthService.LogoutAsync()</c> calls <c>Preferences.Clear()</c>. Without this, signing
         /// out would erase the server somebody from support had just walked a driver through
         /// setting, and the phone would silently go back to the compiled default — which is the
         /// one thing a support call is trying to get away from. Written as save/clear/restore

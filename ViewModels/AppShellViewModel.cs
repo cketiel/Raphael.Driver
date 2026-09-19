@@ -93,20 +93,16 @@ namespace Raphael.Driver.ViewModels
                 await Shell.Current.DisplayAlert("Error", $"Could not open messages: {ex.Message}", "OK");
             }
         }
-        /*[RelayCommand]
-        async Task SignOut()
-        {
-            // Usar el servicio inyectado
-            _authService.Logout();
-        }*/
-
         [RelayCommand]
         async Task SignOut()
         {
             // Resolved rather than constructed: the one built by hand had its own HttpClient
             // and knew nothing about the configured server.
             var _authService = Services.ServiceHelper.GetService<Services.IAuthService>();
-            _authService.Logout();
+
+            // Awaited. Calling it without awaiting is how it came to block the UI thread in
+            // the first place.
+            await _authService.LogoutAsync();
 
             // Logout logic
             //Preferences.Clear(); 

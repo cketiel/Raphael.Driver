@@ -230,13 +230,16 @@
                 </HorizontalStackLayout>
 
                 <!--
-                    Application version, and the way in to the server dialog.
+                    Application version, and one of the two ways in to the server dialog.
 
                     Seven taps here opens it. It has to be on THIS page: the Settings page is
                     behind the sign-in, and signing in is what needs a server address, so a
                     phone pointed at the wrong one could not be fixed from inside the app.
-                    Seven taps rather than a button so a driver never finds it by accident,
-                    and so support can describe it over the telephone.
+                    Seven taps rather than a button so a driver never finds it by accident.
+
+                    The other way is typing #server as the username and pressing Sign in,
+                    which is the one support can dictate down a telephone in one sentence.
+                    See LoginViewModel.Login.
                 -->
                 <Label Text="{Binding Version}"
                        TextColor="{StaticResource SecondaryTextColor}"
@@ -247,6 +250,16 @@
                         <TapGestureRecognizer Command="{Binding TapVersionCommand}"/>
                     </Label.GestureRecognizers>
                 </Label>
+
+                <!-- How many taps are left, once the run is clearly deliberate. Without it
+                     the count is invisible and a driver who miscounts cannot tell whether
+                     they are one tap away or back at zero. -->
+                <Label Text="{Binding TapHint}"
+                       IsVisible="{Binding ShowTapHint}"
+                       TextColor="{StaticResource SecondaryTextColor}"
+                       FontSize="11"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,4"/>
 
                 <!-- Empty unless this build is pointed somewhere other than production. -->
                 <Label Text="{Binding EnvironmentBanner}"

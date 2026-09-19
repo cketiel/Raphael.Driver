@@ -44,11 +44,18 @@ namespace Raphael.Driver.Services.Auth
             public string RefreshToken { get; set; }
         }
 
+        /// <remarks>
+        /// ⚠️ <c>ConfigureAwait(false)</c> is not decoration here. Without it the continuation
+        /// comes back to the UI thread, and a caller that blocks on this from the UI thread
+        /// deadlocks the application outright. That is exactly what signing out did: it froze
+        /// the phone, with no way out but killing the app. The blocking call is gone too --
+        /// both halves, because either one alone leaves the trap armed for the next caller.
+        /// </remarks>
         public static async Task<string> GetRefreshTokenAsync()
         {
             try
             {
-                return await SecureStorage.GetAsync(RefreshTokenKey);
+                return await SecureStorage.GetAsync(RefreshTokenKey).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -71,7 +78,7 @@ namespace Raphael.Driver.Services.Auth
                 }
                 else
                 {
-                    await SecureStorage.SetAsync(RefreshTokenKey, refreshToken);
+                    await SecureStorage.SetAsync(RefreshTokenKey, refreshToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
