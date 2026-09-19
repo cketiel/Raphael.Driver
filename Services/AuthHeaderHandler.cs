@@ -1,41 +1,122 @@
-﻿using System.Net.Http.Headers;
 using System.Net;
+using System.Net.Http.Headers;
+using Raphael.Driver.Services.Auth;
 
 namespace Raphael.Driver.Services;
 
+/// <summary>
+/// Puts the access token on every request, and renews it once on a 401 before giving up.
+/// </summary>
+/// <remarks>
+/// <para>
+/// ⚠️ What this replaces: on any 401 it deleted the token and sent the driver back to the sign-in
+/// screen. That happened on a token that had simply aged out, which on a ten-hour token meant
+/// once a shift — in the middle of a route, with a patient in the vehicle, and with no way back
+/// except typing a password on a phone in a moving van. Renewing is the whole point of the
+/// refresh token; the sign-in screen is now the last resort, not the first response.
+/// </para>
+/// </remarks>
 public class AuthHeaderHandler : DelegatingHandler
 {
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        // 1. Obtener el token de las preferencias
-        var token = Preferences.Get("AuthToken", string.Empty);
+    private static int _signOutInProgress;
 
-        // 2. Si existe el token, agregarlo a la cabecera Authorization
-        if (!string.IsNullOrEmpty(token))
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var tokenSent = Preferences.Get("AuthToken", string.Empty);
+
+        if (!string.IsNullOrEmpty(tokenSent))
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenSent);
         }
 
-        // 3. Ejecutar la petición original
-        var response = await base.SendAsync(request, cancellationToken);
-
-        // 4. Si el servidor responde 401 (No autorizado/Expirado)
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        // Buffered so the request survives being sent twice. Without this the retry would post
+        // a stream that has already been read, and the failure would look like the server
+        // rejecting an empty body.
+        if (request.Content is not null)
         {
-            // Limpiar datos de sesión
-            Preferences.Remove("AuthToken");
+            await request.Content.LoadIntoBufferAsync().ConfigureAwait(false);
+        }
 
-            // Forzar el regreso al Login en el hilo principal
-            MainThread.BeginInvokeOnMainThread(async () =>
+        var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+        if (response.StatusCode != HttpStatusCode.Unauthorized || string.IsNullOrEmpty(tokenSent))
+        {
+            return response;
+        }
+
+        var renewed = await TokenRenewal
+            .EnsureRenewedAsync(tokenSent, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (renewed)
+        {
+            response.Dispose();
+
+            // Once, never in a loop: a 401 that survives a fresh token is not about the token.
+            var retry = Clone(request);
+            retry.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer", Preferences.Get("AuthToken", string.Empty));
+
+            return await base.SendAsync(retry, cancellationToken).ConfigureAwait(false);
+        }
+
+        SignOut();
+        return response;
+    }
+
+    /// <summary>
+    /// The session really is over. Once, however many requests fail together.
+    /// </summary>
+    private static void SignOut()
+    {
+        if (Interlocked.Exchange(ref _signOutInProgress, 1) != 0)
+        {
+            return;
+        }
+
+        Preferences.Remove("AuthToken");
+        TokenRenewal.Forget();
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            try
             {
-                // Solo redirigir si no estamos ya en el Login
-                if (Shell.Current.CurrentPage is not Views.LoginPage)
+                if (Shell.Current?.CurrentPage is not Views.LoginPage)
                 {
                     await Shell.Current.GoToAsync("///LoginPage");
                 }
-            });
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _signOutInProgress, 0);
+            }
+        });
+    }
+
+    /// <summary>
+    /// A request message cannot be sent twice. The content object is reused rather than copied:
+    /// it was buffered above and is safe to read again.
+    /// </summary>
+    private static HttpRequestMessage Clone(HttpRequestMessage request)
+    {
+        var clone = new HttpRequestMessage(request.Method, request.RequestUri)
+        {
+            Version = request.Version,
+            Content = request.Content
+        };
+
+        foreach (var header in request.Headers)
+        {
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
         }
 
-        return response;
+        foreach (var option in request.Options)
+        {
+            clone.Options.Set(new HttpRequestOptionsKey<object>(option.Key), option.Value);
+        }
+
+        return clone;
     }
 }

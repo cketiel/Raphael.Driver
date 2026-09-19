@@ -103,8 +103,10 @@ namespace Raphael.Driver.ViewModels
         [RelayCommand]
         async Task SignOut()
         {
-            AuthService _authService = new AuthService(new GpsService());
-            _authService.Logout();  
+            // Resolved rather than constructed: the one built by hand had its own HttpClient
+            // and knew nothing about the configured server.
+            var _authService = Services.ServiceHelper.GetService<Services.IAuthService>();
+            _authService.Logout();
 
             // Logout logic
             //Preferences.Clear(); 

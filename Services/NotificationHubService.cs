@@ -52,13 +52,27 @@ namespace Raphael.Driver.Services
                 await DisposeConnectionAsync();
             }
 
-            var baseUrl = Preferences.Get("ApiBaseUrl", "https://krasnovbw-001-site1.rtempurl.com/");
-            var hubUrl = $"{baseUrl.TrimEnd('/')}/hubs/notifications?access_token={Uri.EscapeDataString(token)}";
+            var hubUrl = $"{Configuration.ApiEnvironment.BaseUrl.TrimEnd('/')}/hubs/notifications";
 
             try
             {
+                // ⚠️ The token used to be appended to the URL as ?access_token=... A query
+                // string is written to server logs, proxy logs and anything in between, so the
+                // credential that opens a driver's session was being recorded in plain text on
+                // every reconnect. AccessTokenProvider sends it as a header instead, which is
+                // what the patient app already did, and the backend accepts both
+                // (Program.cs OnMessageReceived).
+                //
+                // It is a callback rather than a captured value on purpose: SignalR calls it
+                // again on every automatic reconnect, so a connection that drops after the
+                // token was renewed comes back with the new one instead of retrying forever
+                // with the old.
                 _connection = new HubConnectionBuilder()
-                    .WithUrl(hubUrl)
+                    .WithUrl(hubUrl, options =>
+                    {
+                        options.AccessTokenProvider = () =>
+                            Task.FromResult(Preferences.Get("AuthToken", string.Empty));
+                    })
                     .WithAutomaticReconnect()
                     .Build();
 

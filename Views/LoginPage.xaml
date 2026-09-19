@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Raphael.Driver.Views.LoginPage"
@@ -229,9 +229,30 @@
 
                 </HorizontalStackLayout>
 
-                <!-- Application version -->
+                <!--
+                    Application version, and the way in to the server dialog.
+
+                    Seven taps here opens it. It has to be on THIS page: the Settings page is
+                    behind the sign-in, and signing in is what needs a server address, so a
+                    phone pointed at the wrong one could not be fixed from inside the app.
+                    Seven taps rather than a button so a driver never finds it by accident,
+                    and so support can describe it over the telephone.
+                -->
                 <Label Text="{Binding Version}"
                        TextColor="{StaticResource SecondaryTextColor}"
+                       FontSize="11"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,4">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding TapVersionCommand}"/>
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <!-- Empty unless this build is pointed somewhere other than production. -->
+                <Label Text="{Binding EnvironmentBanner}"
+                       IsVisible="{Binding ShowEnvironmentBanner}"
+                       TextColor="{StaticResource AccentColorRed}"
+                       FontAttributes="Bold"
                        FontSize="11"
                        HorizontalOptions="Center"
                        Margin="0,0,0,15"/>

@@ -18,32 +18,19 @@ namespace Raphael.Driver.Services
         //private string URI = App.Configuration["ApiAddress:ApiTest"];
         private readonly IGpsService _gpsService;
 
-        public AuthService(IGpsService gpsService)
+        /// <summary>
+        /// ⚠️ The <see cref="HttpClient"/> is now taken from dependency injection instead of
+        /// being built here with a hard-coded address. The old constructor overwrote what
+        /// MauiProgram had just configured, so changing the address there moved every call in
+        /// the application EXCEPT signing in -- the worst possible half-move, because the
+        /// office would be working in one database while the drivers authenticated against
+        /// another and nothing would look broken. Taking the injected client also means
+        /// signing in finally passes through ClientVersionHandler.
+        /// </summary>
+        public AuthService(HttpClient httpClient, IGpsService gpsService)
         {
+            _httpClient = httpClient;
             _gpsService = gpsService;
-
-            //var baseUrl = Preferences.Get("ApiBaseUrl", string.Empty);
-            // "https://localhost:7244/"
-            //var baseUrl = "http://cketiel-001-site1.ntempurl.com/";
-            var baseUrl = "https://krasnovbw-001-site1.rtempurl.com/";
-
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                //ErrorMessage = "API URL is not configured.";
-                return;
-            }
-
-            _httpClient = new HttpClient();
-            
-            try
-            {
-                _httpClient.BaseAddress = new Uri(baseUrl);
-            }
-            catch (UriFormatException ex)
-            {               
-                System.Diagnostics.Debug.WriteLine($"Error setting BaseAddress: {ex.Message}");              
-                throw new InvalidOperationException("The API base URL is invalid.", ex);
-            }
         }
 
         public void Logout()
@@ -54,7 +41,17 @@ namespace Raphael.Driver.Services
             // keeps receiving the previous driver's notifications — trips that are not theirs.
             StopNotifications();
 
-            Preferences.Clear();
+            // Tell the server before the credential is gone. Not awaited: a phone with no
+            // signal must still be able to sign out.
+            var refreshToken = Auth.TokenRenewal.GetRefreshTokenAsync().GetAwaiter().GetResult();
+            _ = Auth.TokenRenewal.RevokeAsync(refreshToken);
+            Auth.TokenRenewal.Forget();
+
+            // ⚠️ Preferences.Clear() would also erase which server this phone talks to, so a
+            // driver who signs out loses the address support just walked them through setting
+            // -- silently falling back to the compiled default, which is the thing the support
+            // call was trying to get away from.
+            Configuration.ApiEnvironment.PreserveAcross(Preferences.Clear);
 
             // Stop GPS tracking
             if (_gpsService.IsTracking)

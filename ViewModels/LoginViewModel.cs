@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Diagnostics;
 using Raphael.Driver.Exceptions;
 using Raphael.Driver.Views;         // For RelayCommand
+using Raphael.Driver.Configuration;
 using Raphael.Driver.Helpers;
 
 namespace Raphael.Driver.ViewModels;
@@ -41,6 +42,22 @@ public partial class LoginViewModel : ObservableObject
     // Application version displayed on the Login page
     public string Version => AppVersion.Display;
 
+    /// <summary>
+    /// The server this phone is pointed at, shown only when that is not production.
+    /// </summary>
+    /// <remarks>
+    /// Empty in production on purpose. A banner that is there every day stops being read, and
+    /// then the one phone somebody left on DEV looks exactly like the other thirty — writing
+    /// real trips into the wrong database while nothing appears to be wrong.
+    /// </remarks>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEnvironmentBanner))]
+    string _environmentBanner = ApiEnvironment.IsProduction
+        ? string.Empty
+        : $"{ApiEnvironment.Name.ToUpperInvariant()} — {ApiEnvironment.BaseUrl}";
+
+    public bool ShowEnvironmentBanner => !string.IsNullOrEmpty(EnvironmentBanner);
+
     // For show/hide password icon
     public string PasswordToggleIcon => IsPasswordMasked ? "\uf070" : "\uf06e"; // eye-slash / eye
 
@@ -65,12 +82,19 @@ public partial class LoginViewModel : ObservableObject
 
         try
         {
-            var authService = new AuthService(new GpsService());
+            // ⚠️ Resolved, not constructed. `new AuthService(new GpsService())` built its own
+            // HttpClient outside dependency injection, which is why signing in ignored both
+            // the configured server address and the handler that identifies the build.
+            var authService = ServiceHelper.GetService<IAuthService>();
             var result = await authService.LoginAsync(new LoginRequest { Username = Username, Password = Password });
 
             if (result != null && result.IsSuccess)
             {
-                Preferences.Set("AuthToken", result.Token);
+                // Both halves together: the access token, and the credential that renews it
+                // without sending the driver back to this screen. The refresh token goes to
+                // SecureStorage, never to Preferences.
+                await Services.Auth.TokenRenewal.StoreAsync(result.Token, result.RefreshToken);
+
                 Preferences.Set("Username", Username);
                 Preferences.Set("UserId", result.UserId);
                 Preferences.Set("RememberMe", RememberMe);
@@ -185,6 +209,122 @@ public partial class LoginViewModel : ObservableObject
             ErrorMessage = "The link could not be opened.";
             await Application.Current.MainPage.DisplayAlert("Error", "The link could not be opened.", "OK");
         }
+    }
+
+    // ---------------------------------------------------------------- server settings
+
+    private int _versionTaps;
+    private DateTime _firstTapUtc;
+
+    /// <summary>
+    /// Seven taps on the version label opens the server dialog.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⚠️ It has to live on THIS screen. The Settings page is behind the sign-in, and signing
+    /// in is the thing that needs an address — so a phone pointed at the wrong server could
+    /// never be fixed from inside the application. That is what made the last move a visit to
+    /// thirty-one phones.
+    /// </para>
+    /// <para>
+    /// Seven taps, not a button: a driver must not find this by accident, and support can say
+    /// "tap the version number seven times" down a telephone. It is the per-device escape
+    /// hatch — moving the whole fleet is a DNS change, not thirty-one phone calls.
+    /// </para>
+    /// </remarks>
+    [RelayCommand]
+    private async Task TapVersion()
+    {
+        var now = DateTime.UtcNow;
+
+        // The run resets if the taps are spread out, so ordinary fidgeting never reaches seven.
+        if (_versionTaps == 0 || (now - _firstTapUtc).TotalSeconds > 5)
+        {
+            _versionTaps = 0;
+            _firstTapUtc = now;
+        }
+
+        if (++_versionTaps < 7)
+        {
+            return;
+        }
+
+        _versionTaps = 0;
+        await ShowServerDialogAsync();
+    }
+
+    private async Task ShowServerDialogAsync()
+    {
+        var page = Application.Current?.MainPage;
+
+        if (page is null)
+        {
+            return;
+        }
+
+        var current = ApiEnvironment.IsOverridden
+            ? $"{ApiEnvironment.Name} (set on this device)"
+            : $"{ApiEnvironment.Name} (as built)";
+
+        var choice = await page.DisplayActionSheet(
+            $"Server: {current}\n{ApiEnvironment.BaseUrl}",
+            "Cancel",
+            null,
+            "Production",
+            "Development",
+            "Other address...",
+            "Use the built-in default");
+
+        switch (choice)
+        {
+            case "Production":
+                ApiEnvironment.SetOverride(ApiEnvironment.Production, ApiEnvironment.ProductionUrl);
+                break;
+
+            case "Development":
+                ApiEnvironment.SetOverride(ApiEnvironment.Development, ApiEnvironment.DevelopmentUrl);
+                break;
+
+            case "Other address...":
+                var typed = await page.DisplayPromptAsync(
+                    "Server address",
+                    "Full address, including https://",
+                    initialValue: ApiEnvironment.BaseUrl,
+                    keyboard: Keyboard.Url);
+
+                if (string.IsNullOrWhiteSpace(typed))
+                {
+                    return;
+                }
+
+                // Checked before it is stored: a typo here leaves the phone unable to reach
+                // anything, on the one screen that cannot be used to fix it.
+                if (!Uri.TryCreate(typed.Trim(), UriKind.Absolute, out var uri) ||
+                    (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+                {
+                    await page.DisplayAlert("Server address", "That is not a valid address.", "OK");
+                    return;
+                }
+
+                ApiEnvironment.SetOverride("Custom", uri.ToString());
+                break;
+
+            case "Use the built-in default":
+                ApiEnvironment.ClearOverride();
+                break;
+
+            default:
+                return;
+        }
+
+        EnvironmentBanner = ApiEnvironment.IsProduction
+            ? string.Empty
+            : $"{ApiEnvironment.Name.ToUpperInvariant()} — {ApiEnvironment.BaseUrl}";
+
+        await page.DisplayAlert(
+            "Server changed",
+            $"Now pointing at:\n{ApiEnvironment.BaseUrl}\n\nClose and reopen the application so every part of it picks this up.",
+            "OK");
     }
 
     // Method to load preferences when starting the view

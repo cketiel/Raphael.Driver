@@ -18,7 +18,33 @@
 		<ApplicationVersion>9</ApplicationVersion>
 		<AssemblyVersion>1.2.0</AssemblyVersion>
 		<FileVersion>1.2.0</FileVersion>
+
+		<!--
+		  Which server a build of this project is compiled for.
+
+		  ⚠️ Declared ONCE, here, and always Prod. It is deliberately NOT varied by Debug and
+		  Release: choosing the server by build configuration means nobody can ever test a
+		  Release build against DEV, which is exactly what you want to do the day before
+		  shipping one. Pointing a phone somewhere else is the long-press on the version label
+		  on the sign-in screen, and that works in any build.
+
+		  The release gate (_meta/tools/Assert-ReleaseArtifact.ps1) refuses an APK whose csproj
+		  declares anything but Prod here.
+		-->
+		<RaphaelApiEnvironment>Prod</RaphaelApiEnvironment>
 	</PropertyGroup>
+
+	<!--
+	  Carries the value above into the binary, so that what the gate checks in the csproj is
+	  the same thing ApiEnvironment reads at runtime. Without this the property would be a
+	  claim nothing verifies.
+	-->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>RaphaelApiEnvironment</_Parameter1>
+			<_Parameter2>$(RaphaelApiEnvironment)</_Parameter2>
+		</AssemblyAttribute>
+	</ItemGroup>
 
 	<!-- =================================================================== -->
 	<!-- INICIO: CONFIGURACIÓN ESPECÍFICA PARA CADA PLATAFORMA (CORRECCIÓN) -->
