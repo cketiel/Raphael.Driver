@@ -63,6 +63,15 @@
     <Color x:Key="CardBackgroundColor">White</Color>
     <Color x:Key="PrimaryColor">#B82E49</Color>
 
+    <!--
+      ⚠️ Global on purpose, and it was not always. It lived inside LoginPage.xaml's own
+      resource dictionary, so AppShell.xaml referencing it resolved to nothing and threw while
+      the Shell was being built — the app closed the instant it was opened, on every launch.
+      The build did not catch it: a StaticResource that cannot be found is a runtime failure,
+      and the project compiled green. Anything used by more than one page belongs here.
+    -->
+    <Color x:Key="AccentColorRed">#FF6B6B</Color>
+
     <!-- Colores de Texto -->
     <Color x:Key="PrimaryTextColor">Black</Color>
     <Color x:Key="SecondaryTextColor">Gray</Color>

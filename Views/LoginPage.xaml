@@ -33,7 +33,8 @@
 
             <Color x:Key="PlaceholderColor">#FFC0C0</Color>
 
-            <Color x:Key="AccentColorRed">#FF6B6B</Color>
+            <!-- AccentColorRed moved to Resources/Styles/Colors.xaml: the flyout needs it too,
+                 and a page-level copy is invisible to everything outside this page. -->
 
             <Style TargetType="Label" x:Key="IconLabelStyle">
                 <Setter Property="FontFamily" Value="FontAwesomeSolid" />
