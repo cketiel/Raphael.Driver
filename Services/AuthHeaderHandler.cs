@@ -46,11 +46,11 @@ public class AuthHeaderHandler : DelegatingHandler
             return response;
         }
 
-        var renewed = await TokenRenewal
+        var outcome = await TokenRenewal
             .EnsureRenewedAsync(tokenSent, cancellationToken)
             .ConfigureAwait(false);
 
-        if (renewed)
+        if (outcome == TokenRenewal.RenewalOutcome.Renewed)
         {
             response.Dispose();
 
@@ -62,7 +62,31 @@ public class AuthHeaderHandler : DelegatingHandler
             return await base.SendAsync(retry, cancellationToken).ConfigureAwait(false);
         }
 
-        SignOut();
+        // ⚠️ Only SessionOver ends the session. Unavailable means nothing was decided — no
+        // signal, a timeout, a server still starting up — and the request simply fails, which
+        // the screen that made it can retry. Before this, any failure to renew signed the
+        // driver out: on DEV, which has no Always On and takes a minute and a half to wake,
+        // that meant signing in and being thrown straight back to the sign-in screen.
+        //
+        // ⚠️ Console.WriteLine and not Debug.WriteLine, and this is the reason the last three
+        // faults took a build each to find: Debug.WriteLine is [Conditional("DEBUG")], so
+        // every diagnostic line in this application writes nothing at all in the Release APK
+        // that testers and drivers actually run. Being signed out unexpectedly is the single
+        // hardest thing to diagnose after the fact -- the evidence is gone with the session --
+        // so this one line survives into Release, tagged for grepping in logcat.
+        //
+        Console.WriteLine(
+            $"RAPHAEL-SESSION: 401 on {request.Method} {request.RequestUri?.PathAndQuery}, " +
+            $"renewal outcome {outcome}. " +
+            (outcome == TokenRenewal.RenewalOutcome.SessionOver
+                ? "Signing out."
+                : "Leaving the session alone; the request just fails."));
+
+        if (outcome == TokenRenewal.RenewalOutcome.SessionOver)
+        {
+            SignOut();
+        }
+
         return response;
     }
 
