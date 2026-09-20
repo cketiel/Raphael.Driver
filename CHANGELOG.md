@@ -3,6 +3,52 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The record starts at version `1.1.0`; earlier history is not reconstructed.
 
+## [1.5.0] - 2026-09-20
+
+⚠️ **This is the version the Azure cutover starts from.** Until now the address of the server was
+compiled into the APK, so moving the backend meant visiting all 31 phones - and that is what
+stalled the cutover. Session renewal needs a backend that serves `POST /api/Auth/refresh`
+(Raphael.Backend 1.1.0 or later); against an older one the sign-in response simply carries no
+refresh token and the application behaves exactly as it used to.
+
+### Added
+- **The phone can be pointed at a server without a new APK.** Seven taps on the version label of
+  the sign-in screen open a dialog: Production, Development, a typed address, or back to the
+  built-in default. It has to live on the sign-in screen, because Settings is behind the sign-in
+  and signing in is the thing that needs an address. Seven taps rather than a button so a driver
+  never finds it by accident and support can describe it over the telephone. Moving the whole
+  fleet is still a DNS change: the compiled-in value is the custom domain, never the Azure host.
+- The flyout and the sign-in screen name the server when it is not production. The sign-in screen
+  is seen once at the start of a shift; the flyout is open all day, and a phone left on
+  development otherwise looks like every other one.
+- The version label reads `1.5.0 (13)`, display version and build number together. Two builds of
+  the same version looked identical on screen while behaving differently.
+- **The session renews itself**, so a driver is not sent back to the sign-in screen in the middle
+  of a route. Renewals are serialised, and a renewal that fails because the network is down does
+  not end the session.
+- Every request identifies the application and its version to the server (`X-Client-App`,
+  `X-Client-Version`), sign-in included - which is also what finally puts the sign-in call inside
+  the server's telemetry.
+
+### Changed
+- **On a return leg the five-minute early-arrival margin is now used**, not fifteen. Merged before
+  1.4.0 was cut and never shipped until now: until this APK, driver and dispatcher were reading
+  hours ten minutes apart on every return trip.
+- Signing in opens today's schedule straight away and brings notifications up behind it. None of
+  that bring-up is needed to read a schedule.
+- The one log line that says why a session ended survives in the Release APK (`RAPHAEL-SESSION` in
+  logcat). Every other diagnostic in this app is compiled out of Release, which is why the last
+  three faults each cost a build to find.
+- The schedule DTO carries the waiting time the server derives for an early arrival. Nothing draws
+  it yet; the copy is kept in step with `Raphael.Shared`, which is the source of truth.
+
+### Fixed
+- Signing in used to wait for the entire notification bring-up before showing anything: an HTTP
+  round trip, a SignalR connection, the Android permission dialog and a Firebase token. On a fresh
+  install that was tens of seconds of spinner, and if the permission dialog went unnoticed it never
+  finished at all.
+- Signing out froze the phone, every time, with no way out but killing the application.
+
 ## [1.4.0] - 2026-08-29
 
 ### Changed
