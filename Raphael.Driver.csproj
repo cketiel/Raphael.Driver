@@ -14,11 +14,38 @@
 		<!-- Propiedades Generales -->
 		<ApplicationTitle>Raphael.Driver</ApplicationTitle>
 		<ApplicationId>com.raphael.driver</ApplicationId>
-		<ApplicationDisplayVersion>1.4.0</ApplicationDisplayVersion>
-		<ApplicationVersion>9</ApplicationVersion>
+		<ApplicationDisplayVersion>1.5.0</ApplicationDisplayVersion>
+		<ApplicationVersion>13</ApplicationVersion>
 		<AssemblyVersion>1.2.0</AssemblyVersion>
 		<FileVersion>1.2.0</FileVersion>
+
+		<!--
+		  Which server a build of this project is compiled for.
+
+		  ⚠️ Declared ONCE, here, and always Prod. It is deliberately NOT varied by Debug and
+		  Release: choosing the server by build configuration means nobody can ever test a
+		  Release build against DEV, which is exactly what you want to do the day before
+		  shipping one. Pointing a phone somewhere else is done from the sign-in screen —
+		  seven taps on the version label, or #server as the username — and that works in any
+		  build. (This said "long-press" until 2026-09-19. There has never been a long-press.)
+
+		  The release gate (_meta/tools/Assert-ReleaseArtifact.ps1) refuses an APK whose csproj
+		  declares anything but Prod here.
+		-->
+		<RaphaelApiEnvironment>Prod</RaphaelApiEnvironment>
 	</PropertyGroup>
+
+	<!--
+	  Carries the value above into the binary, so that what the gate checks in the csproj is
+	  the same thing ApiEnvironment reads at runtime. Without this the property would be a
+	  claim nothing verifies.
+	-->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>RaphaelApiEnvironment</_Parameter1>
+			<_Parameter2>$(RaphaelApiEnvironment)</_Parameter2>
+		</AssemblyAttribute>
+	</ItemGroup>
 
 	<!-- =================================================================== -->
 	<!-- INICIO: CONFIGURACIÓN ESPECÍFICA PARA CADA PLATAFORMA (CORRECCIÓN) -->
@@ -73,8 +100,8 @@
 		     ApplicationVersion is the Android versionCode: Google Play refuses an upload whose
 		     versionCode is not strictly greater than the last one, so it only ever goes up,
 		     never back, and never repeats — even for a build that is thrown away. -->
-		<ApplicationDisplayVersion>1.4.0</ApplicationDisplayVersion>
-		<ApplicationVersion>9</ApplicationVersion>
+		<ApplicationDisplayVersion>1.5.0</ApplicationDisplayVersion>
+		<ApplicationVersion>13</ApplicationVersion>
 
 		<!-- Aquí irán las propiedades de firma que el asistente de publicación añade automáticamente -->
 		<!-- Ejemplo: -->

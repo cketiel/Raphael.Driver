@@ -1,6 +1,8 @@
 ﻿ using CommunityToolkit.Maui;
 using Raphael.Driver.Models;
+using Raphael.Driver.Configuration;
 using Raphael.Driver.Services;
+using Raphael.Driver.Services.Auth;
 using Raphael.Driver.ViewModels;
 using Raphael.Driver.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,41 +28,52 @@ namespace Raphael.Driver
                 });
 
             // --- API BASE URL ---
-            var baseUrl = "https://krasnovbw-001-site1.rtempurl.com/";
+            //
+            // Resolved once, here, before anything can make a request. It used to be a literal
+            // on this line and in three other live places, one of which overwrote the address
+            // this very registration supplies. See Configuration/ApiEnvironment.
+            ApiEnvironment.Initialise();
 
             // --- DEPENDENCY INJECTION ---
 
             // Register the Interceptor (Token Handler)
             builder.Services.AddTransient<AuthHeaderHandler>();
+            builder.Services.AddTransient<ClientVersionHandler>();
 
             // Register Services with HttpClient injected
 
-            // AuthService: Does not have an interceptor because the Login is public
+            // AuthService: no auth interceptor, because signing in is what produces the token.
+            // It DOES get the version handler: signing in is the first call anybody makes, and
+            // leaving it out is what kept it out of the server's telemetry entirely.
             builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-            });
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+            }).AddHttpMessageHandler<ClientVersionHandler>();
 
             // Services that DO require JWT Token (the interceptor is added)
             builder.Services.AddHttpClient<IScheduleService, ScheduleService>(client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-            }).AddHttpMessageHandler<AuthHeaderHandler>();
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
 
             builder.Services.AddHttpClient<IRunService, RunService>(client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-            }).AddHttpMessageHandler<AuthHeaderHandler>();
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
 
             builder.Services.AddHttpClient<IProviderService, ProviderService>(client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-            }).AddHttpMessageHandler<AuthHeaderHandler>();
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
 
             builder.Services.AddHttpClient<INotificationApiService, NotificationApiService>(client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-            }).AddHttpMessageHandler<AuthHeaderHandler>();
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
 
             // --- NOTIFICATIONS ---
             // Singletons: the bell in the navigation bar and the notifications page read the
@@ -132,9 +145,10 @@ namespace Raphael.Driver
             // Register a GPS-specific client that uses the Token interceptor
             builder.Services.AddHttpClient("GpsClient", client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
             })
-            .AddHttpMessageHandler<AuthHeaderHandler>();
+            .AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
 
             // We register the GPS service using a factory
             // which gets the static instance of MainActivity

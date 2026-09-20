@@ -18,43 +18,48 @@ namespace Raphael.Driver.Services
         //private string URI = App.Configuration["ApiAddress:ApiTest"];
         private readonly IGpsService _gpsService;
 
-        public AuthService(IGpsService gpsService)
+        /// <summary>
+        /// ⚠️ The <see cref="HttpClient"/> is now taken from dependency injection instead of
+        /// being built here with a hard-coded address. The old constructor overwrote what
+        /// MauiProgram had just configured, so changing the address there moved every call in
+        /// the application EXCEPT signing in -- the worst possible half-move, because the
+        /// office would be working in one database while the drivers authenticated against
+        /// another and nothing would look broken. Taking the injected client also means
+        /// signing in finally passes through ClientVersionHandler.
+        /// </summary>
+        public AuthService(HttpClient httpClient, IGpsService gpsService)
         {
+            _httpClient = httpClient;
             _gpsService = gpsService;
-
-            //var baseUrl = Preferences.Get("ApiBaseUrl", string.Empty);
-            // "https://localhost:7244/"
-            //var baseUrl = "http://cketiel-001-site1.ntempurl.com/";
-            var baseUrl = "https://krasnovbw-001-site1.rtempurl.com/";
-
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                //ErrorMessage = "API URL is not configured.";
-                return;
-            }
-
-            _httpClient = new HttpClient();
-            
-            try
-            {
-                _httpClient.BaseAddress = new Uri(baseUrl);
-            }
-            catch (UriFormatException ex)
-            {               
-                System.Diagnostics.Debug.WriteLine($"Error setting BaseAddress: {ex.Message}");              
-                throw new InvalidOperationException("The API base URL is invalid.", ex);
-            }
         }
 
-        public void Logout()
+        /// <remarks>
+        /// ⚠️ Nothing in here blocks a thread, and that is the whole point of the rewrite.
+        /// The previous version was <c>void</c> and ran on the UI thread, where it called
+        /// <c>GetRefreshTokenAsync().GetAwaiter().GetResult()</c>. Secure storage resumed onto
+        /// the UI thread, the UI thread was sitting inside <c>GetResult()</c> waiting for it,
+        /// and the application froze — every time, on both environments, with no way out but
+        /// killing it. Signing out is the one action that must never be able to trap a driver.
+        /// </remarks>
+        public async Task LogoutAsync()
         {
             // ⚠️ Notifications go down BEFORE the session is wiped: both the call that forgets
             // this device on the server and the hub connection need the token that is about to
             // disappear. Phones are handed over between shifts, and a device left registered
             // keeps receiving the previous driver's notifications — trips that are not theirs.
-            StopNotifications();
+            await StopNotificationsAsync().ConfigureAwait(false);
 
-            Preferences.Clear();
+            // Tell the server before the credential is gone. The revocation itself is not
+            // awaited: a phone with no signal must still be able to sign out.
+            var refreshToken = await Auth.TokenRenewal.GetRefreshTokenAsync().ConfigureAwait(false);
+            _ = Auth.TokenRenewal.RevokeAsync(refreshToken);
+            Auth.TokenRenewal.Forget();
+
+            // ⚠️ Preferences.Clear() would also erase which server this phone talks to, so a
+            // driver who signs out loses the address support just walked them through setting
+            // -- silently falling back to the compiled default, which is the thing the support
+            // call was trying to get away from.
+            Configuration.ApiEnvironment.PreserveAcross(Preferences.Clear);
 
             // Stop GPS tracking
             if (_gpsService.IsTracking)
@@ -63,14 +68,20 @@ namespace Raphael.Driver.Services
                 _gpsService.StopTracking();
             }
 
-            // The flyout does not close on its own when the route changes, so signing out
-            // left the menu hanging open over the login page.
-            Shell.Current.FlyoutIsPresented = false;
+            // Back to the UI thread explicitly: everything above ran with
+            // ConfigureAwait(false), so by here there is no guarantee of being on it, and
+            // touching Shell from a background thread is its own crash.
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                // The flyout does not close on its own when the route changes, so signing out
+                // left the menu hanging open over the login page.
+                Shell.Current.FlyoutIsPresented = false;
 
-            Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+                await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+            });
         }
 
-        private static void StopNotifications()
+        private static async Task StopNotificationsAsync()
         {
             try
             {
@@ -81,12 +92,14 @@ namespace Raphael.Driver.Services
                 if (session is null)
                     return;
 
-                // Waited on rather than fired and forgotten: Preferences.Clear() runs right
-                // after this and the API call still needs the token. Task.Run keeps the
-                // continuations off the UI thread — blocking on them there deadlocks — and the
-                // timeout means a phone with no signal cannot leave a driver unable to sign out.
-                Task.Run(async () => await session.StopAsync())
-                    .Wait(TimeSpan.FromSeconds(5));
+                // Awaited rather than fired and forgotten: Preferences.Clear() runs right
+                // after this and the API call still needs the token. The timeout means a
+                // phone with no signal cannot leave a driver unable to sign out — and
+                // WaitAsync, not Wait, so the five seconds are spent waiting rather than
+                // holding the interface frozen.
+                await session.StopAsync()
+                    .WaitAsync(TimeSpan.FromSeconds(5))
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {

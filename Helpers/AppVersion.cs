@@ -15,6 +15,14 @@ namespace Raphael.Driver.Helpers
         /// <summary>
         /// Gets the application version formatted for display.
         /// </summary>
-        public static string Display => $"Version {Current}";
+        /// <remarks>
+        /// ⚠️ The build number in brackets is the Android versionCode, and it is here because
+        /// the version alone cannot answer "which build is on this phone?". Two builds of
+        /// 1.5.0 can exist — a candidate under test and the one that ships — and they look
+        /// identical on screen while behaving differently. The versionCode never repeats, so
+        /// it is the only thing on screen that identifies a build exactly. It is also the
+        /// first thing to ask for on a support call.
+        /// </remarks>
+        public static string Display => $"Version {Current} ({AppInfo.Current.BuildString})";
     }
 }

@@ -29,7 +29,7 @@
 
         <Grid Padding="20,30"
               BackgroundColor="{StaticResource CardBackgroundColor}"
-              RowDefinitions="Auto,Auto,Auto">
+              RowDefinitions="Auto,Auto,Auto,Auto">
 
             <Image Grid.Row="0"
                    Source="logo.png"
@@ -52,6 +52,18 @@
                    HorizontalOptions="Center"
                    HorizontalTextAlignment="Center"
                    Margin="0,3,0,0" />
+
+            <!-- Empty on production. Red and next to the version everywhere else, because the
+                 login page is seen once at the start of a shift and this is open all day. -->
+            <Label Grid.Row="3"
+                   Text="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=EnvironmentBanner}"
+                   IsVisible="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=ShowEnvironmentBanner}"
+                   TextColor="{StaticResource AccentColorRed}"
+                   FontAttributes="Bold"
+                   FontSize="11"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,4,0,0" />
 
         </Grid>
 

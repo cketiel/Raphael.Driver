@@ -12,8 +12,12 @@ namespace Raphael.Driver
         {
             //AppConfig.Init();
             InitializeComponent();
-            Preferences.Set("ApiBaseUrl", "https://krasnovbw-001-site1.rtempurl.com/");
-            //Preferences.Set("ApiBaseUrl", "https://localhost:7244/");
+
+            // ⚠️ REMOVED: this used to write Preferences["ApiBaseUrl"] with a hard-coded
+            // address on EVERY start, which meant any value stored there died at the next
+            // launch -- so the preference could never have worked as an override, and the
+            // address could only be changed by rebuilding. The server now comes from
+            // Configuration/ApiEnvironment, resolved in MauiProgram before anything runs.
             MainPage = new AppShell();
             // Go directly to LoginPage on startup
             //Shell.Current.GoToAsync("//LoginPage");
