@@ -75,6 +75,15 @@ namespace Raphael.Driver
             }).AddHttpMessageHandler<AuthHeaderHandler>()
             .AddHttpMessageHandler<ClientVersionHandler>();
 
+            // Fifteen seconds instead of the default hundred: a press that cannot get through has
+            // to fail fast, because what comes after the failure is the offer to phone the office.
+            builder.Services.AddHttpClient<ICallRequestService, CallRequestService>(client =>
+            {
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(15);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
+
             // --- NOTIFICATIONS ---
             // Singletons: the bell in the navigation bar and the notifications page read the
             // same list and the same counter, so they cannot show different numbers.
@@ -85,6 +94,12 @@ namespace Raphael.Driver
             builder.Services.AddSingleton<RouteSignalCoordinator>();
             builder.Services.AddSingleton<INotificationHubService, NotificationHubService>();
             builder.Services.AddSingleton<NotificationSessionService>();
+
+            // --- CALL REQUESTS ---
+            // Singleton for the same reason as the notification store: the Call me button on every
+            // page reads one state. The button's view model is one per button.
+            builder.Services.AddSingleton<CallRequestStore>();
+            builder.Services.AddTransient<CallRequestButtonViewModel>();
 
             // Other services that are not API or have special logic
             builder.Services.AddSingleton<IMapService, MapService>();

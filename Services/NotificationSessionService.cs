@@ -20,6 +20,7 @@ namespace Raphael.Driver.Services
         private readonly ConsumedSignalStore _consumedSignals;
         private readonly IPushTokenProvider _pushTokens;
         private readonly RouteSignalCoordinator _signals;
+        private readonly CallRequestStore _callRequests;
 
         public NotificationSessionService(
             INotificationApiService api,
@@ -28,9 +29,11 @@ namespace Raphael.Driver.Services
             HiddenNotificationStore hidden,
             ConsumedSignalStore consumedSignals,
             IPushTokenProvider pushTokens,
-            RouteSignalCoordinator signals)
+            RouteSignalCoordinator signals,
+            CallRequestStore callRequests)
         {
             _signals = signals;
+            _callRequests = callRequests;
             _api = api;
             _hub = hub;
             _store = store;
@@ -54,6 +57,12 @@ namespace Raphael.Driver.Services
             // socket and without permission being granted.
             await _store.RefreshAsync();
 
+            // Started here, before the hub and the permission dialog, so a request the driver left
+            // open before the app closed is on the button from the start. Not awaited: it also
+            // reads the office's phone number, and on a weak signal that must not hold back the
+            // notifications that were already here. It swallows its own errors.
+            _ = _callRequests.StartAsync();
+
             await _hub.StartAsync();
 
             // Route changes that happened while the app was closed. Harmless if stale: the
@@ -69,6 +78,12 @@ namespace Raphael.Driver.Services
         /// </summary>
         public async Task StopAsync()
         {
+            // First, and without waiting on the network: with no signal the calls below can hang
+            // well past the five seconds sign out gives them, and a clear that lands after the
+            // next driver signed in would wipe their button instead. The request itself stays
+            // open on the server, where the office still sees it and can still call.
+            _callRequests.Clear();
+
             try
             {
                 await _api.ClearPushTokenAsync();

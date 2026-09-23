@@ -97,6 +97,9 @@
                            Color="#B82E49"
                            HeightRequest="50"
                            WidthRequest="50"/>
+
+        <!-- No route chosen yet: the server works out the driver's route for today, if there is one. -->
+        <controls:CallRequestButton />
         
     </Grid>
 </ContentPage>

@@ -200,5 +200,9 @@
                        VerticalOptions="Center"
                        Color="{StaticResource Primary}"/>
 
+    <!-- The van that will not start is asked about here, before the Pull-out is performed. -->
+    <controls:CallRequestButton VehicleRouteId="{Binding Event.VehicleRouteId}"
+                                ScheduleId="{Binding Event.Id}" />
+
     </Grid>
 </ContentPage>

@@ -166,7 +166,17 @@ namespace Raphael.Driver.ViewModels
             Actions.Add(new EventAction { Text = mapActionText, IconGlyph = "", Command = MapsCommand });
             //Actions.Add(new EventAction { Text = "Maps - Appointment Address", IconGlyph = "", Command = MapsCommand });
 
-            Actions.Add(new EventAction { Text = "Call Dispatch", IconGlyph = "", Command = CallDispatchCommand });
+            // Disabled, not removed, and in the same place: drivers ask for a call with the Call me
+            // button now, so the office calls back with the route in front of it. No command set
+            // at all, so the row cannot dial even if the platform lets a tap through a disabled
+            // view. CallDispatchCommand stays, for the day this decision is reversed.
+            Actions.Add(new EventAction
+            {
+                Text = "Call Dispatch",
+                IconGlyph = "",
+                IsEnabled = false,
+                Hint = "Use the Call me button instead"
+            });
             //Actions.Add(new EventAction { Text = "Send Dispatch Message", IconGlyph = "", Command = SendDispatchMessageCommand });
         }
 

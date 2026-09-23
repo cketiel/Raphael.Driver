@@ -32,6 +32,13 @@ namespace Raphael.Driver.ViewModels
         [ObservableProperty]
         private bool _showNoEventsMessage;
 
+        /// <summary>
+        /// The route these trips belong to, for the Call me button. Kept when the list empties: the
+        /// run is still the same one after its last trip.
+        /// </summary>
+        [ObservableProperty]
+        private int _vehicleRouteId;
+
         public TodayScheduleViewModel(IScheduleService scheduleService, ISessionManagerService sessionManager)
         {
             _scheduleService = scheduleService;
@@ -63,6 +70,9 @@ namespace Raphael.Driver.ViewModels
                 {
                     Events.Add(ev);
                 }
+
+                if (Events.FirstOrDefault() is { } first)
+                    VehicleRouteId = first.VehicleRouteId;
              
                 //SessionManagerService _sessionManager = new SessionManagerService(new GpsService());
                 //await _sessionManager.CheckAndResumeGpsTrackingAsync(Events);

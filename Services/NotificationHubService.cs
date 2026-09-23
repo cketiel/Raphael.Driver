@@ -22,15 +22,18 @@ namespace Raphael.Driver.Services
     {
         private readonly NotificationStore _store;
         private readonly RouteSignalCoordinator _signals;
+        private readonly CallRequestStore _callRequests;
 
         private HubConnection? _connection;
 
         public NotificationHubService(
             NotificationStore store,
-            RouteSignalCoordinator signals)
+            RouteSignalCoordinator signals,
+            CallRequestStore callRequests)
         {
             _store = store;
             _signals = signals;
+            _callRequests = callRequests;
         }
 
         public bool IsConnected =>
@@ -88,6 +91,10 @@ namespace Raphael.Driver.Services
 
                     if (notification.IsSignal)
                         await _signals.ReceiveAsync(notification);
+
+                    // The office took the request: the button turns green now, not at the next poll.
+                    if (notification.BusinessEventCode == CallRequestStore.ClaimedEventCode)
+                        await _callRequests.RefreshAsync();
                 });
 
                 // The server sends this after any change it made on the driver's behalf, and
@@ -112,6 +119,7 @@ namespace Raphael.Driver.Services
                     // Whatever arrived while the socket was down is only in the database.
                     await _store.RefreshAsync();
                     await _signals.SyncAsync();
+                    await _callRequests.RefreshAsync();
                 };
 
                 await _connection.StartAsync(cancellationToken);

@@ -1,5 +1,6 @@
 ﻿using Raphael.Driver.Models;
 using Raphael.Driver.Resources.Styles;
+using Raphael.Driver.Services;
 using Microsoft.Extensions.Configuration;
 
 
@@ -39,6 +40,25 @@ namespace Raphael.Driver
         protected override void OnStart()
         {           
             Shell.Current.GoToAsync("///LoginPage");
+        }
+
+        /// <summary>
+        /// Stops the Call me button asking the server while nobody can see it.
+        /// </summary>
+        protected override void OnSleep()
+        {
+            ServiceHelper.GetService<CallRequestStore>()?.Pause();
+        }
+
+        /// <summary>
+        /// Whatever the office did with the request while the app was away is only on the server.
+        /// </summary>
+        protected override void OnResume()
+        {
+            var store = ServiceHelper.GetService<CallRequestStore>();
+
+            if (store is not null)
+                _ = store.ResumeAsync();
         }
 
         private void OnRequestedThemeChanged(object sender, AppThemeChangedEventArgs e)
