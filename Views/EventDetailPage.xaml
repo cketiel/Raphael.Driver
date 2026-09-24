@@ -49,6 +49,9 @@
         </Style>
     </ContentPage.Resources>
 
+    <!-- A grid only so the Call me button can float over the page. -->
+    <Grid>
+
     <ScrollView>
         <VerticalStackLayout Spacing="1">
 
@@ -59,10 +62,17 @@
                         <!-- We use a VerticalStackLayout as the main container of the entire item -->
                         <VerticalStackLayout Spacing="0">
                           
-                            <Grid Style="{StaticResource NavRowStyle}" ColumnDefinitions="7,*">
+                            <Grid Style="{StaticResource NavRowStyle}" ColumnDefinitions="7,*" IsEnabled="{Binding IsEnabled}">
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding Command}"/>
                                 </Grid.GestureRecognizers>
+
+                                <!-- A disabled row stays where the driver expects it, faded, saying what replaced it. -->
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding IsEnabled}" Value="False">
+                                        <Setter Property="Opacity" Value="0.45" />
+                                    </DataTrigger>
+                                </Grid.Triggers>
 
                                 <!-- The color bar in Column 0 -->
                                 <BoxView Grid.Column="0" 
@@ -71,8 +81,11 @@
                                 <!-- The content (icon, text, arrow) in Column 1 -->
                                 <Grid Grid.Column="1" Padding="15" ColumnDefinitions="Auto, *, Auto">
                                     <Label Grid.Column="0" Text="{Binding IconGlyph}" Style="{StaticResource NavIconStyle}"/>
-                                    <Label Grid.Column="1" Text="{Binding Text}" Style="{StaticResource NavLabelStyle}"/>
-                                    <Label Grid.Column="2" Text="" FontFamily="FontAwesomeSolid" VerticalOptions="Center"/>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Text}" Style="{StaticResource NavLabelStyle}"/>
+                                        <Label Text="{Binding Hint}" IsVisible="{Binding HasHint}" FontSize="13" TextColor="{StaticResource SecondaryTextColor}"/>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" Text="" FontFamily="FontAwesomeSolid" VerticalOptions="Center" IsVisible="{Binding IsEnabled}"/>
                                 </Grid>
                             </Grid>
 
@@ -204,6 +217,14 @@
 
                 </VerticalStackLayout>
             </Border>
+
+            <!-- Room to scroll the comment out from under the Call me button. -->
+            <BoxView HeightRequest="96" Color="Transparent" />
         </VerticalStackLayout>
     </ScrollView>
+
+    <controls:CallRequestButton VehicleRouteId="{Binding Event.VehicleRouteId}"
+                                ScheduleId="{Binding Event.Id}" />
+
+    </Grid>
 </ContentPage>

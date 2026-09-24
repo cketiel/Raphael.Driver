@@ -109,6 +109,8 @@ namespace Raphael.Driver.Services
             }
         }
 
+        public Task SendNowAsync() => IsTracking ? SendLocationAsync() : Task.CompletedTask;
+
         private async Task SendLocationAsync()
         {
             try

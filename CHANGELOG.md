@@ -3,6 +3,28 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The record starts at version `1.1.0`; earlier history is not reconstructed.
 
+## [1.6.0] - 2026-09-24
+
+⚠️ **Needs Raphael.Backend 1.2.0 (RE-026), and Desktop 1.10.0 on every office workstation first.**
+Against an older backend "Call me" cannot send and offers to call the office instead. Published as
+the tested candidate rc.2 (versionCode 15), renamed, not rebuilt.
+
+### Added
+- **"Call me".** A floating button on the dashboard, the schedule screens, the event detail and the
+  Pull-out detail - never on the signature page - asks dispatch to call the driver back instead of
+  the driver phoning in. It shows how the request is going: blue, orange with the minutes waited,
+  green when somebody in the office has it, red after a missed call with "I can talk now". Remind,
+  cancel, and a toast for every answer.
+- When a request cannot be sent, "Call the office" dials the office's number, kept on the phone so
+  it works with no data.
+- The request carries the driver's line, remembered from the last screen that knew it, and a fresh
+  GPS position when tracking is on.
+- A one-time explanation of the button on Today's Schedule.
+
+### Changed
+- Contact's "Call the Office" and the event's "Call Dispatch" are disabled, not removed: same place,
+  greyed out, pointing to "Call me". The order Arrive, Signature, Perform/Cancel does not change.
+
 ## [1.5.0] - 2026-09-20
 
 ⚠️ **This is the version the Azure cutover starts from.** Until now the address of the server was

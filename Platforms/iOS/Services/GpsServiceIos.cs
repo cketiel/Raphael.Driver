@@ -85,6 +85,26 @@ namespace Raphael.Driver.Services
             _ = SendLocationAsync(mauiLocation, lastLocation.Speed, lastLocation.Course);
         }
 
+        public async Task SendNowAsync()
+        {
+            if (!_isTracking)
+                return;
+
+            try
+            {
+                var location = await GetCurrentLocationAsync();
+
+                if (location is null)
+                    return;
+
+                await SendLocationAsync(location, location.Speed ?? 0, location.Course ?? -1);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Exception in SendNowAsync: {ex.Message}");
+            }
+        }
+
         private async Task SendLocationAsync(Location location, double speed, double course)
         {
             try

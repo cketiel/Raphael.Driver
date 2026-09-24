@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
+             x:Class="Raphael.Driver.Controls.CallRequestButton"
+             HorizontalOptions="End"
+             VerticalOptions="End"
+             Margin="0,0,16,20">
+
+    <!--
+        The "Call me" button: the driver asks dispatch to call back instead of phoning. It floats
+        at the bottom right of the page that hosts it, the corner a thumb reaches without letting
+        go of the phone, and it shows how the request is going without opening anything:
+
+            blue "Call me" -> orange "7 min ×2" -> green "On it" -> red "Missed call"
+
+        Sixty-four units high, above the forty-eight a touch target needs, because it is used in a
+        vehicle. Every page that hosts it lays it over its content as the last child of a grid,
+        and leaves room at the end of its list so the button never covers the last row.
+
+        ⚠️ Never on the signature page: a passenger is holding the phone there.
+
+        The surface is bound to its own view model, set in the code behind before anything binds.
+        The two numbers the page passes in - the route and the stop on screen - are bound on this
+        control instead, against the page's own view model.
+    -->
+    <Border x:Name="Surface"
+            x:DataType="viewmodels:CallRequestButtonViewModel"
+            BackgroundColor="{Binding SurfaceColor}"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 32"
+            HeightRequest="64"
+            MinimumWidthRequest="64"
+            Padding="20,0"
+            SemanticProperties.Description="{Binding Description}"
+            SemanticProperties.Hint="Opens the options for your call request">
+
+        <Border.Shadow>
+            <Shadow Brush="Black" Opacity="0.35" Radius="8" Offset="0,3" />
+        </Border.Shadow>
+
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding TapCommand}" />
+        </Border.GestureRecognizers>
+
+        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+
+            <Grid WidthRequest="24" HeightRequest="24" VerticalOptions="Center">
+
+                <Label Text="{Binding Glyph}"
+                       FontFamily="FontAwesomeSolid"
+                       FontSize="22"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding IsBusy}" Value="True">
+                            <Setter Property="IsVisible" Value="False" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!-- In place of the icon while a press is on its way: the tap was heard. -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="White"
+                                   WidthRequest="22"
+                                   HeightRequest="22" />
+            </Grid>
+
+            <Label Text="{Binding Text}"
+                   TextColor="White"
+                   FontSize="17"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center" />
+        </HorizontalStackLayout>
+    </Border>
+</ContentView>

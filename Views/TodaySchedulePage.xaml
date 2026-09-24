@@ -41,6 +41,12 @@
         </Style>
     </ContentPage.Resources>
 
+    <!--
+        A grid only so the Call me button floats over the list without being part of it: inside
+        the RefreshView it would move with the pull-to-refresh gesture.
+    -->
+    <Grid>
+
     <!-- We use a RefreshView to enable reloading and handle the loading indicator -->
     <RefreshView Command="{Binding LoadEventsCommand}" IsRefreshing="{Binding IsBusy}">
 
@@ -199,6 +205,11 @@
                             </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
+
+                    <!-- Room to scroll the last trip out from under the Call me button. -->
+                    <CollectionView.Footer>
+                        <BoxView HeightRequest="96" Color="Transparent" />
+                    </CollectionView.Footer>
                 </CollectionView>
 
 
@@ -216,4 +227,10 @@
             </Grid>
         </Grid>
     </RefreshView>
+
+    <!-- The page the shift is spent on, so the one that explains the button the first time. -->
+    <controls:CallRequestButton VehicleRouteId="{Binding VehicleRouteId}"
+                                ShowIntro="True" />
+
+    </Grid>
 </ContentPage>

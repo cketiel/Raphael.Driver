@@ -13,6 +13,12 @@ namespace Raphael.Driver.Services
         void StopTracking();
         Task<Location?> GetCurrentLocationAsync();
 
+        /// <summary>
+        /// Reports the current position right away instead of at the next tick. Only while
+        /// tracking: outside a route there is no vehicle on anybody's map to move.
+        /// </summary>
+        Task SendNowAsync();
+
         // Event to notify state changes to the UI
         event Action<bool> IsTrackingChanged;
     }
