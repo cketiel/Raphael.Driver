@@ -70,7 +70,36 @@ namespace Raphael.Driver.ViewModels
         }
 
         /// <summary>The route on screen, when the page knows it. Zero lets the server work it out.</summary>
-        public int VehicleRouteId { get; set; }
+        /// <remarks>
+        /// Remembered per driver whenever a page knows it, so the page where the run is chosen,
+        /// which knows none yet, still sends the driver's line. The server checks it is theirs and
+        /// running that day, and works it out itself when it is not.
+        /// </remarks>
+        public int VehicleRouteId
+        {
+            get => _vehicleRouteId;
+            set
+            {
+                _vehicleRouteId = value;
+
+                if (value > 0)
+                    Preferences.Set(LastRouteKey, value);
+            }
+        }
+
+        private int _vehicleRouteId;
+
+        private static string LastRouteKey => $"CallRequest.LastRouteId.{Preferences.Get("UserId", string.Empty)}";
+
+        private int? RouteToSend()
+        {
+            if (VehicleRouteId > 0)
+                return VehicleRouteId;
+
+            var remembered = Preferences.Get(LastRouteKey, 0);
+
+            return remembered > 0 ? remembered : null;
+        }
 
         /// <summary>The stop on screen, when there is one. Tells the office what the driver was looking at.</summary>
         public int ScheduleId { get; set; }
@@ -181,7 +210,7 @@ namespace Raphael.Driver.ViewModels
         private async Task SendRequestAsync()
         {
             var result = await _store.RequestAsync(
-                VehicleRouteId > 0 ? VehicleRouteId : null,
+                RouteToSend(),
                 ScheduleId > 0 ? ScheduleId : null);
 
             // Refused with nothing open: the driver cancelled their own request moments ago, and a
@@ -235,7 +264,7 @@ namespace Raphael.Driver.ViewModels
             }
 
             var result = await _store.RequestAsync(
-                VehicleRouteId > 0 ? VehicleRouteId : null,
+                RouteToSend(),
                 ScheduleId > 0 ? ScheduleId : null);
 
             await ReportAsync(result, "Reminder sent.", RemindAsync);
