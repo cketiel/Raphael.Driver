@@ -5,6 +5,10 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Changed (RE-055)
+- **A refused sign-in says why.** When the server answers 403 (the account or the driver's company was
+  switched off), the login screen says so instead of "Invalid credentials".
+
 ⚠️ **Needs the Raphael.Backend release with RE-054** (places and notes). Against an older backend the
 notes page answers that the notes could not be saved; everything else works as before.
 
