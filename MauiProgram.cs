@@ -84,6 +84,15 @@ namespace Raphael.Driver
             }).AddHttpMessageHandler<AuthHeaderHandler>()
             .AddHttpMessageHandler<ClientVersionHandler>();
 
+            // RE-054: the notes of a stop. Fifteen seconds, like the call request: a driver at the
+            // door is told quickly that there is no connection, rather than left waiting.
+            builder.Services.AddHttpClient<ITripNotesService, TripNotesService>(client =>
+            {
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(15);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
+
             // --- NOTIFICATIONS ---
             // Singletons: the bell in the navigation bar and the notifications page read the
             // same list and the same counter, so they cannot show different numbers.
@@ -135,6 +144,7 @@ namespace Raphael.Driver
             builder.Services.AddTransient<FutureDetailViewModel>();
             builder.Services.AddTransient<DashboardViewModel>();
             builder.Services.AddTransient<HistoryViewModel>();
+            builder.Services.AddTransient<TripNotesViewModel>();
             builder.Services.AddTransient<ContactViewModel>();
 
             // Singleton, unlike the rest: it subscribes to the notification store, which lives
@@ -154,6 +164,7 @@ namespace Raphael.Driver
             builder.Services.AddTransient<FutureDetailPage>();
             builder.Services.AddSingleton<DashboardPage>();
             builder.Services.AddTransient<HistoryPage>();
+            builder.Services.AddTransient<TripNotesPage>();
             builder.Services.AddTransient<ContactPage>();
             builder.Services.AddTransient<NotificationsPage>();
 

@@ -1,7 +1,21 @@
-# Changelog
+﻿# Changelog
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The record starts at version `1.1.0`; earlier history is not reconstructed.
+
+## [Unreleased]
+
+⚠️ **Needs the Raphael.Backend release with RE-054** (places and notes). Against an older backend the
+notes page answers that the notes could not be saved; everything else works as before.
+
+### Added (RE-054 — notes for the driver)
+- **Stop notes page.** Tapping NOTES on a stop's detail opens it: what the driver reads at that stop,
+  this trip's own note, the entrance's and the place's notes, the patient's notes, and what the clinic
+  or the file sent. The driver adds, edits, confirms and deletes notes there, saved at once; a note of
+  the place or the patient reaches every trip still to come. The big ADD NOTE button stays at the bottom.
+- **No connection:** the driver is told and nothing is kept on the phone to send later (decided
+  2026-10-18).
+- Back on the stop's detail, the notes show what the driver now reads.
 
 ## [1.6.0] - 2026-09-24
 

@@ -1,6 +1,7 @@
 ﻿
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Raphael.Driver.Converters;
 using Raphael.Driver.DTOs;
 using Raphael.Driver.Models;
@@ -64,6 +65,29 @@ namespace Raphael.Driver.ViewModels
             _mapService = mapService;
             _phoneDialer = phoneDialer;
             _providerService = providerService;
+
+            // RE-054: when the notes page saves, this stop shows what the driver now reads.
+            WeakReferenceMessenger.Default
+                .Register<EventDetailPageViewModel, TripNotesChangedMessage>(this, (me, message) => me.OnNotesChanged(message));
+        }
+
+        private void OnNotesChanged(TripNotesChangedMessage message)
+        {
+            if (Event?.TripId != message.TripId) return;
+            Event.Comment = Event.EventType == ScheduleEventType.Dropoff ? message.DropoffComment : message.PickupComment;
+            OnPropertyChanged(nameof(Event));
+        }
+
+        /// <summary>RE-054: the notes of this stop, to read in full and to add to.</summary>
+        [RelayCommand]
+        private async Task OpenNotesAsync()
+        {
+            if (Event?.TripId == null) return; // a pull-out or pull-in has no trip, so no notes
+            await Shell.Current.GoToAsync(nameof(TripNotesPage), new Dictionary<string, object>
+            {
+                { "Side", Event.EventType == ScheduleEventType.Dropoff ? "Dropoff" : "Pickup" },
+                { "TripId", Event.TripId.Value },
+            });
         }
 
         // Called automatically when the 'Event' property receives a value
