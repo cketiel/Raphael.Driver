@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
@@ -209,10 +209,20 @@
 
                     <BoxView Style="{StaticResource DetailSeparatorStyle}" />
 
-                    <!-- Comment -->
+                    <!-- Comment. RE-054: tapping it opens the stop's notes, to read in full and to add to. -->
                     <VerticalStackLayout Padding="0,10">
-                        <Label Text="COMMENT" Style="{StaticResource DetailHeaderLabel}"/>
-                        <Label Text="{Binding Event.Comment}" Style="{StaticResource DetailValueLabel}" LineBreakMode="WordWrap"/>
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenNotesCommand}" />
+                        </VerticalStackLayout.GestureRecognizers>
+                        <Label Style="{StaticResource DetailHeaderLabel}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="NOTES "/>
+                                    <Span Text="(Tap to open)" TextColor="#1E90FF"/>
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Text="{Binding Event.Comment, TargetNullValue='No notes yet. Tap to add one.'}" Style="{StaticResource DetailValueLabel}" LineBreakMode="WordWrap"/>
                     </VerticalStackLayout>
 
                 </VerticalStackLayout>

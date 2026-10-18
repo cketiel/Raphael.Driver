@@ -30,8 +30,14 @@ namespace Raphael.Driver.Configuration
         public const string Production = "Prod";
         public const string Development = "Dev";
 
+        /// <summary>RE-059: the API on the developer's own PC, seen from the Android emulator.</summary>
+        public const string Local = "Local";
+
         public const string ProductionUrl = "https://api.raphaeldh.com/";
         public const string DevelopmentUrl = "https://app-raphael-dev-scus.azurewebsites.net/";
+
+        /// <summary>10.0.2.2 is the emulator's name for the PC it runs on; the API listens there on 5241.</summary>
+        public const string LocalUrl = "http://10.0.2.2:5241/";
 
         /// <summary>
         /// ⚠️ Deliberately NOT "ApiBaseUrl". That key was written by <c>App.xaml.cs</c> on every
@@ -134,6 +140,7 @@ namespace Raphael.Driver.Configuration
         public static string UrlFor(string name) => name switch
         {
             Development => DevelopmentUrl,
+            Local => LocalUrl,
             Production => ProductionUrl,
             _ => ProductionUrl
         };

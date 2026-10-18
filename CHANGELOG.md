@@ -1,7 +1,54 @@
-# Changelog
+﻿# Changelog
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The record starts at version `1.1.0`; earlier history is not reconstructed.
+
+## [Unreleased]
+
+## [1.7.3] - 2026-10-18
+
+**Slices:** RE-054, RE-055, RE-057, RE-059 (four, so the patch is .3). versionCode 16. **Needs
+Raphael.Backend 2.4.3** for the notes and for Start Trip to reach the office and the patient; against
+an older backend the app works as before.
+
+### Added (RE-059 — local test environment)
+- A `Local` environment (`http://10.0.2.2:5241/`, the API on the developer's PC seen from the emulator).
+  Plain http is allowed **only** in a build made with `RaphaelApiEnvironment=Local`; this release is
+  `Prod` and keeps https only.
+
+### Fixed (RE-055)
+- **The login failed dialog said "Invalid credentials" whatever the server answered.** It now shows the
+  reason, as the text under the form already did (e.g. "Your company's access is disabled").
+
+
+⚠️ **RE-057 needs Raphael.Backend 2.4.3** (start trip). Against an older backend Start
+Trip still opens the map and Arrive works; only the office and the patient are not told.
+
+### Added (RE-057 — start trip)
+- **Start Trip.** On the next pickup, before Arrive, the only step offered is Start Trip: it opens the
+  map, as Maps did, and tells the office and the patient that the driver is on the way (with the travel
+  time the route already carries). Then Arrive appears, and Maps is back to reopen the navigation.
+- **Never blocking**: without signal or with a server error the start is kept on the phone, Arrive is
+  offered anyway and the server is told when it answers. It survives closing the app: on reopening,
+  a start the server does not show yet is sent again.
+- **In order, like every other step**: Start Trip is only offered on the first pending event.
+- Dropoffs work as before.
+
+### Changed (RE-055)
+- **A refused sign-in says why.** When the server answers 403 (the account or the driver's company was
+  switched off), the login screen says so instead of "Invalid credentials".
+
+⚠️ **Needs Raphael.Backend 2.4.3** (places and notes). Against an older backend the
+notes page answers that the notes could not be saved; everything else works as before.
+
+### Added (RE-054 — notes for the driver)
+- **Stop notes page.** Tapping NOTES on a stop's detail opens it: what the driver reads at that stop,
+  this trip's own note, the entrance's and the place's notes, the patient's notes, and what the clinic
+  or the file sent. The driver adds, edits, confirms and deletes notes there, saved at once; a note of
+  the place or the patient reaches every trip still to come. The big ADD NOTE button stays at the bottom.
+- **No connection:** the driver is told and nothing is kept on the phone to send later (decided
+  2026-10-18).
+- Back on the stop's detail, the notes show what the driver now reads.
 
 ## [1.6.0] - 2026-09-24
 

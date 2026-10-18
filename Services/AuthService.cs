@@ -123,6 +123,13 @@ namespace Raphael.Driver.Services
                 {
                     //throw await CreateApiException(response, "Authentication error");
                     //throw await CreateApiException(response, $"Authentication error ({(int)response.StatusCode})");
+
+                    // A 403 is not a wrong password: the account or its company is switched off,
+                    // and telling the driver to retype the password sends them the wrong way.
+                    if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        return new LoginResponse { IsSuccess = false, Message = await RefusalMessageAsync(response) };
+                    }
                     return new LoginResponse { IsSuccess = false, Message = "Login Failed: Invalid credentials. Incorrect username or password." };
                 }
                 // Trying to deserialize, could fail if the JSON is not as expected.
@@ -149,6 +156,28 @@ namespace Raphael.Driver.Services
                 throw new ApiException("An unexpected error occurred during login.", ex);
             }
 
+        }
+
+        /// <summary>The text for a sign-in the server refused with 403, by the <c>code</c> it sent.</summary>
+        private static async Task<string> RefusalMessageAsync(HttpResponseMessage response)
+        {
+            string? code = null;
+            try
+            {
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                if (doc.RootElement.ValueKind == JsonValueKind.Object
+                    && doc.RootElement.TryGetProperty("code", out var c)
+                    && c.ValueKind == JsonValueKind.String)
+                    code = c.GetString();
+            }
+            catch (JsonException) { }
+
+            return code switch
+            {
+                "provider_disabled" => "Your company's access is disabled. Contact the office.",
+                "account_disabled" => "Your account is disabled. Contact the office.",
+                _ => "Access denied. Contact the office."
+            };
         }
 
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)

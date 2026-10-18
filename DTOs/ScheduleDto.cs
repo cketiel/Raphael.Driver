@@ -52,6 +52,12 @@ namespace Raphael.Driver.DTOs
         public int VehicleRouteId { get; set; }
         public byte[]? PassengerSignature { get; set; }
 
+        /// <summary>
+        /// The trip's status (RE-057), which the backend always sent and this copy did not read.
+        /// <c>Started</c>, <c>Arrived</c> or <c>InProgress</c> mean the driver already set off.
+        /// </summary>
+        public string? Status { get; set; }
+
         // To update the member's phone number
         public int? CustomerId { get; set; }
         public string? CustomerPhone { get; set; }

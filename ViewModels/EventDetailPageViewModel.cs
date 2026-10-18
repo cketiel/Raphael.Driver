@@ -1,6 +1,7 @@
 ﻿
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Raphael.Driver.Converters;
 using Raphael.Driver.DTOs;
 using Raphael.Driver.Models;
@@ -64,6 +65,29 @@ namespace Raphael.Driver.ViewModels
             _mapService = mapService;
             _phoneDialer = phoneDialer;
             _providerService = providerService;
+
+            // RE-054: when the notes page saves, this stop shows what the driver now reads.
+            WeakReferenceMessenger.Default
+                .Register<EventDetailPageViewModel, TripNotesChangedMessage>(this, (me, message) => me.OnNotesChanged(message));
+        }
+
+        private void OnNotesChanged(TripNotesChangedMessage message)
+        {
+            if (Event?.TripId != message.TripId) return;
+            Event.Comment = Event.EventType == ScheduleEventType.Dropoff ? message.DropoffComment : message.PickupComment;
+            OnPropertyChanged(nameof(Event));
+        }
+
+        /// <summary>RE-054: the notes of this stop, to read in full and to add to.</summary>
+        [RelayCommand]
+        private async Task OpenNotesAsync()
+        {
+            if (Event?.TripId == null) return; // a pull-out or pull-in has no trip, so no notes
+            await Shell.Current.GoToAsync(nameof(TripNotesPage), new Dictionary<string, object>
+            {
+                { "Side", Event.EventType == ScheduleEventType.Dropoff ? "Dropoff" : "Pickup" },
+                { "TripId", Event.TripId.Value },
+            });
         }
 
         // Called automatically when the 'Event' property receives a value
@@ -76,6 +100,9 @@ namespace Raphael.Driver.ViewModels
                 HasArrived = value.Arrive.HasValue;
                 HasSignature = value.PassengerSignature != null; // Initialize signature status
                 BuildActionsList();
+
+                // RE-057: any start the server did not get earlier, sent again.
+                _ = RetryPendingStartsAsync();
                 
             }
             else
@@ -118,9 +145,17 @@ namespace Raphael.Driver.ViewModels
             // both 'Event' and 'IsFirstEvent' have their correct values.
             // We only show the main actions (Arrive, Signature, Perform, Cancel)
             // IF AND ONLY IF this is the first event on the list.
+            // RE-057: a pickup is started before it is arrived at. Until then Start Trip is the only
+            // step offered; it opens the map too, which is why Maps is left out below.
+            bool needsStart = IsFirstEvent && NeedsStart();
+
             if (IsFirstEvent)
             {
-                if (!HasArrived)
+                if (needsStart)
+                {
+                    Actions.Add(new EventAction { Text = "Start Trip", IconGlyph = "", Command = StartTripCommand });
+                }
+                else if (!HasArrived)
                 {
                     // STATUS 1: The driver has not arrived yet.
                     // The action is "Arrive", regardless of whether it is Pickup or Dropoff.
@@ -163,7 +198,8 @@ namespace Raphael.Driver.ViewModels
                 ? "Maps - Appointment Address"
                 : "Maps - Return Address";
 
-            Actions.Add(new EventAction { Text = mapActionText, IconGlyph = "", Command = MapsCommand });
+            if (!needsStart)
+                Actions.Add(new EventAction { Text = mapActionText, IconGlyph = "", Command = MapsCommand });
             //Actions.Add(new EventAction { Text = "Maps - Appointment Address", IconGlyph = "", Command = MapsCommand });
 
             // Disabled, not removed, and in the same place: drivers ask for a call with the Call me
@@ -446,6 +482,67 @@ namespace Raphael.Driver.ViewModels
                 IsBusy = false;
             }
         }
+
+        /// <summary>
+        /// Whether this pickup still has to be started (RE-057): not arrived at, and neither the server
+        /// nor this phone knows it was started. A dropoff never does: the patient is already on board.
+        /// </summary>
+        private bool NeedsStart()
+        {
+            if (Event is null || HasArrived || Event.EventType != ScheduleEventType.Pickup || Event.TripId is not int tripId)
+                return false;
+
+            var status = Event.Status;
+            if (status == "Started" || status == "Arrived" || status == "InProgress")
+                return false;
+
+            return !Helpers.StartedTrips.IsStarted(tripId);
+        }
+
+        /// <summary>
+        /// The driver sets off towards the pickup (RE-057): the trip counts as started here at once,
+        /// the map opens as Maps always did, and the server is told on the side.
+        /// </summary>
+        /// <remarks>
+        /// ⚠️ Never blocking. With no signal or a server error the start stays pending on the phone
+        /// and is retried; Arrive is offered all the same. The worst case is the office and the patient
+        /// not being told, which is exactly today's behaviour.
+        /// </remarks>
+        [RelayCommand]
+        private async Task StartTrip()
+        {
+            if (IsBusy || Event?.TripId is not int tripId) return;
+
+            Helpers.StartedTrips.MarkStarted(tripId);
+            BuildActionsList();
+
+            _ = SendStartAsync(tripId, Event.Travel);
+
+            await Maps();
+        }
+
+        /// <summary>Tells the server, retrying a few times if there is no answer.</summary>
+        private async Task SendStartAsync(int tripId, TimeSpan? travel)
+        {
+            var delays = new[] { 0, 5, 15, 45 };
+            foreach (var seconds in delays)
+            {
+                if (seconds > 0) await Task.Delay(TimeSpan.FromSeconds(seconds));
+
+                var outcome = await _scheduleService.StartTripAsync(tripId, travel);
+                if (outcome != StartTripOutcome.Failed)
+                {
+                    Helpers.StartedTrips.MarkConfirmed(tripId);
+                    if (outcome == StartTripOutcome.Started && Event?.TripId == tripId)
+                        Event.Status = "Started";
+                    return;
+                }
+            }
+            // Still pending: RetryPendingStarts tries again the next time a stop is opened.
+        }
+
+        /// <summary>Starts the server did not get earlier today, sent again without the travel time.</summary>
+        private Task RetryPendingStartsAsync() => Helpers.StartedTrips.RetryPendingAsync(_scheduleService);
 
         [RelayCommand] private void SendDispatchMessage() => Debug.WriteLine("Send Dispatch Tapped");
         

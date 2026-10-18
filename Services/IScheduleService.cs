@@ -12,6 +12,8 @@ namespace Raphael.Driver.Services
         Task<bool> SaveSignatureAsync(int scheduleId, string signatureBase64);
         Task<byte[]?> GetSignatureAsync(int scheduleId);
         Task<bool> CancelTripByDriverAsync(int tripId, string reason);
+        /// <summary>Tells the server the driver set off towards the pickup (RE-057).</summary>
+        Task<StartTripOutcome> StartTripAsync(int tripId, TimeSpan? travel);
 
         Task<List<ScheduleDto>> GetPendingSchedulesByRunAsync(string runLogin, DateTime date);
         Task<List<ScheduleDto>> GetNextDaySchedulesByRunAsync(string runLogin);

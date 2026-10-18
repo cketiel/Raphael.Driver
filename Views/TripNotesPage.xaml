@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
+             xmlns:controls="clr-namespace:Raphael.Driver.Controls"
+             x:Class="Raphael.Driver.Views.TripNotesPage"
+             x:DataType="viewmodels:TripNotesViewModel"
+             Title="NOTES"
+             BackgroundColor="#F0F0F0">
+    <!-- RE-054. The notes of one stop, in big cards a driver can read at a glance: what the driver
+         reads here, this trip's own note, the entrance's, the place's and the patient's. Every change
+         is saved at once; with no connection the driver is told so and nothing is kept for later. -->
+
+    <Shell.TitleView>
+        <controls:PageTitleBar Title="{Binding StopTitle}" Icon="&#xf249;" ShowBell="False" />
+    </Shell.TitleView>
+
+    <ContentPage.Resources>
+        <Style TargetType="Label" x:Key="SectionLabel">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{StaticResource SecondaryTextColor}" />
+            <Setter Property="Margin" Value="4,14,0,6" />
+        </Style>
+        <Style TargetType="Border" x:Key="Card">
+            <Setter Property="BackgroundColor" Value="{StaticResource CardBackgroundColor}" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style TargetType="Label" x:Key="NoteText">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+        <Style TargetType="Button" x:Key="CardAction">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="HeightRequest" Value="40" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{StaticResource PrimaryColor}" />
+        </Style>
+
+        <DataTemplate x:Key="NoteCard" x:DataType="viewmodels:NoteItem">
+            <Border Style="{StaticResource Card}">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsToReview}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#FFF8E1" />
+                        <Setter Property="Stroke" Value="#FFA000" />
+                        <Setter Property="StrokeThickness" Value="1" />
+                    </DataTrigger>
+                </Border.Triggers>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Text}" Style="{StaticResource NoteText}" />
+                    <Label Text="{Binding Meta}" FontSize="12" TextColor="{StaticResource SecondaryTextColor}" />
+                    <HorizontalStackLayout HorizontalOptions="End" Spacing="4">
+                        <Button Text="CONFIRM" Style="{StaticResource CardAction}" IsVisible="{Binding IsToReview}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=ConfirmNoteCommand}"
+                                CommandParameter="{Binding .}" />
+                        <Button Text="EDIT" Style="{StaticResource CardAction}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=EditNoteCommand}"
+                                CommandParameter="{Binding .}" />
+                        <Button Text="DELETE" Style="{StaticResource CardAction}" TextColor="#C62828"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=DeleteNoteCommand}"
+                                CommandParameter="{Binding .}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+                <VerticalStackLayout Padding="14,6,14,24">
+
+                    <!-- What the driver reads here: the reason this page exists. -->
+                    <Label Text="WHAT YOU READ AT THIS STOP" Style="{StaticResource SectionLabel}" />
+                    <Border Style="{StaticResource Card}" BackgroundColor="#E8F5E9" Stroke="#66BB6A" StrokeThickness="1">
+                        <Label Text="{Binding DriverReads}" Style="{StaticResource NoteText}" />
+                    </Border>
+
+                    <!-- The place -->
+                    <VerticalStackLayout IsVisible="{Binding HasPlace}">
+                        <Label Text="PLACE" Style="{StaticResource SectionLabel}" />
+                        <Border Style="{StaticResource Card}">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding PlaceName}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource PrimaryTextColor}" />
+                                <Label Text="{Binding PlaceAddress}" FontSize="14" TextColor="{StaticResource SecondaryTextColor}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- This trip only -->
+                    <Label Text="THIS TRIP ONLY" Style="{StaticResource SectionLabel}" />
+                    <Border Style="{StaticResource Card}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding EditTripNoteCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding TripNote, TargetNullValue='Nothing for this trip. Tap to add.'}" Style="{StaticResource NoteText}" />
+                            <Label Text="Past or closed trip: it cannot change." FontSize="12" TextColor="{StaticResource SecondaryTextColor}">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding CanEditTripNote}" Value="True">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- This entrance -->
+                    <VerticalStackLayout IsVisible="{Binding HasEntrance}">
+                        <Label Text="{Binding EntranceName, StringFormat='{0}'}" Style="{StaticResource SectionLabel}" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding EntranceNotes}"
+                                             BindableLayout.ItemTemplate="{StaticResource NoteCard}" />
+                    </VerticalStackLayout>
+
+                    <!-- The place's notes -->
+                    <VerticalStackLayout IsVisible="{Binding HasPlace}">
+                        <Label Text="NOTES OF THIS PLACE" Style="{StaticResource SectionLabel}" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding PlaceNotes}"
+                                             BindableLayout.ItemTemplate="{StaticResource NoteCard}">
+                            <BindableLayout.EmptyView>
+                                <Label Text="No notes yet." FontSize="14" TextColor="{StaticResource SecondaryTextColor}" Margin="4,0" />
+                            </BindableLayout.EmptyView>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                    <!-- The patient -->
+                    <Label Text="{Binding PatientName, StringFormat='ABOUT {0}'}" Style="{StaticResource SectionLabel}" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding PatientNotes}"
+                                         BindableLayout.ItemTemplate="{StaticResource NoteCard}">
+                        <BindableLayout.EmptyView>
+                            <Label Text="No notes yet." FontSize="14" TextColor="{StaticResource SecondaryTextColor}" Margin="4,0" />
+                        </BindableLayout.EmptyView>
+                    </VerticalStackLayout>
+
+                    <!-- What the file sent, untouched -->
+                    <VerticalStackLayout IsVisible="{Binding HasFileComment}">
+                        <Label Text="SENT BY THE CLINIC OR THE FILE" Style="{StaticResource SectionLabel}" />
+                        <Label Text="{Binding FileComment}" FontSize="14" TextColor="{StaticResource SecondaryTextColor}" Margin="4,0" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+        </ScrollView>
+
+        <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                           Color="{StaticResource PrimaryColor}" HorizontalOptions="Center" VerticalOptions="Center" />
+
+        <!-- Always in reach of a thumb, whatever is scrolled. -->
+        <Button Grid.Row="1" Text="ADD NOTE" Command="{Binding AddAnyNoteCommand}" IsEnabled="{Binding IsLoaded}"
+                BackgroundColor="{StaticResource PrimaryColor}" TextColor="White" FontSize="17" FontAttributes="Bold"
+                HeightRequest="56" CornerRadius="0" />
+    </Grid>
+</ContentPage>

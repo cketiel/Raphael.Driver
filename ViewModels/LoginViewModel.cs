@@ -153,7 +153,9 @@ public partial class LoginViewModel : ObservableObject
             else
             {
                 ErrorMessage = result?.Message ?? "Invalid credentials or unknown error.";
-                await Application.Current.MainPage.DisplayAlert("Login Failed", "Invalid credentials", "OK");
+                // RE-055: the reason the server gave (account or company switched off), not always
+                // "Invalid credentials", which sent a driver of a deactivated company to retype the password.
+                await Application.Current.MainPage.DisplayAlert("Login Failed", ErrorMessage, "OK");
             }
         }
         catch (ApiException apiEx)

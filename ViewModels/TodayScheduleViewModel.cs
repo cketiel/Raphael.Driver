@@ -73,6 +73,14 @@ namespace Raphael.Driver.ViewModels
 
                 if (Events.FirstOrDefault() is { } first)
                     VehicleRouteId = first.VehicleRouteId;
+
+                // RE-057: a start made without signal, and the app closed before it reached the
+                // server, is sent again now. What the server already shows as started is not.
+                var serverStatuses = pendingEvents
+                    .Where(ev => ev.TripId.HasValue)
+                    .GroupBy(ev => ev.TripId!.Value)
+                    .ToDictionary(g => g.Key, g => g.First().Status);
+                _ = Helpers.StartedTrips.RetryPendingAsync(_scheduleService, serverStatuses);
              
                 //SessionManagerService _sessionManager = new SessionManagerService(new GpsService());
                 //await _sessionManager.CheckAndResumeGpsTrackingAsync(Events);
