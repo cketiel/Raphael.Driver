@@ -35,6 +35,11 @@
 		<RaphaelApiEnvironment>Prod</RaphaelApiEnvironment>
 	</PropertyGroup>
 
+	<!-- RE-059: a build for the local API may speak plain http to the PC (see MainApplication). -->
+	<PropertyGroup Condition="'$(RaphaelApiEnvironment)' == 'Local'">
+		<DefineConstants>$(DefineConstants);LOCAL_API</DefineConstants>
+	</PropertyGroup>
+
 	<!--
 	  Carries the value above into the binary, so that what the gate checks in the csproj is
 	  the same thing ApiEnvironment reads at runtime. Without this the property would be a
