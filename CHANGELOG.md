@@ -5,7 +5,23 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
-⚠️ **RE-057 needs the Raphael.Backend release with RE-057** (start trip). Against an older backend Start
+## [1.7.3] - 2026-10-18
+
+**Slices:** RE-054, RE-055, RE-057, RE-059 (four, so the patch is .3). versionCode 16. **Needs
+Raphael.Backend 2.4.3** for the notes and for Start Trip to reach the office and the patient; against
+an older backend the app works as before.
+
+### Added (RE-059 — local test environment)
+- A `Local` environment (`http://10.0.2.2:5241/`, the API on the developer's PC seen from the emulator).
+  Plain http is allowed **only** in a build made with `RaphaelApiEnvironment=Local`; this release is
+  `Prod` and keeps https only.
+
+### Fixed (RE-055)
+- **The login failed dialog said "Invalid credentials" whatever the server answered.** It now shows the
+  reason, as the text under the form already did (e.g. "Your company's access is disabled").
+
+
+⚠️ **RE-057 needs Raphael.Backend 2.4.3** (start trip). Against an older backend Start
 Trip still opens the map and Arrive works; only the office and the patient are not told.
 
 ### Added (RE-057 — start trip)
@@ -22,7 +38,7 @@ Trip still opens the map and Arrive works; only the office and the patient are n
 - **A refused sign-in says why.** When the server answers 403 (the account or the driver's company was
   switched off), the login screen says so instead of "Invalid credentials".
 
-⚠️ **Needs the Raphael.Backend release with RE-054** (places and notes). Against an older backend the
+⚠️ **Needs Raphael.Backend 2.4.3** (places and notes). Against an older backend the
 notes page answers that the notes could not be saved; everything else works as before.
 
 ### Added (RE-054 — notes for the driver)
