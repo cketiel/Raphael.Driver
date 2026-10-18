@@ -5,6 +5,19 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+⚠️ **RE-057 needs the Raphael.Backend release with RE-057** (start trip). Against an older backend Start
+Trip still opens the map and Arrive works; only the office and the patient are not told.
+
+### Added (RE-057 — start trip)
+- **Start Trip.** On the next pickup, before Arrive, the only step offered is Start Trip: it opens the
+  map, as Maps did, and tells the office and the patient that the driver is on the way (with the travel
+  time the route already carries). Then Arrive appears, and Maps is back to reopen the navigation.
+- **Never blocking**: without signal or with a server error the start is kept on the phone, Arrive is
+  offered anyway and the server is told when it answers. It survives closing the app: on reopening,
+  a start the server does not show yet is sent again.
+- **In order, like every other step**: Start Trip is only offered on the first pending event.
+- Dropoffs work as before.
+
 ### Changed (RE-055)
 - **A refused sign-in says why.** When the server answers 403 (the account or the driver's company was
   switched off), the login screen says so instead of "Invalid credentials".

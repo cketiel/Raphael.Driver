@@ -258,6 +258,33 @@ namespace Raphael.Driver.Services
             }
         }
 
+        public async Task<StartTripOutcome> StartTripAsync(int tripId, TimeSpan? travel)
+        {
+            // The travel time the route already carries: the patient is told how long, and nothing
+            // is asked of Google for it.
+            var requestUri = travel.HasValue
+                ? $"api/Trips/{tripId}/start?travel={HttpUtility.UrlEncode(travel.Value.ToString(@"hh\:mm\:ss"))}"
+                : $"api/Trips/{tripId}/start";
+
+            try
+            {
+                var response = await _httpClient.PostAsync(requestUri, content: null);
+                if (response.IsSuccessStatusCode) return StartTripOutcome.Started;
+
+                // The server heard it and said no (a status it cannot start from, a trip not on
+                // this route). Retrying would get the same answer; the driver carries on as before.
+                var code = (int)response.StatusCode;
+                return code is >= 400 and < 500 && code != 401 && code != 408 && code != 429
+                    ? StartTripOutcome.Refused
+                    : StartTripOutcome.Failed;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in StartTripAsync: {ex.Message}");
+                return StartTripOutcome.Failed;
+            }
+        }
+
         public async Task<bool> CancelTripByDriverAsync(int tripId, string reason)
         {
             var requestUri = $"api/Trips/{tripId}/cancel-by-driver";
