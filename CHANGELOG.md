@@ -5,6 +5,17 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-10-26
+
+**No slice.** versionCode 18. Same code as 1.7.3; it exists to bring the phones back to the
+production server after the MyASP contingency (`_meta/MYASP_FALLBACK_RUNBOOK.md`). The contingency
+APK `1.7.3-myasp` used versionCode 17, so returning needs a higher one: Android does not install a
+lower versionCode over an installed app. Installs over `1.7.3-myasp` and over `1.7.3` without
+uninstalling. Needs Raphael.Backend 2.4.3.
+
+### Changed
+- Version 1.7.4, versionCode 18. Connects to the production server (`api.raphaeldh.com`).
+
 ## [1.7.3] - 2026-10-18
 
 **Slices:** RE-054, RE-055, RE-057, RE-059 (four, so the patch is .3). versionCode 16. **Needs
