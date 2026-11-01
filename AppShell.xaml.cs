@@ -57,6 +57,43 @@ namespace Raphael.Driver
             //Routing.RegisterRoute("LoginPage", typeof(Views.LoginPage));
             //Routing.RegisterRoute("HomePage", typeof(Views.HomePage));
 
+            PaintChrome();
+            // The menu rows draw only the glyph of each icon (Shell.ItemTemplate), in theme colours.
+            Services.ThemeManager.ThemeChanged += (_, _) => PaintChrome();
+        }
+
+        /// <summary>
+        /// Every page gets the theme's bar colours set on itself as it is shown. Set only on the
+        /// Shell, a theme change left the bar of the theme the app started with: the Shell reads
+        /// its appearance from the page first, and does not repaint for a resource it already used.
+        /// </summary>
+        protected override void OnNavigated(ShellNavigatedEventArgs args)
+        {
+            base.OnNavigated(args);
+
+            if (CurrentPage is Page page)
+                PaintBar(page);
+        }
+
+        /// <summary>Top bar and side-menu background, in the colours of the active theme.</summary>
+        private void PaintChrome()
+        {
+            PaintBar(this);
+
+            if (CurrentPage is Page page)
+                PaintBar(page);
+
+            FlyoutBackgroundColor = Services.ThemeManager.GetColor("SurfaceColor", Colors.White);
+        }
+
+        private static void PaintBar(BindableObject target)
+        {
+            var bar = Services.ThemeManager.GetColor("NavBarColor", Color.FromArgb("#07577A"));
+            var text = Services.ThemeManager.GetColor("NavBarTextColor", Colors.White);
+
+            SetBackgroundColor(target, bar);
+            SetForegroundColor(target, text);
+            SetTitleColor(target, text);
         }
 
     }

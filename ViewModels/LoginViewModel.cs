@@ -129,9 +129,11 @@ public partial class LoginViewModel : ObservableObject
                 //aqui no puede ser pq no se sabe la linea
                 //await _sessionManager.CheckAndResumeGpsTrackingAsync();
 
-                // Navigate to the SchedulePage. The prefix "//" resets the navigation stack
-                // and sets this page as the new root, restoring the menu.
-                await Shell.Current.GoToAsync($"//{nameof(SchedulePage)}");
+                // Navigate to the Dashboard (V7: the driver lands on the day's summary, with the
+                // next event one tap away). The prefix "//" resets the navigation stack and sets
+                // this page as the new root, restoring the menu. A driver with no run of their
+                // own today reaches the Schedule page, to type one, from its SCHEDULE button.
+                await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
 
                 // Notifications on: hidden list for this driver, inbox, live hub and the push
                 // token. It runs after the token is in Preferences because every one of those

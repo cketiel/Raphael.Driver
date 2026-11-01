@@ -4,8 +4,23 @@
              x:Class="Raphael.Driver.Views.LoginPage"
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
+             xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              Shell.NavBarIsVisible="False"
-             NavigationPage.HasNavigationBar="False">
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource SurfaceColor}">
+
+    <!--
+        V7 sign-in (03_Pantallas/PANTALLAS.md, 01): a picture of the van on top, and a sheet
+        below with the logo, the two fields, Remember me and Sign In. The theme switch sits on
+        the picture, so a driver can pick a theme before signing in.
+
+        What V7 shows and this page does not, on purpose:
+        - The film loops a 9.9 MB video and needs a media player the app does not have; its
+          poster frame stands in for it.
+        - EN/ES: the app has no translations yet.
+        - "V7 · 1.7.3": the line under the sheet is the real version, because it is also the
+          seven-tap way in to the server dialog (see below).
+    -->
 
     <ContentPage.BindingContext>
         <viewmodels:LoginViewModel />
@@ -16,265 +31,205 @@
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
 
-            <Color x:Key="PageBackgroundColorStart">#E94560</Color>
-
-            <Color x:Key="PageBackgroundColorEnd">#B82E49</Color>
-
-            <Color x:Key="FormContainerColor">#6A0000</Color>
-
-            <Color x:Key="FormContainerBackgroundColor">#A06A0000</Color>
-
-            <Color x:Key="EntryBackgroundColor">#80400000</Color>
-
-            <Color x:Key="LoginButtonColor">#A52A2A</Color>
-
-            <Color x:Key="PrimaryTextColor">White</Color>
-            <Color x:Key="SecondaryTextColor">#FFE0E0</Color>
-
-            <Color x:Key="PlaceholderColor">#FFC0C0</Color>
-
-            <!-- AccentColorRed moved to Resources/Styles/Colors.xaml: the flyout needs it too,
-                 and a page-level copy is invisible to everything outside this page. -->
-
-            <Style TargetType="Label" x:Key="IconLabelStyle">
+            <Style TargetType="Label" x:Key="FieldIconStyle">
                 <Setter Property="FontFamily" Value="FontAwesomeSolid" />
                 <Setter Property="FontSize" Value="18" />
                 <Setter Property="VerticalTextAlignment" Value="Center" />
                 <Setter Property="HorizontalTextAlignment" Value="Center" />
-                <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
-                <Setter Property="Margin" Value="0,0,5,0"/>
+                <Setter Property="WidthRequest" Value="24" />
+                <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+            </Style>
+
+            <Style TargetType="Label" x:Key="FieldCaptionStyle">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="CharacterSpacing" Value="1" />
+                <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+            </Style>
+
+            <Style TargetType="Border" x:Key="FieldStyle">
+                <Setter Property="BackgroundColor" Value="{DynamicResource TintColor}" />
+                <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+                <Setter Property="StrokeThickness" Value="1.5" />
+                <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+                <Setter Property="Padding" Value="14,6,8,4" />
             </Style>
 
             <Style TargetType="Entry">
-                <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
-                <Setter Property="PlaceholderColor" Value="{StaticResource PlaceholderColor}" />
+                <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+                <Setter Property="PlaceholderColor" Value="{DynamicResource PlaceholderColor}" />
                 <Setter Property="BackgroundColor" Value="Transparent"/>
                 <Setter Property="VerticalTextAlignment" Value="Center"/>
-                <Setter Property="HeightRequest" Value="50"/>
-                <Setter Property="FontSize" Value="16"/>
-            </Style>
-
-            <Style TargetType="Button" x:Key="LinkButton">
-                <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}"/>
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="FontSize" Value="Small"/>
-                <Setter Property="Padding" Value="0"/>
-                <Setter Property="FontAttributes" Value="None"/>
-                <!-- <Setter Property="TextDecorations" Value="Underline"/> Opcional -->
+                <Setter Property="HeightRequest" Value="44"/>
+                <Setter Property="FontSize" Value="18"/>
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid>
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="{StaticResource PageBackgroundColorStart}" Offset="0.0" />
-                <GradientStop Color="{StaticResource PageBackgroundColorEnd}" Offset="1.0" />
-            </LinearGradientBrush>
-        </Grid.Background>
+    <ScrollView>
 
-        <ScrollView>
+        <Grid RowDefinitions="Auto,Auto">
 
-            <VerticalStackLayout Padding="30,0"
-                                 Spacing="5"
-                                 VerticalOptions="Center"
-                                 HorizontalOptions="FillAndExpand">
+            <!-- The van. -->
+            <Image Grid.Row="0"
+                   Source="login_hero.jpg"
+                   Aspect="AspectFill"
+                   HeightRequest="330" />
 
-                <!--<Label Text="Sign In"
-                       TextColor="{StaticResource PrimaryTextColor}"
-                       FontSize="36"
-                       FontAttributes="Bold"
-                       HorizontalOptions="Center"
-                       Margin="0,40,0,20"/>-->
+            <controls:ThemeSwitcher Grid.Row="0"
+                                    CapsuleColor="#59101A20"
+                                    RingColor="White"
+                                    HorizontalOptions="End"
+                                    VerticalOptions="Start"
+                                    Margin="0,16,16,0" />
 
-                <Image Source="logo.png"
-                       Aspect="AspectFit"
-                       WidthRequest="200"
-                       HeightRequest="200"/>
+            <!-- The sheet. Its top corners ride over the picture. -->
+            <Border Grid.Row="1"
+                    Margin="0,-28,0,0"
+                    BackgroundColor="{DynamicResource SurfaceColor}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 28,28,0,0"
+                    Padding="24,50,24,20">
 
-                <Label Text="RAPHAEL"
-                       TextColor="{StaticResource FormContainerColor}"
-                       FontSize="12"
-                       FontAttributes="Bold"
-                       HorizontalOptions="Center"
-                       Margin="0,-50,0,20"/>
+                <VerticalStackLayout Spacing="14">
 
-                <Label Text="by Milanes Service LLC"
-                       TextColor="{StaticResource PrimaryTextColor}"
-                       FontSize="12"
-                       FontAttributes="Bold"
-                       HorizontalOptions="Center"
-                       Margin="0,-20,0,20"/>
-
-                <Border BackgroundColor="{StaticResource FormContainerBackgroundColor}"
-                        StrokeThickness="0"
-                        Padding="25"
-                        StrokeShape="RoundRectangle 20"
-                        HorizontalOptions="FillAndExpand"
-                        Margin="10,0">
-
-                    <VerticalStackLayout Spacing="20">
-
-                        <!-- Username Entry -->
-                        <Border BackgroundColor="{StaticResource EntryBackgroundColor}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 25"
-                                Padding="15,0,10,0"
-                                HeightRequest="50">
-
-                            <Grid ColumnDefinitions="Auto,*"
-                                  ColumnSpacing="10">
-
-                                <Label Text=""
-                                       Style="{StaticResource IconLabelStyle}" />
-                                <!-- fa-user -->
-
-                                <Entry Grid.Column="1"
-                                       Placeholder="Username"
-                                       Text="{Binding Username}"/>
-
-                            </Grid>
-
-                        </Border>
-
-                        <!-- Password Entry -->
-                        <Border BackgroundColor="{StaticResource EntryBackgroundColor}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 25"
-                                Padding="15,0,10,0"
-                                HeightRequest="50">
-
-                            <Grid ColumnDefinitions="Auto,*,Auto"
-                                  ColumnSpacing="10">
-
-                                <Label Text=""
-                                       Style="{StaticResource IconLabelStyle}" />
-                                <!-- fa-lock -->
-
-                                <Entry Grid.Column="1"
-                                       Placeholder="Password"
-                                       Text="{Binding Password}"
-                                       IsPassword="{Binding IsPasswordMasked}" />
-
-                                <Button Grid.Column="2"
-                                        Text="{Binding PasswordToggleIcon}"
-                                        FontFamily="FontAwesomeSolid"
-                                        FontSize="20"
-                                        Command="{Binding TogglePasswordMaskCommand}"
-                                        BackgroundColor="Transparent"
-                                        TextColor="{StaticResource PrimaryTextColor}"
-                                        Padding="5"
-                                        WidthRequest="40"
-                                        BorderColor="Transparent"
-                                        BorderWidth="0"
-                                        VerticalOptions="Center"/>
-
-                            </Grid>
-
-                        </Border>
-
-                        <Grid ColumnDefinitions="Auto,*"
-                              ColumnSpacing="5"
-                              Margin="0,5,0,0">
-
-                            <CheckBox IsChecked="{Binding RememberMe}" />
-
-                            <Label Grid.Column="1"
-                                   Text="Remember me"
-                                   TextColor="{StaticResource SecondaryTextColor}"
-                                   VerticalTextAlignment="Center"
-                                   FontSize="Small"/>
-
-                        </Grid>
-
-                        <Button Text="Log In"
-                                Command="{Binding LoginCommand}"
-                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
-                                BackgroundColor="{StaticResource LoginButtonColor}"
-                                TextColor="{StaticResource PrimaryTextColor}"
-                                HeightRequest="50"
-                                CornerRadius="25"
-                                FontSize="24"
-                                FontAttributes="Bold"
-                                Margin="0,10,0,0"/>
-
-                        <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                           IsVisible="{Binding IsBusy}"
-                                           Color="{StaticResource PrimaryTextColor}"
-                                           HorizontalOptions="Center"
-                                           Margin="0,10,0,0"/>
-
-                        <Label Text="{Binding ErrorMessage}"
-                               TextColor="{StaticResource AccentColorRed}"
-                               HorizontalOptions="Center"
-                               Margin="0,5,0,0"
-                               IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"/>
-
+                    <!-- The name, RAPHAEL over DRIVER, centred under the tip of the pin. -->
+                    <VerticalStackLayout Spacing="0" HorizontalOptions="Center">
+                        <Label Text="RAPHAEL"
+                               TextColor="{DynamicResource InkColor}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               CharacterSpacing="3"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="DRIVER"
+                               TextColor="{DynamicResource AccentColor}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               CharacterSpacing="3"
+                               HorizontalTextAlignment="Center" />
                     </VerticalStackLayout>
 
-                </Border>
+                    <!-- Username -->
+                    <Border Style="{StaticResource FieldStyle}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Label Text="&#xf007;" Style="{StaticResource FieldIconStyle}" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="0">
+                                <Label Text="USER" Style="{StaticResource FieldCaptionStyle}" />
+                                <Entry Placeholder="Username"
+                                       Text="{Binding Username}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
 
-                <HorizontalStackLayout Spacing="5"
-                                       HorizontalOptions="Center"
-                                       Margin="0,25,0,5">
+                    <!-- Password -->
+                    <Border Style="{StaticResource FieldStyle}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Label Text="&#xf023;" Style="{StaticResource FieldIconStyle}" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="0">
+                                <Label Text="PASSWORD" Style="{StaticResource FieldCaptionStyle}" />
+                                <Entry Placeholder="Password"
+                                       Text="{Binding Password}"
+                                       IsPassword="{Binding IsPasswordMasked}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="2"
+                                    Text="{Binding PasswordToggleIcon}"
+                                    FontFamily="FontAwesomeSolid"
+                                    FontSize="20"
+                                    Command="{Binding TogglePasswordMaskCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{DynamicResource InkColor}"
+                                    Padding="5"
+                                    WidthRequest="44"
+                                    BorderColor="Transparent"
+                                    BorderWidth="0"
+                                    VerticalOptions="Center"/>
+                        </Grid>
+                    </Border>
 
-                    <Label Text="RAPHAEL by"
-                           TextColor="{StaticResource SecondaryTextColor}"
-                           VerticalTextAlignment="Center"/>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                        <CheckBox IsChecked="{Binding RememberMe}" />
+                        <Label Grid.Column="1"
+                               Text="Remember me"
+                               TextColor="{DynamicResource PrimaryTextColor}"
+                               FontSize="16"
+                               VerticalTextAlignment="Center"/>
+                    </Grid>
 
-                    <Button Text="MILANES System"
-                            Command="{Binding GoToMilanesPageCommand}"
-                            Style="{StaticResource LinkButton}"
-                            TextColor="{StaticResource AccentColorRed}"
+                    <Button Text="Sign In"
+                            Command="{Binding LoginCommand}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+                            Style="{StaticResource PrimaryActionButtonStyle}"
+                            HeightRequest="56"
+                            CornerRadius="14"
+                            FontSize="18"
                             FontAttributes="Bold"/>
 
-                </HorizontalStackLayout>
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       HorizontalOptions="Center" />
 
-                <!--
-                    Application version, and one of the two ways in to the server dialog.
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="{DynamicResource DangerTextColor}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"/>
 
-                    Seven taps here opens it. It has to be on THIS page: the Settings page is
-                    behind the sign-in, and signing in is what needs a server address, so a
-                    phone pointed at the wrong one could not be fixed from inside the app.
-                    Seven taps rather than a button so a driver never finds it by accident.
+                    <!--
+                        Application version, and one of the two ways in to the server dialog.
 
-                    The other way is typing #server as the username and pressing Sign in,
-                    which is the one support can dictate down a telephone in one sentence.
-                    See LoginViewModel.Login.
-                -->
-                <Label Text="{Binding Version}"
-                       TextColor="{StaticResource SecondaryTextColor}"
-                       FontSize="11"
-                       HorizontalOptions="Center"
-                       Margin="0,0,0,4">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding TapVersionCommand}"/>
-                    </Label.GestureRecognizers>
-                </Label>
+                        Seven taps here opens it. It has to be on THIS page: the Settings page is
+                        behind the sign-in, and signing in is what needs a server address, so a
+                        phone pointed at the wrong one could not be fixed from inside the app.
+                        Seven taps rather than a button so a driver never finds it by accident.
 
-                <!-- How many taps are left, once the run is clearly deliberate. Without it
-                     the count is invisible and a driver who miscounts cannot tell whether
-                     they are one tap away or back at zero. -->
-                <Label Text="{Binding TapHint}"
-                       IsVisible="{Binding ShowTapHint}"
-                       TextColor="{StaticResource SecondaryTextColor}"
-                       FontSize="11"
-                       HorizontalOptions="Center"
-                       Margin="0,0,0,4"/>
+                        The other way is typing #server as the username and pressing Sign in,
+                        which is the one support can dictate down a telephone in one sentence.
+                        See LoginViewModel.Login.
+                    -->
+                    <Label Text="{Binding Version, StringFormat='RAPHAEL Driver · {0}'}"
+                           TextColor="{DynamicResource SecondaryTextColor}"
+                           FontSize="12"
+                           HorizontalOptions="Center"
+                           Margin="0,18,0,0">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding TapVersionCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
 
-                <!-- Empty unless this build is pointed somewhere other than production. -->
-                <Label Text="{Binding EnvironmentBanner}"
-                       IsVisible="{Binding ShowEnvironmentBanner}"
-                       TextColor="{StaticResource AccentColorRed}"
-                       FontAttributes="Bold"
-                       FontSize="11"
-                       HorizontalOptions="Center"
-                       Margin="0,0,0,15"/>
+                    <!-- How many taps are left, once the run is clearly deliberate. Without it
+                         the count is invisible and a driver who miscounts cannot tell whether
+                         they are one tap away or back at zero. -->
+                    <Label Text="{Binding TapHint}"
+                           IsVisible="{Binding ShowTapHint}"
+                           TextColor="{DynamicResource SecondaryTextColor}"
+                           FontSize="11"
+                           HorizontalOptions="Center"/>
 
-            </VerticalStackLayout>
+                    <!-- Empty unless this build is pointed somewhere other than production. -->
+                    <Label Text="{Binding EnvironmentBanner}"
+                           IsVisible="{Binding ShowEnvironmentBanner}"
+                           TextColor="{DynamicResource AccentColorRed}"
+                           FontAttributes="Bold"
+                           FontSize="11"
+                           HorizontalOptions="Center"/>
 
-        </ScrollView>
+                </VerticalStackLayout>
+            </Border>
 
-    </Grid>
+            <!-- The official logo, centred on the seam between the picture and the sheet: half on
+                 each. Outside the sheet because a Border clips what it holds. Its centre sits on
+                 the sheet's top edge (-28), so its top is half its height above that. Centred
+                 across the page, over the name below. It carries
+                 its own map shadow under the tip, so it takes no drop shadow. -->
+            <Image Grid.Row="1"
+                   Source="{DynamicResource OfficialLogoImage}"
+                   Aspect="AspectFit"
+                   WidthRequest="64"
+                   HeightRequest="82"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Start"
+                   Margin="0,-69,0,0" />
+        </Grid>
+    </ScrollView>
 
 </ContentPage>

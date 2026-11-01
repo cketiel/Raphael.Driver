@@ -15,7 +15,7 @@
 
     <ContentPage.Resources>
         <Style TargetType="Grid" x:Key="NavRowStyle">
-            <Setter Property="BackgroundColor" Value="White"/>
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}"/>
         </Style>
         <Style TargetType="Label" x:Key="NavLabelStyle">
             <Setter Property="FontSize" Value="16"/>
@@ -30,16 +30,16 @@
         </Style>
         <Style TargetType="Label" x:Key="DetailHeaderLabel">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="TextColor" Value="Gray"/>
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}"/>
         </Style>
         <Style TargetType="Label" x:Key="DetailValueLabel">
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextColor" Value="Black"/>
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}"/>
         </Style>
         <!-- Style for dividers inside the details card -->
         <Style TargetType="BoxView" x:Key="DetailSeparatorStyle">
             <Setter Property="HeightRequest" Value="1" />
-            <Setter Property="Color" Value="#F0F0F0" />
+            <Setter Property="Color" Value="{DynamicResource SeparatorColor}" />
             <Setter Property="HorizontalOptions" Value="Fill" />
         </Style>
     </ContentPage.Resources>
@@ -74,7 +74,7 @@
                             </Grid>
 
                             <!-- The separator is now outside the Grid, spanning the full width -->
-                            <BoxView HeightRequest="3" Color="#E0E0E0" HorizontalOptions="Fill"/>
+                            <BoxView HeightRequest="3" Color="{DynamicResource SeparatorColor}" HorizontalOptions="Fill"/>
 
                         </VerticalStackLayout>
                     </DataTemplate>
@@ -82,9 +82,9 @@
             </CollectionView>
 
             <!-- DETAILS SECTION -->
-            <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="Gray" HorizontalOptions="Center" FontAttributes="Bold"/>
+            <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" HorizontalOptions="Center" FontAttributes="Bold"/>
 
-            <Border StrokeThickness="0" BackgroundColor="White" Padding="15" Margin="10,0,10,10"
+            <Border StrokeThickness="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Padding="15" Margin="10,0,10,10"
         StrokeShape="RoundRectangle 5">
                 <VerticalStackLayout Spacing="0">
                     <!-- Address -->
@@ -98,7 +98,7 @@
                                 <Label.FormattedText>
                                     <FormattedString>
                                         <Span Text="ADDRESS "/>
-                                        <Span Text="(Tap to Copy)" TextColor="#1E90FF"/>
+                                        <Span Text="(Tap to Copy)" TextColor="{DynamicResource TertiaryTextColor}"/>
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>
@@ -183,7 +183,7 @@
                                 <Label.FormattedText>
                                     <FormattedString>
                                         <Span Text="HOME PHONE "/>
-                                        <Span Text="(Tap to Copy)" TextColor="#1E90FF"/>
+                                        <Span Text="(Tap to Copy)" TextColor="{DynamicResource TertiaryTextColor}"/>
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>

@@ -8,7 +8,16 @@
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              x:DataType="vm:DashboardViewModel"
              Title="DASHBOARD"
-             BackgroundColor="{StaticResource AppDarkBackgroundColor}">
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
+
+    <!--
+        V7 Dashboard (03_Pantallas/PANTALLAS.md, 02): a greeting, the Run Info card, the Today's
+        Events card with the count, one bar segment per event and the next event, and SCHEDULE.
+
+        The next event opens the same page Today opens for its first card, with the same values:
+        it is the first pending event, the only one the driver may act on, so the order of the day
+        holds exactly as it does there (DashboardViewModel.OpenNextEvent).
+    -->
 
     <Shell.TitleView>
         <controls:PageTitleBar Title="DASHBOARD" Icon="&#xf00a;" />
@@ -19,173 +28,257 @@
             EventName="Appearing"
             Command="{Binding InitializeCommand}" />
     </ContentPage.Behaviors>
-    
-    <ContentPage.Resources>
-        
-        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
-        <converters:ScheduleColorConverter x:Key="ScheduleColorConverter" />
-        <converters:ScheduleDisplayTimeConverter x:Key="ScheduleDisplayTimeConverter" />
-        <converters:TripTypeConverter x:Key="TripTypeConverter" />
-    </ContentPage.Resources>
 
-    <Grid>
+    <ContentPage.Resources>
+        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+
+        <!-- V7 «.card» -->
+        <Style TargetType="Border" x:Key="DashCardStyle">
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+            <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <!-- V7 «.chip-ic»: the small rounded tile with the card's icon. -->
+        <Style TargetType="Border" x:Key="ChipStyle">
+            <Setter Property="BackgroundColor" Value="{DynamicResource TintColor}" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="WidthRequest" Value="30" />
+            <Setter Property="HeightRequest" Value="30" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <Style TargetType="Label" x:Key="ChipIconStyle">
+            <Setter Property="FontFamily" Value="FontAwesomeSolid" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <Style TargetType="Label" x:Key="CardTitleStyle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <!-- V7 «.kv»: one value on a tinted tile, its name small above it. -->
+        <Style TargetType="Border" x:Key="KvTileStyle">
+            <Setter Property="BackgroundColor" Value="{DynamicResource TintColor}" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+        <Style TargetType="Label" x:Key="KvNameStyle">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+        </Style>
+
+        <Style TargetType="Label" x:Key="KvValueStyle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
+        </Style>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="*, Auto">
 
         <ScrollView Grid.Row="0">
             <!-- Bottom padding: room to scroll the last card out from under the Call me button. -->
-            <VerticalStackLayout Spacing="10" Padding="10,10,10,96">
+            <VerticalStackLayout Spacing="12" Padding="16,14,16,96">
 
-                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Primary}" HorizontalOptions="Center" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
 
-                <VerticalStackLayout Spacing="10" IsVisible="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}">
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}">
 
-                    <!-- ==================================================================== -->
-                    <!-- Card 1: Run Info  -->
-                    <!-- ==================================================================== -->
-                    <Frame Style="{StaticResource CardViewStyle}" Padding="0">
-                        
-                        <Grid ColumnDefinitions="7, *">
-                            
-                            <BoxView Grid.Column="0" Color="#008080" />
-                          
-                            <Grid Grid.Column="1" RowDefinitions="Auto,*" ColumnDefinitions="*,Auto" Padding="15">
-                                <Label Text="Run Info" FontSize="Large" FontAttributes="Bold" Grid.Column="0" TextColor="White"/>
-                                <Image Grid.Column="1" HeightRequest="24" WidthRequest="24" Source="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf5e4;', Color=White}"/>
+                    <!-- Greeting -->
+                    <VerticalStackLayout Spacing="0" Padding="2,0">
+                        <Label Text="Welcome!"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource SecondaryTextColor}" />
+                        <Label Text="{Binding DriverName}"
+                               FontSize="26"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource InkColor}" />
+                    </VerticalStackLayout>
 
-                                <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="5" Margin="0,15,0,0">
-                                    <Grid ColumnDefinitions="Auto, *">
-                                        <Label Text="Driver:" Grid.Column="0" TextColor="LightGray"/>
-                                        <Label Text="{Binding DriverName}" Grid.Column="1" HorizontalOptions="End" TextColor="White" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="Auto, *">
-                                        <Label Text="Run:" Grid.Column="0" TextColor="LightGray"/>
-                                        <Label Text="{Binding RunName}" Grid.Column="1" HorizontalOptions="End" TextColor="White" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="Auto, *">
-                                        <Label Text="Vehicle:" Grid.Column="0" TextColor="LightGray"/>
-                                        <Label Text="{Binding VehicleName}" Grid.Column="1" HorizontalOptions="End" TextColor="White" />
-                                    </Grid>
-                                </VerticalStackLayout>
-                            </Grid>
-                        </Grid>
-                    </Frame>
+                    <!-- ============================================================== -->
+                    <!-- Run Info                                                         -->
+                    <!-- ============================================================== -->
+                    <Border Style="{StaticResource DashCardStyle}">
+                        <VerticalStackLayout Spacing="12">
+                            <HorizontalStackLayout Spacing="10">
+                                <Border Style="{StaticResource ChipStyle}">
+                                    <Label Text="&#xf4d7;" Style="{StaticResource ChipIconStyle}" />
+                                </Border>
+                                <Label Text="Run Info" Style="{StaticResource CardTitleStyle}" />
+                            </HorizontalStackLayout>
 
-                    <!-- ==================================================================== -->
-                    <!-- Card 2: Next Event -->
-                    <!-- ==================================================================== -->
-                    <Frame Style="{StaticResource CardViewStyle}" IsVisible="{Binding NextEvent, Converter={StaticResource IsNotNullConverter}}" Padding="0">
-                        <Grid ColumnDefinitions="7, *">
-                            
-                            <BoxView Grid.Column="0" Color="{Binding NextEvent, Converter={StaticResource ScheduleColorConverter}}"/>
-                           
-                            <Grid Grid.Column="1" RowDefinitions="Auto,*" ColumnDefinitions="*,Auto" Padding="15">
-                                
-                                <StackLayout Orientation="Horizontal" Spacing="5">
-                                    
-                                    <Label Text="{Binding NextEvent, Converter={StaticResource ScheduleDisplayTimeConverter}}" FontSize="Large" FontAttributes="Bold" TextColor="White"/>
-                                    <Label Text="-" FontSize="Large" FontAttributes="Bold" TextColor="White"/>
-                                   
-                                    <StackLayout Orientation="Horizontal" Spacing="5">
-                                        <StackLayout.Triggers>
-                                            <DataTrigger TargetType="StackLayout" Binding="{Binding NextEvent.Name}" Value="Pull-in">
-                                                <Setter Property="IsVisible" Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="StackLayout" Binding="{Binding NextEvent.Name}" Value="Pull-out">
-                                                <Setter Property="IsVisible" Value="False" />
-                                            </DataTrigger>
-                                        </StackLayout.Triggers>
-                                        <Label Text="{Binding NextEvent.EventType}" FontSize="Large" FontAttributes="Bold" TextColor="White"/>
-                                        <Label Text="{Binding NextEvent.TripType, Converter={StaticResource TripTypeConverter}}" FontSize="Large" FontAttributes="Bold" TextColor="White"/>
-                                    </StackLayout>
-
-                                    <!-- Pull-out -->
-                                    <Label Text="Pull Out" FontSize="Large" FontAttributes="Bold" TextColor="White" IsVisible="False">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding NextEvent.Name}" Value="Pull-out">
-                                                <Setter Property="IsVisible" Value="True" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
-
-                                    <!-- Pull-in -->
-                                    <Label Text="Pull In" FontSize="Large" FontAttributes="Bold" TextColor="White" IsVisible="False">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding NextEvent.Name}" Value="Pull-in">
-                                                <Setter Property="IsVisible" Value="True" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
-                                </StackLayout>
-
-                                <Image Grid.Column="1" HeightRequest="24" WidthRequest="24" Source="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf5e4;', Color=White}"/>
-
-                                <!-- Fila 2: Dirección -->
-                                <StackLayout Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
-                                    <Image HeightRequest="20" WidthRequest="20" VerticalOptions="Start" Source="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf3c5;', Color=White}"/>
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                                <Border Grid.ColumnSpan="2" Style="{StaticResource KvTileStyle}">
                                     <VerticalStackLayout>
-                                        <Label Text="{Binding NextEvent.Address}" TextColor="White"/>
-                                                                                
+                                        <Label Text="Run" Style="{StaticResource KvNameStyle}" />
+                                        <Label Text="{Binding RunName}" Style="{StaticResource KvValueStyle}" />
                                     </VerticalStackLayout>
-                                </StackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Style="{StaticResource KvTileStyle}">
+                                    <VerticalStackLayout>
+                                        <Label Text="Driver" Style="{StaticResource KvNameStyle}" />
+                                        <Label Text="{Binding DriverName}" Style="{StaticResource KvValueStyle}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource KvTileStyle}">
+                                    <VerticalStackLayout>
+                                        <Label Text="Vehicle" Style="{StaticResource KvNameStyle}" />
+                                        <Label Text="{Binding VehicleName}" Style="{StaticResource KvValueStyle}" />
+                                    </VerticalStackLayout>
+                                </Border>
                             </Grid>
-                        </Grid>
-                    </Frame>
+                        </VerticalStackLayout>
+                    </Border>
 
-                    <!-- ==================================================================== -->
-                    <!-- Card 3: Today's Events -->
-                    <!-- ==================================================================== -->
-                    <Frame Style="{StaticResource CardViewStyle}" Padding="0">
-                            <Grid ColumnDefinitions="7, *">
-                                <BoxView Grid.Column="0" Color="#8A2BE2" />
-                        
-                            <VerticalStackLayout Grid.Column="1" Padding="15">
-                                <Label Text="Today's Events" FontSize="Large" FontAttributes="Bold" TextColor="White"/>
-                                <Label Margin="0,5,0,0">
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="{Binding RemainingEventsCount}" FontAttributes="Bold" TextColor="White"/>
-                                            <Span Text=" Events Remaining" TextColor="LightGray"/>
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
-                            </VerticalStackLayout>
-                        </Grid>
-                    </Frame>
+                    <!-- ============================================================== -->
+                    <!-- Today's Events                                                   -->
+                    <!-- ============================================================== -->
+                    <Border Style="{StaticResource DashCardStyle}" IsVisible="{Binding HasData}">
+                        <VerticalStackLayout Spacing="14">
+                            <HorizontalStackLayout Spacing="10">
+                                <Border Style="{StaticResource ChipStyle}">
+                                    <Label Text="&#xf017;" Style="{StaticResource ChipIconStyle}" />
+                                </Border>
+                                <Label Text="Today's Events" Style="{StaticResource CardTitleStyle}" />
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout Spacing="14">
+                                <Label Text="{Binding RemainingEventsCount}"
+                                       FontSize="44"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource NextColor}"
+                                       MinimumWidthRequest="34"
+                                       VerticalOptions="Center" />
+                                <Label Text="Events Remaining"
+                                       FontSize="15"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource InkColor}"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+
+                            <!-- One segment per event of the day: done green, next coral, the rest empty. -->
+                            <FlexLayout BindableLayout.ItemsSource="{Binding Segments}"
+                                        Direction="Row"
+                                        HeightRequest="8">
+                                <BindableLayout.ItemTemplate>
+                                    <!-- The gap is padding, not margin: FlexLayout shares the
+                                         width out ignoring margins, and the last segment was cut. -->
+                                    <DataTemplate x:DataType="vm:EventSegment">
+                                        <Grid FlexLayout.Grow="1" FlexLayout.Basis="0" Padding="2,0">
+                                        <BoxView HeightRequest="8"
+                                                 CornerRadius="4"
+                                                 Color="{DynamicResource TintColor}">
+                                            <BoxView.Triggers>
+                                                <DataTrigger TargetType="BoxView" Binding="{Binding IsDone}" Value="True">
+                                                    <Setter Property="Color" Value="{DynamicResource OkColor}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="BoxView" Binding="{Binding IsNext}" Value="True">
+                                                    <Setter Property="Color" Value="{DynamicResource NextColor}" />
+                                                </DataTrigger>
+                                            </BoxView.Triggers>
+                                        </BoxView>
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </FlexLayout>
+
+                            <!-- The next event: tapping it opens it, as its card in Today would. -->
+                            <Border IsVisible="{Binding HasNextEvent}"
+                                    BackgroundColor="{DynamicResource NextSoftColor}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    Padding="12">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenNextEventCommand}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Border BackgroundColor="#1A000000"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 10"
+                                            WidthRequest="32"
+                                            HeightRequest="32"
+                                            VerticalOptions="Center">
+                                        <Label Text="{Binding NextEventGlyph}"
+                                               FontFamily="FontAwesomeSolid"
+                                               FontSize="15"
+                                               TextColor="{DynamicResource NextColor}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding NextEventCaption}"
+                                               FontSize="11.5"
+                                               FontAttributes="Bold"
+                                               CharacterSpacing="0.6"
+                                               TextColor="{DynamicResource NextTextColor}" />
+                                        <Label Text="{Binding NextEventTitle}"
+                                               FontSize="14.5"
+                                               FontAttributes="Bold"
+                                               TextColor="{DynamicResource InkColor}"
+                                               LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2"
+                                           Text="&#xf054;"
+                                           FontFamily="FontAwesomeSolid"
+                                           FontSize="14"
+                                           TextColor="{DynamicResource SecondaryTextColor}"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Nothing left today. -->
+                            <Border IsVisible="{Binding AllDone}"
+                                    BackgroundColor="{DynamicResource TintColor}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    Padding="12">
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="&#xf00c;"
+                                           FontFamily="FontAwesomeSolid"
+                                           FontSize="16"
+                                           TextColor="{DynamicResource OkColor}"
+                                           VerticalOptions="Center" />
+                                    <Label Text="All of today's events are done."
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="{DynamicResource SecondaryTextColor}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
 
         <Button Grid.Row="1"
-            Text="SCHEDULE"
-            Command="{Binding GoToScheduleCommand}"
-            Style="{StaticResource PrimaryButtonStyle}"
-            Margin="15" />
+                Text="SCHEDULE"
+                Command="{Binding GoToScheduleCommand}"
+                Style="{StaticResource PrimaryActionButtonStyle}"
+                ImageSource="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf017;', Color=White, Size=18}"
+                ContentLayout="Left, 10"
+                HeightRequest="56"
+                FontSize="15.5"
+                FontAttributes="Bold"
+                Margin="16,8,16,16" />
 
         <!-- In the row above the SCHEDULE button, so it floats over the cards and never over it. -->
         <controls:CallRequestButton Grid.Row="0"
                                     VehicleRouteId="{Binding NextEvent.VehicleRouteId}" />
-    </Grid>
-
-        <!--<Grid IsVisible="{Binding IsBusy}" BackgroundColor="#80000000">
-            
-
-            <Border BackgroundColor="{StaticResource AppDarkBackgroundColor}" 
-                    Stroke="LightGray"
-                    StrokeThickness="1"
-                    Padding="30" 
-                    HorizontalOptions="Center" 
-                    VerticalOptions="Center"
-                    StrokeShape="RoundRectangle 10">
-
-                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
-                    <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource Primary}" />
-                    <Label Text="Loading..." TextColor="White" HorizontalTextAlignment="Center" />
-                </VerticalStackLayout>
-
-            </Border>
-        </Grid>-->
-
-
     </Grid>
 </ContentPage>

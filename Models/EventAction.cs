@@ -19,5 +19,11 @@ namespace Raphael.Driver.Models
         public string? Hint { get; set; }
 
         public bool HasHint => !string.IsNullOrWhiteSpace(Hint);
+
+        /// <summary>
+        /// The step the stop is waiting for (Start Trip, Arrive, Passenger Signature, Perform,
+        /// Odometer). The schedule styles set it off from the rest; Legacy draws every row alike.
+        /// </summary>
+        public bool IsMain { get; set; }
     }
 }

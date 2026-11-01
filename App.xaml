@@ -8,6 +8,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+                <!-- Placeholder so every themed key exists from the start; ThemeManager
+                     replaces it with the driver's theme before the Shell is built. -->
+                <ResourceDictionary Source="Resources/Styles/LightTheme.xaml" />
 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

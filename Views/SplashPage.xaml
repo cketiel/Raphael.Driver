@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    The animated splash: design Q, "all the trips". It plays once, before the Shell exists, and a
+    tap skips it. The street map is SplashMap; the small pins and the logo are drawn by
+    SplashDrawable; the name and the slogan are labels, sized in code from the page width so the
+    whole lockup scales like the approved design. One look in every theme: it is the brand's own
+    moment, before any setting has loaded.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Raphael.Driver.Views.SplashPage"
+             BackgroundColor="#E3EBEF">
+
+    <Grid>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnTapped" />
+        </Grid.GestureRecognizers>
+
+        <GraphicsView x:Name="MapView" InputTransparent="True" />
+
+        <!-- The small pins and the logo, over the whole page: the pins start far from the logo. -->
+        <GraphicsView x:Name="Scene" InputTransparent="True" />
+
+        <VerticalStackLayout x:Name="Lockup"
+                             InputTransparent="True"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center">
+            <!-- Room for the logo; SplashDrawable paints it here. -->
+            <BoxView x:Name="LogoSlot" Color="Transparent" HorizontalOptions="Center" />
+
+            <!-- Where a letter crosses a street, a glow in the ground colour keeps it readable, as
+                 the design's text-shadow does. -->
+            <Label x:Name="Word" Text="RAPHAEL" FontAttributes="Bold" TextColor="#053F59" HorizontalOptions="Center" Opacity="0" >
+                <Label.Shadow><Shadow Brush="#E3EBEF" Offset="0,0" Radius="5" Opacity="1" /></Label.Shadow>
+            </Label>
+            <Label x:Name="Sub" Text="DRIVER" FontAttributes="Bold" TextColor="#318FB0" HorizontalOptions="Center" Opacity="0" >
+                <Label.Shadow><Shadow Brush="#E3EBEF" Offset="0,0" Radius="5" Opacity="1" /></Label.Shadow>
+            </Label>
+            <!-- The rule sits on a strip of ground colour, so a street never runs through it. -->
+            <Border x:Name="Rule" BackgroundColor="#E3EBEF" StrokeThickness="0" Padding="3"
+                    StrokeShape="RoundRectangle 4" HorizontalOptions="Center" ScaleX="0">
+                <BoxView x:Name="RuleLine" Color="#C9412F" HeightRequest="2" CornerRadius="1" />
+            </Border>
+            <Label x:Name="Tag1" Text="Driving Health" FontAttributes="Bold" TextColor="#053F59" HorizontalOptions="Center" Opacity="0" >
+                <Label.Shadow><Shadow Brush="#E3EBEF" Offset="0,0" Radius="5" Opacity="1" /></Label.Shadow>
+            </Label>
+            <!-- A no-break space each side: Android measures italics upright and clipped the last
+                 letter, and Padding instead made the label wrap "Angel" out of sight. -->
+            <Label x:Name="Tag2" Text="&#160;The Rider’s Angel&#160;" FontAttributes="Italic" TextColor="#566872" HorizontalOptions="Center" Opacity="0" >
+                <Label.Shadow><Shadow Brush="#E3EBEF" Offset="0,0" Radius="5" Opacity="1" /></Label.Shadow>
+            </Label>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

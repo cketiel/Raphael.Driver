@@ -153,13 +153,13 @@ namespace Raphael.Driver.ViewModels
             {
                 if (needsStart)
                 {
-                    Actions.Add(new EventAction { Text = "Start Trip", IconGlyph = "", Command = StartTripCommand });
+                    Actions.Add(new EventAction { IsMain = true, Text = "Start Trip", IconGlyph = "", Command = StartTripCommand });
                 }
                 else if (!HasArrived)
                 {
                     // STATUS 1: The driver has not arrived yet.
                     // The action is "Arrive", regardless of whether it is Pickup or Dropoff.
-                    Actions.Add(new EventAction { Text = "Arrive", IconGlyph = "", Command = ArriveCommand });
+                    Actions.Add(new EventAction { IsMain = true, Text = "Arrive", IconGlyph = "", Command = ArriveCommand });
                 }
                 else // The driver has already arrived (HasArrived == true)
                 {
@@ -173,7 +173,7 @@ namespace Raphael.Driver.ViewModels
                     {
                         // CASE A: It is a Pickup and needs a signature.
                         Actions.Add(new EventAction { Text = "Update Contact Phone Number", IconGlyph = "", Command = UpdatePhoneCommand });
-                        Actions.Add(new EventAction { Text = "Passenger Signature", IconGlyph = "", Command = GoToSignaturePageCommand });
+                        Actions.Add(new EventAction { IsMain = true, Text = "Passenger Signature", IconGlyph = "", Command = GoToSignaturePageCommand });
                         Actions.Add(new EventAction { Text = "Cancel Trip", IconGlyph = "", Command = CancelTripCommand });
                     }
                     else
@@ -182,7 +182,7 @@ namespace Raphael.Driver.ViewModels
                         // 1. It is a 'Dropoff' type event (which skips the signature).
                         // 2. It is a 'Pickup' type event that already has a signature saved.
                         // In both cases, the next action is "Perform".
-                        Actions.Add(new EventAction { Text = "Perform", IconGlyph = "", Command = PerformCommand });
+                        Actions.Add(new EventAction { IsMain = true, Text = "Perform", IconGlyph = "", Command = PerformCommand });
                         Actions.Add(new EventAction { Text = "Cancel Trip", IconGlyph = "", Command = CancelTripCommand });
                     }
                 }

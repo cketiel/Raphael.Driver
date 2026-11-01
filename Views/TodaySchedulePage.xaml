@@ -7,6 +7,7 @@
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.TodaySchedulePage"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
+             xmlns:cards="clr-namespace:Raphael.Driver.Controls.ScheduleCards"
              x:DataType="viewmodels:TodayScheduleViewModel"
              Title="TODAY' SCHEDULE">
 
@@ -19,7 +20,7 @@
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
-        <mct:StatusBarBehavior StatusBarColor="#B82E49" StatusBarStyle="LightContent" />
+        <!-- No StatusBarBehavior: the status bar follows the theme (ThemeManager.ApplyStatusBar). -->
     </ContentPage.Behaviors>
 
     <ContentPage.Resources>
@@ -35,7 +36,7 @@
         <Style TargetType="Label" x:Key="IconLabel">
             <Setter Property="FontFamily" Value="FontAwesomeSolid" />
             <Setter Property="FontSize" Value="16" />
-            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
             <Setter Property="VerticalOptions" Value="Center" />
             <Setter Property="WidthRequest" Value="25"/>
         </Style>
@@ -50,159 +51,30 @@
     <!-- We use a RefreshView to enable reloading and handle the loading indicator -->
     <RefreshView Command="{Binding LoadEventsCommand}" IsRefreshing="{Binding IsBusy}">
 
-        <Grid RowDefinitions="Auto, *" RowSpacing="10" BackgroundColor="#F0F0F0">
+        <Grid RowDefinitions="Auto, *" RowSpacing="10" BackgroundColor="{DynamicResource PageBackgroundColor}">
           
             <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="10" Padding="10,10">
-                <Button Text="VIEW HISTORY" BackgroundColor="#1976D2" TextColor="White" Command="{Binding GoToHistoryCommand}" IsEnabled="{Binding IsHistoryAvailable}"/>
-                <Button Grid.Column="1" Text="CHANGE ROUTE" BackgroundColor="#4CAF50" TextColor="White" Command="{Binding ChangeRouteCommand}"/>
+                <Button Text="VIEW HISTORY" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="8" Command="{Binding GoToHistoryCommand}" IsEnabled="{Binding IsHistoryAvailable}"/>
+                <Button Grid.Column="1" Text="CHANGE ROUTE" Style="{StaticResource TertiaryButtonStyle}" CornerRadius="8" Command="{Binding ChangeRouteCommand}"/>
             </Grid>
            
             <Grid Grid.Row="1">
               
-                <CollectionView ItemsSource="{Binding Events}"
+                <CollectionView x:Name="EventsList" ItemsSource="{Binding Events}"
                                 SelectionMode="None"
                                 IsVisible="{Binding HasEvents}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="dto:ScheduleDto">
 
-                            <Border StrokeThickness="1" Stroke="{StaticResource SeparatorColor}" Margin="10,0,10,10"
-                                    StrokeShape="RoundRectangle 5" Padding="0" BackgroundColor="{StaticResource CardBackgroundColor}">
-                                <Border.GestureRecognizers>
+                            <!-- The card in the driver's schedule style (Settings → SCHEDULE STYLE);
+                                 Legacy is the card this template used to hold, unchanged. -->
+                            <cards:EventCardView Event="{Binding .}">
+                                <cards:EventCardView.GestureRecognizers>
                                     <TapGestureRecognizer 
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TodayScheduleViewModel}}, Path=SelectEventCommand}"
                                         CommandParameter="{Binding .}" />
-                                </Border.GestureRecognizers>
-                                <Grid ColumnDefinitions="7, *">
-                                    <BoxView Grid.Column="0"
-                                             Color="{Binding ., Converter={StaticResource ScheduleColorConverter}}"/>
-                                    <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
-                                        
-                                        <Grid Grid.Row="0" Padding="10, 5"
-                                              BackgroundColor="{Binding ., Converter={StaticResource ScheduleColorConverter}}">
-                                            <!-- Panel for normal cases -->
-                                            <Grid>
-                                                <Grid.Triggers>
-                                                    <MultiTrigger TargetType="Grid">
-                                                        <MultiTrigger.Conditions>
-                                                            <BindingCondition Binding="{Binding Name}" Value="Pull-in" />
-                                                        </MultiTrigger.Conditions>
-                                                        <Setter Property="IsVisible" Value="False" />
-                                                    </MultiTrigger>
-                                                    <MultiTrigger TargetType="Grid">
-                                                        <MultiTrigger.Conditions>
-                                                            <BindingCondition Binding="{Binding Name}" Value="Pull-out" />
-                                                        </MultiTrigger.Conditions>
-                                                        <Setter Property="IsVisible" Value="False" />
-                                                    </MultiTrigger>
-                                                </Grid.Triggers>
-                                                <Label Text="{Binding SpaceType}" TextColor="{StaticResource PrimaryTextColor}" FontAttributes="Bold" HorizontalOptions="Start" />
-                                                <Label Text="{Binding FundingSource}" TextColor="{StaticResource PrimaryTextColor}" FontAttributes="Bold" HorizontalOptions="End" />
-                                            </Grid>
-                                            <!-- Panel for "Pull-in" case -->
-                                            <Label Text="Perform Pull In" IsVisible="False" TextColor="{StaticResource PrimaryTextColor}" FontAttributes="Bold" HorizontalOptions="Start">
-                                                <Label.Triggers>
-                                                    <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-in">
-                                                        <Setter Property="IsVisible" Value="True" />
-                                                    </DataTrigger>
-                                                </Label.Triggers>
-                                            </Label>
-                                            <!-- Panel for "Pull-out" case -->
-                                            <Label Text="Perform Pull Out" IsVisible="False" TextColor="{StaticResource PrimaryTextColor}" FontAttributes="Bold" HorizontalOptions="Start">
-                                                <Label.Triggers>
-                                                    <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-out">
-                                                        <Setter Property="IsVisible" Value="True" />
-                                                    </DataTrigger>
-                                                </Label.Triggers>
-                                            </Label>
-                                        </Grid>
-                                        <!-- Event Body -->
-                                        <VerticalStackLayout Grid.Row="1" Padding="10" Spacing="8">
-                                            <Grid ColumnDefinitions="*, Auto">
-                                                <StackLayout Orientation="Horizontal" Spacing="5">
-                                                    <Label Text="{Binding ETA, Converter={StaticResource TimeSpanToDateTimeConverter}, StringFormat='{0:hh:mm tt}'}" FontSize="20" FontAttributes="Bold" VerticalOptions="End"/>
-                                                    <Label Text="ETA" TextColor="Gray" FontSize="12" VerticalOptions="End" Margin="0,0,0,2"/>
-                                                </StackLayout>
-                                                <!-- RIGHT PANEL WITH CONDITIONAL LOGIC -->
-                                                <Grid Grid.Column="1">
-                                                    <!-- Panel for normal cases -->
-                                                    <StackLayout Orientation="Horizontal" Spacing="5">
-                                                        <StackLayout.Triggers>
-                                                            <MultiTrigger TargetType="StackLayout">
-                                                                <MultiTrigger.Conditions>
-                                                                    <BindingCondition Binding="{Binding Name}" Value="Pull-in" />
-                                                                </MultiTrigger.Conditions>
-                                                                <Setter Property="IsVisible" Value="False" />
-                                                            </MultiTrigger>
-                                                            <MultiTrigger TargetType="StackLayout">
-                                                                <MultiTrigger.Conditions>
-                                                                    <BindingCondition Binding="{Binding Name}" Value="Pull-out" />
-                                                                </MultiTrigger.Conditions>
-                                                                <Setter Property="IsVisible" Value="False" />
-                                                            </MultiTrigger>
-                                                        </StackLayout.Triggers>
-                                                        <!--<Label Text="{Binding EventType, StringFormat='{}{0} Appt'}" FontSize="20" FontAttributes="Bold"/>-->
-                                                        <StackLayout Orientation="Horizontal" Spacing="5">
-                                                            <Label Text="{Binding EventType}" FontSize="20" FontAttributes="Bold"/>
-                                                            <Label Text="{Binding TripType, Converter={StaticResource TripTypeConverter}}" FontSize="20" FontAttributes="Bold"/>
-                                                        </StackLayout>
-                                                        <Label Text="{Binding ., Converter={StaticResource ScheduleArrowConverter}}" 
-                                                               FontFamily="FontAwesomeSolid" FontSize="24"
-                                                               TextColor="{Binding ., Converter={StaticResource ScheduleColorConverter}}"
-                                                               VerticalTextAlignment="Center"
-                                                               Rotation="{Binding ., Converter={StaticResource ScheduleRotationConverter}}"/>
-                                                    </StackLayout>
-                                                    <!-- Panel for "Pull" cases -->
-                                                    <StackLayout Orientation="Horizontal" Spacing="8" IsVisible="False">
-                                                        <StackLayout.Triggers>
-                                                            <MultiTrigger TargetType="StackLayout">
-                                                                <MultiTrigger.Conditions>
-                                                                    <BindingCondition Binding="{Binding Name}" Value="Pull-in" />
-                                                                </MultiTrigger.Conditions>
-                                                                <Setter Property="IsVisible" Value="True" />
-                                                            </MultiTrigger>
-                                                            <MultiTrigger TargetType="StackLayout">
-                                                                <MultiTrigger.Conditions>
-                                                                    <BindingCondition Binding="{Binding Name}" Value="Pull-out" />
-                                                                </MultiTrigger.Conditions>
-                                                                <Setter Property="IsVisible" Value="True" />
-                                                            </MultiTrigger>
-                                                        </StackLayout.Triggers>
-                                                        <!-- Dynamic text for Pull In/Out -->
-                                                        <Label FontSize="20" FontAttributes="Bold">
-                                                            <Label.Triggers>
-                                                                <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-in">
-                                                                    <Setter Property="Text" Value="Pull In" />
-                                                                </DataTrigger>
-                                                                <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-out">
-                                                                    <Setter Property="Text" Value="Pull Out" />
-                                                                </DataTrigger>
-                                                            </Label.Triggers>
-                                                        </Label>
-                                                        <Label Text="" FontFamily="FontAwesomeSolid" FontSize="22" TextColor="Black" VerticalTextAlignment="Center"/>
-                                                        <!-- Car icon -->
-                                                    </StackLayout>
-                                                </Grid>
-                                            </Grid>
-
-                                            <Grid ColumnDefinitions="Auto, *">
-                                                <Label Grid.Column="0" Text="" Style="{StaticResource IconLabel}"/>
-                                                <StackLayout Grid.Column="1" Orientation="Horizontal" Spacing="5">
-                                                    <Label Text="{Binding ., Converter={StaticResource ScheduleDisplayTimeConverter}}" />
-                                                    <Label Text="{Binding ., Converter={StaticResource ScheduleTimeLabelConverter}}" TextColor="Gray"/>
-                                                </StackLayout>
-                                            </Grid>
-                                            <Grid ColumnDefinitions="Auto, *">
-                                                <Label Grid.Column="0" Text="" Style="{StaticResource IconLabel}"/>
-                                                <Label Grid.Column="1" Text="{Binding Patient}" />
-                                            </Grid>
-                                            <Grid ColumnDefinitions="Auto, *">
-                                                <Label Grid.Column="0" Text="" Style="{StaticResource IconLabel}"/>
-                                                <Label Grid.Column="1" Text="{Binding Address}" LineBreakMode="WordWrap"/>
-                                            </Grid>
-                                        </VerticalStackLayout>
-                                    </Grid>
-                                </Grid>
-                            </Border>
+                                </cards:EventCardView.GestureRecognizers>
+                            </cards:EventCardView>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
 
@@ -219,7 +91,7 @@
                        VerticalOptions="Center"
                        HorizontalTextAlignment="Center"
                        Margin="40,0"
-                       TextColor="Gray"
+                       TextColor="{DynamicResource SecondaryTextColor}"
                        FontSize="18"/>
 
                 <!-- The ActivityIndicator is no longer needed here, the RefreshView takes care of it. -->

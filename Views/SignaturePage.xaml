@@ -12,34 +12,37 @@
         <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
 
-    <Grid BackgroundColor="White">
+    <!-- The pad layer keeps fixed light colours in every theme: what is drawn here is saved as
+         drawn, black on white, and a theme must never change the signed image. Its buttons use
+         the V7 light-theme values (ok #11795B, danger-t #B42318) so they read on that white. -->
+    <Grid BackgroundColor="{StaticResource SignaturePadColor}">
         <!-- Signature Pad Layer -->
         <Grid IsVisible="{Binding ShowSignaturePad}">
             <toolkit:DrawingView x:Name="SignatureView" Lines="{Binding Lines, Mode=TwoWay}"
-                             LineColor="Black" LineWidth="5" BackgroundColor="White" IsMultiLineModeEnabled="True"/>
+                             LineColor="{StaticResource SignatureInkColor}" LineWidth="5" BackgroundColor="{StaticResource SignaturePadColor}" IsMultiLineModeEnabled="True"/>
 
             <HorizontalStackLayout VerticalOptions="End" HorizontalOptions="Center" Spacing="20" Padding="0,0,0,20">
-                <Button Text="Cancel" Command="{Binding CancelCommand}" BackgroundColor="Transparent" TextColor="Red" BorderColor="Red" BorderWidth="1" WidthRequest="120" />
-                <Button Text="Done" Command="{Binding SaveSignatureCommand}" BackgroundColor="Green" TextColor="White" WidthRequest="120"/>
+                <Button Text="Cancel" Command="{Binding CancelCommand}" BackgroundColor="Transparent" TextColor="#B42318" BorderColor="#B42318" BorderWidth="1.5" CornerRadius="14" WidthRequest="120" />
+                <Button Text="Done" Command="{Binding SaveSignatureCommand}" BackgroundColor="#11795B" TextColor="White" CornerRadius="14" WidthRequest="120"/>
             </HorizontalStackLayout>
 
-            <Button Text="Clear" Command="{Binding ClearSignatureCommand}" VerticalOptions="Start" HorizontalOptions="End" Margin="20" BackgroundColor="#E0E0E0" TextColor="Black"/>
+            <Button Text="Clear" Command="{Binding ClearSignatureCommand}" VerticalOptions="Start" HorizontalOptions="End" Margin="20" BackgroundColor="#FFFFFF" TextColor="#053F59" BorderColor="#B9C7D0" BorderWidth="1.5" CornerRadius="14"/>
         </Grid>
 
         <!-- Legal Layer -->
-        <Grid IsVisible="{Binding ShowLegalText}" BackgroundColor="White" Padding="30">
+        <Grid IsVisible="{Binding ShowLegalText}" BackgroundColor="{DynamicResource PageBackgroundColor}" Padding="30">
             <Grid RowDefinitions="*, Auto">
                 <VerticalStackLayout Spacing="20" VerticalOptions="Center">
-                    <Label Text="DRIVER CERTIFICATION" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
-                    <Label Text="{Binding LegalText}" FontSize="18" HorizontalTextAlignment="Center" TextColor="#333"/>
+                    <Label Text="DRIVER CERTIFICATION" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{DynamicResource InkColor}"/>
+                    <Label Text="{Binding LegalText}" FontSize="18" HorizontalTextAlignment="Center" TextColor="{DynamicResource PrimaryTextColor}"/>
                 </VerticalStackLayout>
                 <HorizontalStackLayout Grid.Row="1" HorizontalOptions="Center" Spacing="20" Margin="0,20">
-                    <Button Text="DECLINE" Command="{Binding CancelCommand}" BackgroundColor="White" TextColor="Red" BorderColor="Red" BorderWidth="1" WidthRequest="150"/>
-                    <Button Text="I ACCEPT" Command="{Binding AcceptTermsCommand}" BackgroundColor="Green" TextColor="White" WidthRequest="150"/>
+                    <Button Text="DECLINE" Command="{Binding CancelCommand}" Style="{StaticResource DangerButtonStyle}" WidthRequest="150"/>
+                    <Button Text="I ACCEPT" Command="{Binding AcceptTermsCommand}" Style="{StaticResource AcceptButtonStyle}" WidthRequest="150"/>
                 </HorizontalStackLayout>
             </Grid>
         </Grid>
 
-        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" VerticalOptions="Center" Color="Black" />
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" VerticalOptions="Center" Color="{DynamicResource AccentColor}" />
     </Grid>
 </ContentPage>

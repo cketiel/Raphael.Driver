@@ -23,7 +23,7 @@
     </ContentPage.Resources>
         
     <ContentPage.Behaviors>
-        <mct:StatusBarBehavior StatusBarColor="#B82E49" StatusBarStyle="LightContent" />
+        <!-- No StatusBarBehavior: the status bar follows the theme (ThemeManager.ApplyStatusBar). -->
     </ContentPage.Behaviors>
 
     <Grid>
@@ -35,29 +35,29 @@
         <VerticalStackLayout Padding="30,40" Spacing="20" 
                              VerticalOptions="Center" HorizontalOptions="FillAndExpand">
            
-            <Image Source="logo.png"
+            <Image Source="{DynamicResource LogoImage}"
                    Aspect="AspectFit"
-                   WidthRequest="280"
+                   HeightRequest="190"
                    Margin="0,0,0,30"/>
            
             <Border StrokeShape="RoundRectangle 10" 
                     StrokeThickness="1" 
-                    Stroke="{StaticResource BorderColor}" 
-                    BackgroundColor="{StaticResource CardBackgroundColor}" 
+                    Stroke="{DynamicResource BorderColor}" 
+                    BackgroundColor="{DynamicResource CardBackgroundColor}" 
                     Padding="15,0" 
                     HeightRequest="50">
                 <Entry Placeholder="Run Login"
                        Text="{Binding RunLogin}"
                        VerticalTextAlignment="Center"
-                       TextColor="{StaticResource PrimaryTextColor}"
-                        PlaceholderColor="{StaticResource SecondaryTextColor}"
+                       TextColor="{DynamicResource PrimaryTextColor}"
+                        PlaceholderColor="{DynamicResource SecondaryTextColor}"
                        FontSize="16"/>
             </Border>
          
             <!--<Border StrokeShape="RoundRectangle 10"
                     StrokeThickness="1" 
-                    Stroke="#CCCCCC" 
-                    BackgroundColor="White" 
+                    Stroke="{DynamicResource BorderColor}" 
+                    BackgroundColor="{DynamicResource SurfaceColor}" 
                     Padding="15,0" 
                     HeightRequest="50">
                 <Entry Placeholder="Vehicle Login"
@@ -69,9 +69,10 @@
             <!-- Button Today's Schedule (Green) -->
             <Button Text="TODAY'S SCHEDULE"
                     Command="{Binding GoToTodayScheduleCommand}"
+                    ImageSource="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf017;', Color=White, Size=18}"
+                    ContentLayout="Left, 10"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
-                    BackgroundColor="#4CAF50"
-                    TextColor="White"
+                    Style="{StaticResource PrimaryActionButtonStyle}"
                     HeightRequest="55"
                     CornerRadius="10"
                     FontSize="18"
@@ -81,9 +82,10 @@
             <!-- Button Future Schedule (Blue) -->
             <Button Text="FUTURE SCHEDULE"
                     Command="{Binding GoToFutureScheduleCommand}"
+                    ImageSource="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf073;', Color=White, Size=18}"
+                    ContentLayout="Left, 10"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
-                    BackgroundColor="#1976D2"
-                    TextColor="White"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     HeightRequest="55"
                     CornerRadius="10"
                     FontSize="18"
@@ -94,7 +96,7 @@
                            IsVisible="{Binding IsBusy}"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
-                           Color="#B82E49"
+                           Color="{DynamicResource AccentColor}"
                            HeightRequest="50"
                            WidthRequest="50"/>
 

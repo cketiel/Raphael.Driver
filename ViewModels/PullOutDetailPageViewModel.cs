@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Raphael.Driver.Converters;
 using Raphael.Driver.DTOs;
+using Raphael.Driver.Models;
 using Raphael.Driver.Services;
 using Raphael.Driver.Views;
 using Microsoft.Extensions.Logging;
@@ -69,6 +70,13 @@ namespace Raphael.Driver.ViewModels
 
         [ObservableProperty]
         private bool _showPerformAction;
+
+        /// <summary>
+        /// The same rows the page draws for Legacy, as a list, for the schedule styles' action list
+        /// (Controls/ScheduleCards/ActionListView). Same commands, same order; rebuilt whenever the
+        /// rows above change.
+        /// </summary>
+        public ObservableCollection<EventAction> Actions { get; } = new();
 
         public PullOutDetailPageViewModel(IScheduleService scheduleService, IGpsService gpsService, IMapService mapService)
         {
@@ -167,6 +175,25 @@ namespace Raphael.Driver.ViewModels
             OnPropertyChanged(nameof(ShowOdometerAction));
             OnPropertyChanged(nameof(ShowSignatureAction));
             OnPropertyChanged(nameof(ShowPerformAction));
+
+            RebuildActions();
+        }
+
+        private void RebuildActions()
+        {
+            Actions.Clear();
+
+            if (IsPrimaryActionVisible)
+            {
+                if (ShowOdometerAction)
+                    Actions.Add(new EventAction { IsMain = true, Text = "Odometer", IconGlyph = "", Command = OdometerOrPerformActionCommand });
+                if (ShowSignatureAction)
+                    Actions.Add(new EventAction { IsMain = true, Text = "Driver Signature", IconGlyph = "", Command = GoToSignatureCommand });
+                if (ShowPerformAction)
+                    Actions.Add(new EventAction { IsMain = true, Text = "Perform", IconGlyph = "", Command = OdometerOrPerformActionCommand });
+            }
+
+            Actions.Add(new EventAction { Text = MapActionText, IconGlyph = "", Command = GoToMapsCommand });
         }
         [RelayCommand]
         private async Task GoToSignature()

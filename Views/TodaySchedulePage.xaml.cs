@@ -20,9 +20,23 @@ public partial class TodaySchedulePage : ContentPage, IRouteSignalHandler
         BindingContext = viewModel;
     }
 
+    // The schedule style and theme the cards on screen were drawn with.
+    private (ScheduleStyle, SkinTheme)? _drawnWith;
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
+        // Back from Settings with another style or theme: the cards are drawn again from the
+        // events already in memory. Nothing is asked of the server for it.
+        var now = (ScheduleStyleManager.Current, ThemeManager.Effective);
+        if (_drawnWith is { } before && before != now)
+        {
+            var events = EventsList.ItemsSource;
+            EventsList.ItemsSource = null;
+            EventsList.ItemsSource = events;
+        }
+        _drawnWith = now;
 
         // We check if the BindingContext is of the correct type and call the command to reload.
         if (BindingContext is TodayScheduleViewModel vm && vm.LoadEventsCommand.CanExecute(null))

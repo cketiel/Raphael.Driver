@@ -33,13 +33,13 @@
                    Text="{Binding Source={x:Reference Root}, Path=Icon}"
                    FontFamily="FontAwesomeSolid"
                    FontSize="17"
-                   TextColor="White"
+                   TextColor="{DynamicResource NavBarTextColor}"
                    VerticalOptions="Center"
                    IsVisible="False" />
 
             <Label x:Name="TitleLabel"
                    Text="{Binding Source={x:Reference Root}, Path=Title}"
-                   TextColor="White"
+                   TextColor="{DynamicResource NavBarTextColor}"
                    FontSize="18"
                    FontAttributes="Bold"
                    LineBreakMode="TailTruncation"
@@ -62,13 +62,13 @@
             <Label Text="&#xf0f3;"
                    FontFamily="FontAwesomeSolid"
                    FontSize="22"
-                   TextColor="White"
+                   TextColor="{DynamicResource NavBarTextColor}"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
 
             <!-- Hidden at zero: a badge showing "0" reads as something to attend to. -->
             <Border x:Name="BadgeBorder"
-                    BackgroundColor="#E53935"
+                    BackgroundColor="{DynamicResource BadgeColor}"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 9"
                     MinimumWidthRequest="18"

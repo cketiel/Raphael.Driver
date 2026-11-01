@@ -8,37 +8,37 @@ namespace Raphael.Driver
 {
     public partial class App : Application
     {
-        private readonly DarkTheme _darkThemeDictionary;
         public App()
         {
             //AppConfig.Init();
             InitializeComponent();
+
+            // Before the Shell: pages that read a colour with StaticResource take it at build time.
+            ThemeManager.Initialize(this);
 
             // ⚠️ REMOVED: this used to write Preferences["ApiBaseUrl"] with a hard-coded
             // address on EVERY start, which meant any value stored there died at the next
             // launch -- so the preference could never have worked as an override, and the
             // address could only be changed by rebuilding. The server now comes from
             // Configuration/ApiEnvironment, resolved in MauiProgram before anything runs.
-            MainPage = new AppShell();
-            // Go directly to LoginPage on startup
-            //Shell.Current.GoToAsync("//LoginPage");
-
-            _darkThemeDictionary = new DarkTheme();
-
-            // Suscribirse al evento de cambio de tema del sistema operativo.
-            Current.RequestedThemeChanged += OnRequestedThemeChanged;
-
-            // Establecer el tema correcto cuando la aplicación se inicia por primera vez.
-            LoadTheme(Current.RequestedTheme);
-
+            // The animated splash plays first; the Shell is built when it ends, so its cost lands
+            // on the splash's last frame instead of holding back the first one.
+            MainPage = new Views.SplashPage(ShowShell);
         }
 
         /// <summary>
-        /// This method is called by the framework AFTER the app has been initialized
-        /// and MainPage has been assigned. Shell.Current is GUARANTEED not to be null here.
+        /// Called by the splash when it ends or is tapped. Before the splash this ran in OnStart;
+        /// Shell.Current is not null right after the assignment.
         /// </summary>
-        protected override void OnStart()
-        {           
+        private void ShowShell()
+        {
+            MainPage = new AppShell();
+
+            // The splash painted the status bar its own colour; the theme takes it back.
+            ThemeManager.ApplyStatusBar();
+#if ANDROID
+            (Platform.CurrentActivity as MainActivity)?.RestoreWindowBackground();
+#endif
             Shell.Current.GoToAsync("///LoginPage");
         }
 
@@ -61,29 +61,6 @@ namespace Raphael.Driver
                 _ = store.ResumeAsync();
         }
 
-        private void OnRequestedThemeChanged(object sender, AppThemeChangedEventArgs e)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                LoadTheme(e.RequestedTheme);
-            });
-        }
-
-        private void LoadTheme(AppTheme theme)
-        {
-            var mergedDictionaries = Current.Resources.MergedDictionaries;
-
-            if (mergedDictionaries.Contains(_darkThemeDictionary))
-            {
-                mergedDictionaries.Remove(_darkThemeDictionary);
-            }
-
-            if (theme == AppTheme.Dark)
-            {
-                // Como _darkThemeDictionary ya es una instancia completa, simplemente la añadimos.
-                mergedDictionaries.Add(_darkThemeDictionary);
-            }
-        }
     }
 
  

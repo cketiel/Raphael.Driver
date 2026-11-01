@@ -151,12 +151,26 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#FFFFFF" />
+		<!-- White background, the official logo in front, inside the adaptive-icon safe zone. -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" ForegroundScale="0.5" Color="#FFFFFF" />
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash_logo.svg" Color="#FFFFFF" BaseSize="300,375" />
+		<!-- The system's fixed frame (Android's splash, iOS's launch screen): the official logo, centred,
+		     on the street map's ground colour. The animated splash (Views/SplashPage, design Q) starts on
+		     that colour. 192 x 192 at one unit per dp is the size Android 12+ shows it at; older Android
+		     and iOS draw it at its BaseSize, so all three match. -->
+		<MauiSplashScreen Include="Resources\Splash\splash_logo.svg" Color="#E3EBEF" BaseSize="192,192" />
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+		<!-- The V7 logo without its shadow (Schedule). Rendered from this size, so it stays sharp up to 240 x 298. -->
+		<MauiImage Update="Resources\Images\logo.svg" BaseSize="240,298" />
+		<MauiImage Update="Resources\Images\logo_infrared.svg" BaseSize="240,298" />
+		<!-- The official logo (with its map shadow), side menu and sign-in: a 100 x 128 canvas, so its own proportions. -->
+		<MauiImage Update="Resources\Images\logo_official.svg" BaseSize="240,307" />
+		<MauiImage Update="Resources\Images\logo_official_infrared.svg" BaseSize="240,307" />
+		<!-- Logo 03, the R of the sign-in signature: sharp up to 112 x 120. -->
+		<MauiImage Update="Resources\Images\r_mark.svg" BaseSize="112,120" />
+		<MauiImage Update="Resources\Images\r_mark_infrared.svg" BaseSize="112,120" />
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 		<!-- Raw Assets -->

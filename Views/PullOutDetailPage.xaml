@@ -6,11 +6,13 @@
              x:DataType="viewmodels:PullOutDetailPageViewModel"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
-             Title="{Binding PageTitle}"
-             BackgroundColor="{StaticResource PageBackgroundColor}">
+             xmlns:cards="clr-namespace:Raphael.Driver.Controls.ScheduleCards"
+             Title="GARAGE"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <Shell.TitleView>
-        <controls:PageTitleBar Title="{Binding PageTitle}" Icon="&#xf1b9;" ShowBell="False" />
+        <!-- Pull-out and pull-in leave the garage and come back to it. -->
+        <controls:PageTitleBar Title="GARAGE" Icon="&#xf494;" ShowBell="False" />
     </Shell.TitleView>
 
     <Shell.BackButtonBehavior>
@@ -24,11 +26,11 @@
         <!-- <converters:ScheduleColorConverter x:Key="ScheduleColorConverter" /> -->
 
         <Style TargetType="Grid" x:Key="NavRowStyle">
-            <Setter Property="BackgroundColor" Value="{StaticResource CardBackgroundColor}"/>
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}"/>
         </Style>
         
         <Style TargetType="Label" x:Key="NavLabelStyle">
-            <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="VerticalOptions" Value="Center"/>
         </Style>
@@ -41,17 +43,17 @@
         </Style>
         <Style TargetType="Label" x:Key="DetailHeaderLabel">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="TextColor" Value="{StaticResource SecondaryTextColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}"/>
         </Style>
         <Style TargetType="Label" x:Key="DetailValueLabel">
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}"/>
             <Setter Property="FontAttributes" Value="Bold"/>
         </Style>
         <!-- Style for dividers inside the details card -->
         <Style TargetType="BoxView" x:Key="DetailSeparatorStyle">
             <Setter Property="HeightRequest" Value="1" />
-            <Setter Property="Color" Value="{StaticResource SeparatorColor}" />
+            <Setter Property="Color" Value="{DynamicResource SeparatorColor}" />
             <Setter Property="HorizontalOptions" Value="Fill" />
         </Style>
     </ContentPage.Resources>
@@ -59,6 +61,12 @@
     <Grid>
     
     <VerticalStackLayout Spacing="3">
+
+        <!-- The card that was tapped, in the driver's schedule style. Legacy shows nothing here. -->
+        <cards:EventCardView x:Name="Hero" Event="{Binding Event}" IsHero="True" Margin="0,10,0,0" />
+
+        <!-- These rows for Legacy; ActionListView below for the other styles, with the same commands. -->
+        <VerticalStackLayout x:Name="LegacyActions" Spacing="3">
 
         <Grid ColumnDefinitions="7,*" Style="{StaticResource NavRowStyle}" IsVisible="{Binding IsPrimaryActionVisible}">
             <Grid.GestureRecognizers>
@@ -142,10 +150,14 @@
             </Grid>
         </Grid>
 
-        <!-- Details Section -->
-        <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="Gray" HorizontalOptions="Center" FontAttributes="Bold"/>
+        </VerticalStackLayout>
 
-            <Border StrokeThickness="0" BackgroundColor="{StaticResource CardBackgroundColor}" Padding="15" Margin="10,0"
+        <cards:ActionListView x:Name="StyledActions" Actions="{Binding Actions}" Event="{Binding Event}" />
+
+        <!-- Details Section -->
+        <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" HorizontalOptions="Center" FontAttributes="Bold"/>
+
+            <Border StrokeThickness="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Padding="15" Margin="10,0"
                 StrokeShape="RoundRectangle 5">
             <VerticalStackLayout Spacing="0">
                 <!-- Address -->
@@ -158,7 +170,7 @@
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="ADDRESS "/>
-                                    <Span Text="(Tap to Copy)" TextColor="#1E90FF"/>
+                                    <Span Text="(Tap to Copy)" TextColor="{DynamicResource TertiaryTextColor}"/>
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
@@ -198,7 +210,7 @@
                        IsVisible="{Binding IsBusy}"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
-                       Color="{StaticResource Primary}"/>
+                       Color="{DynamicResource Primary}"/>
 
     <!-- The van that will not start is asked about here, before the Pull-out is performed. -->
     <controls:CallRequestButton VehicleRouteId="{Binding Event.VehicleRouteId}"

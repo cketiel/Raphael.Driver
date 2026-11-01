@@ -25,6 +25,13 @@ namespace Raphael.Driver
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                     fonts.AddFont("fa-solid-900.ttf", "FontAwesomeSolid");
+                })
+                .ConfigureMauiHandlers(handlers =>
+                {
+#if ANDROID
+                    // The V7 rounded square behind the menu / back button of the top bar.
+                    handlers.AddHandler(typeof(Shell), typeof(RaphaelShellRenderer));
+#endif
                 });
 
             // --- API BASE URL ---
