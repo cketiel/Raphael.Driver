@@ -1,43 +1,49 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-  
+
 <!-- Raphael Theme-->
 
-<ResourceDictionary 
+<!--
+    Every colour here is a DynamicResource from the active theme dictionary (see Colors.xaml).
+    AppThemeBinding is not used any more: it only knows Light and Dark, follows the phone rather
+    than the driver's choice, and cannot express the Gray and Infrared themes.
+-->
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!-- STYLE FOR CARDS (FRAMES) -->
     <Style x:Key="CardViewStyle" TargetType="Frame">
-        <Setter Property="BackgroundColor" Value="#2C2C2E" />
-        
+        <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="15" />
         <Setter Property="HasShadow" Value="False" />
-        <Setter Property="BorderColor" Value="#404040" />
+        <Setter Property="BorderColor" Value="{DynamicResource SeparatorColor}" />
     </Style>
 
     <!-- STYLE FOR THE MAIN BUTTON -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="#32CD32" />
-        
-        <Setter Property="TextColor" Value="White" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource Primary}" />
+
+        <Setter Property="TextColor" Value="{DynamicResource OnBrandTextColor}" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="FontAttributes" Value="Bold" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="HeightRequest" Value="50" />
         <Setter Property="BorderWidth" Value="0" />
     </Style>
-    
-    <!-- ActivityIndicator -->
-    <Style TargetType="ActivityIndicator">
-        <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-    </Style>
 
-    <!-- Button -->
-    <Style TargetType="Button">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+    <!--
+        What every button shares, including the Disabled look. Every button style is BasedOn it.
+
+        ⚠️ Disabled fades the button (Opacity), it never sets a colour, and that is not taste.
+        A visual state that sets BackgroundColor or TextColor removes, when it is left, every
+        DynamicResource on that property — the Style's one too. A button that had been disabled
+        once, as every button bound to IsBusy is while a page loads, then kept the colours of that
+        theme for good. V7 dims disabled controls to 50 % anyway («apagada»).
+    -->
+    <Style x:Key="ButtonBaseStyle" TargetType="Button">
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="CornerRadius" Value="8"/>
@@ -50,8 +56,7 @@
                     <VisualState x:Name="Normal" />
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
-                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+                            <Setter Property="Opacity" Value="0.5" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
@@ -59,9 +64,84 @@
         </Setter>
     </Style>
 
+    <!--
+        V7 button roles (COMPONENTES.md, «Botones»). Colours and corners only: sizes stay where
+        each page already sets them.
+    -->
+    <Style x:Key="PrimaryActionButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource Primary}" />
+        <Setter Property="TextColor" Value="{DynamicResource OnBrandTextColor}" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="BorderWidth" Value="0" />
+    </Style>
+
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource BrandBlueColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource OnBrandTextColor}" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="BorderWidth" Value="0" />
+    </Style>
+
+    <Style x:Key="TertiaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+        <Setter Property="BorderColor" Value="{DynamicResource BorderColor}" />
+        <Setter Property="BorderWidth" Value="1.5" />
+        <Setter Property="CornerRadius" Value="14" />
+    </Style>
+
+    <Style x:Key="AcceptButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource OkColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource OnOkTextColor}" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="BorderWidth" Value="0" />
+    </Style>
+
+    <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource DangerTextColor}" />
+        <Setter Property="BorderColor" Value="{DynamicResource DangerTextColor}" />
+        <Setter Property="BorderWidth" Value="1.5" />
+        <Setter Property="CornerRadius" Value="14" />
+    </Style>
+
+    <!-- ActivityIndicator -->
+    <Style TargetType="ActivityIndicator">
+        <Setter Property="Color" Value="{DynamicResource AccentColor}" />
+    </Style>
+
+    <!-- Button -->
+    <Style TargetType="Button">
+        <Setter Property="TextColor" Value="{DynamicResource OnBrandTextColor}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource Primary}" />
+        <Setter Property="FontFamily" Value="OpenSansRegular"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.5" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- Pages that set no background show the theme's, not Android's white or black window. -->
+    <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="{DynamicResource PageBackgroundColor}" />
+    </Style>
+
     <!-- Label -->
     <Style TargetType="Label">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="BackgroundColor" Value="Transparent"/>
@@ -69,8 +149,8 @@
 
     <!-- Entry -->
     <Style TargetType="Entry">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+        <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
+        <Setter Property="PlaceholderColor" Value="{DynamicResource PlaceholderColor}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
@@ -78,8 +158,8 @@
 
     <!-- Editor -->
     <Style TargetType="Editor">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+        <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
+        <Setter Property="PlaceholderColor" Value="{DynamicResource PlaceholderColor}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
@@ -87,8 +167,8 @@
 
     <!-- DatePicker -->
     <Style TargetType="DatePicker">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-        
+        <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
+
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
@@ -96,8 +176,8 @@
 
     <!-- TimePicker -->
     <Style TargetType="TimePicker">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-        
+        <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
+
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
@@ -107,38 +187,38 @@
     <!-- Frame -->
     <Style TargetType="Frame">
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+        <Setter Property="BorderColor" Value="{DynamicResource SeparatorColor}" />
         <Setter Property="HasShadow" Value="False"/>
     </Style>
 
     <!-- CheckBox -->
     <Style TargetType="CheckBox">
-        <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+        <Setter Property="Color" Value="{DynamicResource AccentColor}" />
     </Style>
 
     <!-- Switch -->
     <Style TargetType="Switch">
-        <Setter Property="OnColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+        <Setter Property="OnColor" Value="{DynamicResource AccentColor}" />
         <Setter Property="ThumbColor" Value="{StaticResource White}" />
     </Style>
 
     <!-- ProgressBar -->
     <Style TargetType="ProgressBar">
-        <Setter Property="ProgressColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+        <Setter Property="ProgressColor" Value="{DynamicResource AccentColor}" />
     </Style>
 
     <!-- Slider -->
     <Style TargetType="Slider">
-        <Setter Property="MinimumTrackColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-        <Setter Property="MaximumTrackColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray500}}" />
-        <Setter Property="ThumbColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+        <Setter Property="MinimumTrackColor" Value="{DynamicResource AccentColor}" />
+        <Setter Property="MaximumTrackColor" Value="{DynamicResource BorderColor}" />
+        <Setter Property="ThumbColor" Value="{DynamicResource AccentColor}" />
     </Style>
 
     <!-- Picker -->
     <Style TargetType="Picker">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
-        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+        <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
+        <Setter Property="TitleColor" Value="{DynamicResource SecondaryTextColor}" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="BackgroundColor" Value="Transparent" />
@@ -146,36 +226,36 @@
 
     <!-- IndicatorView -->
     <Style TargetType="IndicatorView">
-        <Setter Property="IndicatorColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"/>
-        <Setter Property="SelectedIndicatorColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"/>
+        <Setter Property="IndicatorColor" Value="{DynamicResource BorderColor}"/>
+        <Setter Property="SelectedIndicatorColor" Value="{DynamicResource AccentColor}"/>
     </Style>
 
     <!-- TabbedPage / Shell -->
     <Style TargetType="Shell">
-        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
-        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}" />
-        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray600}}" />
+        <Setter Property="Shell.BackgroundColor" Value="{DynamicResource NavBarColor}" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{DynamicResource SurfaceColor}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{DynamicResource AccentColor}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{DynamicResource SecondaryTextColor}" />
         <Setter Property="Shell.NavBarHasShadow" Value="False" />
     </Style>
 
     <Style TargetType="TabbedPage">
-        <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}" />
-        <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
-        <Setter Property="UnselectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray600}}" />
-        <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+        <Setter Property="BarBackgroundColor" Value="{DynamicResource SurfaceColor}" />
+        <Setter Property="BarTextColor" Value="{DynamicResource AccentColor}" />
+        <Setter Property="UnselectedTabColor" Value="{DynamicResource SecondaryTextColor}" />
+        <Setter Property="SelectedTabColor" Value="{DynamicResource AccentColor}" />
     </Style>
 
     <!-- Headline / SubHeadline -->
     <Style TargetType="Label" x:Key="Headline">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
         <Setter Property="FontSize" Value="32" />
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="HorizontalTextAlignment" Value="Center" />
     </Style>
 
     <Style TargetType="Label" x:Key="SubHeadline">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Tertiary}, Dark={StaticResource White}}" />
+        <Setter Property="TextColor" Value="{DynamicResource BrandBlueColor}" />
         <Setter Property="FontSize" Value="24" />
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="HorizontalTextAlignment" Value="Center" />

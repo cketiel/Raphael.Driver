@@ -7,7 +7,7 @@
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              Title="CONTACT"
-             BackgroundColor="#F0F0F0">
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <Shell.TitleView>
         <controls:PageTitleBar Title="CONTACT" Icon="&#xf095;" />
@@ -18,19 +18,19 @@
         
         <Style TargetType="Label" x:Key="HeaderLabel">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="TextColor" Value="Gray"/>
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}"/>
         </Style>
         <Style TargetType="Label" x:Key="ValueLabel">
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextColor" Value="Black"/>
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}"/>
         </Style>
         <Style TargetType="Entry" x:Key="ValueEntry">
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextColor" Value="Black"/>
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}"/>
         </Style>
         <Style TargetType="Button" x:Key="ActionButton">
-            <Setter Property="BackgroundColor" Value="#B82E49"/>
-            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="BackgroundColor" Value="{DynamicResource PrimaryColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource OnBrandTextColor}"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Margin" Value="0,5"/>
             <Setter Property="ContentLayout" Value="Left, 10" />
@@ -43,7 +43,7 @@
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center"/>
 
             
-            <Border StrokeThickness="0" BackgroundColor="White" Padding="15"
+            <Border StrokeThickness="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Padding="15"
                     StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="15">
                     
@@ -109,7 +109,7 @@
 
                 <Label Text="Use the Call me button on your schedule. For emergencies call 911."
                        FontSize="13"
-                       TextColor="Gray"
+                       TextColor="{DynamicResource SecondaryTextColor}"
                        HorizontalTextAlignment="Center"
                        Margin="0,0,0,5" />
 

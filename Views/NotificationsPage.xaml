@@ -9,7 +9,7 @@
              x:Name="Page"
              x:DataType="vm:NotificationsViewModel"
              Title="NOTIFICATIONS"
-             BackgroundColor="#2C2C2E">
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <!-- No bell here: it would only lead back to this page. -->
     <Shell.TitleView>
@@ -30,13 +30,13 @@
 
         <!-- Why the list is short. Twelve hours is one shift; see NOTIFICATIONS_RETENTION.md -->
         <Border Grid.Row="0"
-                BackgroundColor="#4A4A4C"
+                BackgroundColor="{DynamicResource TintColor}"
                 Padding="15,10"
                 Margin="10,10,10,0"
                 StrokeShape="RoundRectangle 5"
                 StrokeThickness="0">
             <Label Text="Notifications from the last 12 hours"
-                   TextColor="White"
+                   TextColor="{DynamicResource InkColor}"
                    FontSize="13"
                    HorizontalOptions="Center" />
         </Border>
@@ -56,15 +56,15 @@
                         <Label Text="&#xf0f3;"
                                FontFamily="FontAwesomeSolid"
                                FontSize="46"
-                               TextColor="#5A5A5C"
+                               TextColor="{DynamicResource BorderColor}"
                                HorizontalOptions="Center" />
                         <Label Text="{Binding Source={x:Reference Page}, Path=BindingContext.EmptyTitle}"
-                               TextColor="White"
+                               TextColor="{DynamicResource InkColor}"
                                FontSize="18"
                                FontAttributes="Bold"
                                HorizontalOptions="Center" />
                         <Label Text="{Binding Source={x:Reference Page}, Path=BindingContext.EmptyDetail}"
-                               TextColor="#B0B0B2"
+                               TextColor="{DynamicResource SecondaryTextColor}"
                                FontSize="13"
                                HorizontalTextAlignment="Center" />
                     </VerticalStackLayout>
@@ -80,13 +80,13 @@
                                     <!-- Hides it on this phone only. The record stays on the
                                          server until the retention policy removes it. -->
                                     <SwipeItem Text="Hide"
-                                               BackgroundColor="#8E8E93"
+                                               BackgroundColor="{DynamicResource SecondaryTextColor}"
                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.HideCommand}"
                                                CommandParameter="{Binding .}" />
                                 </SwipeItems>
                             </SwipeView.RightItems>
 
-                            <Border BackgroundColor="#3A3A3C"
+                            <Border BackgroundColor="{DynamicResource CardBackgroundColor}"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 8"
                                     Padding="14">
@@ -105,7 +105,7 @@
                                     <Ellipse Grid.Column="0"
                                              WidthRequest="10"
                                              HeightRequest="10"
-                                             Fill="#E53935"
+                                             Fill="{DynamicResource BadgeColor}"
                                              VerticalOptions="Start"
                                              Margin="0,6,0,0"
                                              IsVisible="{Binding IsUnread}" />
@@ -113,16 +113,16 @@
                                     <VerticalStackLayout Grid.Column="1" Spacing="4">
 
                                         <Label Text="{Binding Title}"
-                                               TextColor="White"
+                                               TextColor="{DynamicResource InkColor}"
                                                FontSize="16"
                                                FontAttributes="Bold" />
 
                                         <Label Text="{Binding Message}"
-                                               TextColor="#D0D0D2"
+                                               TextColor="{DynamicResource PrimaryTextColor}"
                                                FontSize="14" />
 
                                         <Label Text="{Binding CreatedAtLocal, StringFormat='{0:MM/dd/yyyy hh:mm tt}'}"
-                                               TextColor="#8E8E93"
+                                               TextColor="{DynamicResource SecondaryTextColor}"
                                                FontSize="12"
                                                Margin="0,4,0,0" />
                                     </VerticalStackLayout>
@@ -132,7 +132,7 @@
                                            Text="&#xf0e0;"
                                            FontFamily="FontAwesomeSolid"
                                            FontSize="18"
-                                           TextColor="#8E8E93"
+                                           TextColor="{DynamicResource SecondaryTextColor}"
                                            VerticalOptions="Start"
                                            IsVisible="{Binding IsUnread, Converter={StaticResource InvertedBoolConverter}}">
                                         <Label.GestureRecognizers>

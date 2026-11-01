@@ -15,7 +15,7 @@
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
-        <mct:StatusBarBehavior StatusBarColor="#B82E49" StatusBarStyle="LightContent" />
+        <!-- No StatusBarBehavior: the status bar follows the theme (ThemeManager.ApplyStatusBar). -->
     </ContentPage.Behaviors>
     
     <ContentPage.Resources>
@@ -29,14 +29,14 @@
         <Style TargetType="Label" x:Key="IconLabel">
             <Setter Property="FontFamily" Value="FontAwesomeSolid" />
             <Setter Property="FontSize" Value="16" />
-            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
             <Setter Property="VerticalOptions" Value="Center" />
             <Setter Property="WidthRequest" Value="25"/>
         </Style>
     </ContentPage.Resources>
 
     <RefreshView Command="{Binding LoadEventsCommand}" IsRefreshing="{Binding IsBusy}">
-        <Grid RowDefinitions="*" BackgroundColor="#F0F0F0">
+        <Grid RowDefinitions="*" BackgroundColor="{DynamicResource PageBackgroundColor}">
 
             <Grid>
                 <CollectionView ItemsSource="{Binding Events}"
@@ -45,8 +45,8 @@
                     <CollectionView.ItemTemplate>
                         
                         <DataTemplate x:DataType="dto:ScheduleDto">
-                            <Border StrokeThickness="1" Stroke="#DDDDDD" Margin="10,0,10,10"
-        StrokeShape="RoundRectangle 5" Padding="0" BackgroundColor="White">
+                            <Border StrokeThickness="1" Stroke="{DynamicResource SeparatorColor}" Margin="10,0,10,10"
+        StrokeShape="RoundRectangle 5" Padding="0" BackgroundColor="{DynamicResource CardBackgroundColor}">
                                 <!--
                                     ⚠️ The ancestor is this page's view model, not the one
                                     today's schedule uses. It pointed at TodayScheduleViewModel,
@@ -107,7 +107,7 @@
                                             <Grid ColumnDefinitions="*, Auto">
                                                 <StackLayout Orientation="Horizontal" Spacing="5">
                                                     <Label Text="{Binding ETA, StringFormat='{0:hh\\:mm tt}'}" FontSize="20" FontAttributes="Bold" VerticalOptions="End"/>
-                                                    <Label Text="ETA" TextColor="Gray" FontSize="12" VerticalOptions="End" Margin="0,0,0,2"/>
+                                                    <Label Text="ETA" TextColor="{DynamicResource SecondaryTextColor}" FontSize="12" VerticalOptions="End" Margin="0,0,0,2"/>
                                                 </StackLayout>
                                                 <!-- RIGHT PANEL WITH CONDITIONAL LOGIC -->
                                                 <Grid Grid.Column="1">
@@ -165,7 +165,7 @@
                                                                 </DataTrigger>
                                                             </Label.Triggers>
                                                         </Label>
-                                                        <Label Text="" FontFamily="FontAwesomeSolid" FontSize="22" TextColor="Black" VerticalTextAlignment="Center"/>
+                                                        <Label Text="" FontFamily="FontAwesomeSolid" FontSize="22" TextColor="{DynamicResource InkColor}" VerticalTextAlignment="Center"/>
                                                         <!-- Car icon -->
                                                     </StackLayout>
                                                 </Grid>
@@ -175,7 +175,7 @@
                                                 <Label Grid.Column="0" Text="" Style="{StaticResource IconLabel}"/>
                                                 <StackLayout Grid.Column="1" Orientation="Horizontal" Spacing="5">
                                                     <Label Text="{Binding ., Converter={StaticResource ScheduleDisplayTimeConverter}}" />
-                                                    <Label Text="{Binding ., Converter={StaticResource ScheduleTimeLabelConverter}}" TextColor="Gray"/>
+                                                    <Label Text="{Binding ., Converter={StaticResource ScheduleTimeLabelConverter}}" TextColor="{DynamicResource SecondaryTextColor}"/>
                                                 </StackLayout>
                                             </Grid>
                                             <Grid ColumnDefinitions="Auto, *">
@@ -205,7 +205,7 @@
                        VerticalOptions="Center"
                        HorizontalTextAlignment="Center"
                        Margin="40,0"
-                       TextColor="Gray"
+                       TextColor="{DynamicResource SecondaryTextColor}"
                        FontSize="18"/>
             </Grid>
         </Grid>

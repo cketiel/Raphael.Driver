@@ -39,12 +39,34 @@ namespace Raphael.Driver.ViewModels
         [ObservableProperty]
         private bool _hasData; // To show/hide views
 
+        // V7 "Today's Events" card: one bar segment per event of the day, the next one flagged.
+        public ObservableCollection<EventSegment> Segments { get; } = new();
+
+        [ObservableProperty]
+        private string _nextEventCaption = string.Empty;
+
+        [ObservableProperty]
+        private string _nextEventTitle = string.Empty;
+
+        [ObservableProperty]
+        private string _nextEventGlyph = string.Empty;
+
+        [ObservableProperty]
+        private bool _hasNextEvent;
+
+        [ObservableProperty]
+        private bool _allDone;
+
+        // The pending list exactly as Today loads it: the detail pages need it to move the ETAs on.
+        private ObservableCollection<ScheduleDto> _pendingEvents = new();
+
         public DashboardViewModel(IRunService runService, IScheduleService scheduleService)
         {
             _runService = runService;
             _scheduleService = scheduleService;
-            
+
         }
+
 
         [RelayCommand]
         private async Task InitializeAsync()
@@ -78,6 +100,20 @@ namespace Raphael.Driver.ViewModels
 
                     NextEvent = pendingEvents.FirstOrDefault();
                     RemainingEventsCount = pendingEvents.Count();
+                    _pendingEvents = new ObservableCollection<ScheduleDto>(pendingEvents);
+
+                    // RE-057: the same resend Today does on load. A driver who works the day from
+                    // here may never open Today, and a start made without signal must still reach
+                    // the server.
+                    var serverStatuses = pendingEvents
+                        .Where(ev => ev.TripId.HasValue)
+                        .GroupBy(ev => ev.TripId!.Value)
+                        .ToDictionary(g => g.Key, g => g.First().Status);
+                    _ = Helpers.StartedTrips.RetryPendingAsync(_scheduleService, serverStatuses);
+
+                    var doneCount = await _scheduleService.GetScheduleHistoryCountAsync(activeRun.SmartphoneLogin, DateTime.Today);
+                    ShowProgress(doneCount, RemainingEventsCount);
+                    ShowNextEvent(NextEvent);
                     HasData = true;
                 }
             }
@@ -87,10 +123,68 @@ namespace Raphael.Driver.ViewModels
             }
         }
 
+        private void ShowProgress(int done, int pending)
+        {
+            Segments.Clear();
+
+            for (var i = 0; i < done; i++)
+                Segments.Add(new EventSegment(IsDone: true, IsNext: false));
+
+            for (var i = 0; i < pending; i++)
+                Segments.Add(new EventSegment(IsDone: false, IsNext: i == 0));
+        }
+
+        private void ShowNextEvent(ScheduleDto? next)
+        {
+            HasNextEvent = next is not null;
+            AllDone = next is null;
+
+            if (next is null)
+                return;
+
+            var isGarage = next.Name is "Pull-out" or "Pull-in";
+            var time = next.ETA is { } eta ? DateTime.Today.Add(eta).ToString("hh:mm tt") : string.Empty;
+
+            NextEventCaption = string.IsNullOrEmpty(time) ? "NEXT EVENT" : $"NEXT EVENT · {time}";
+            NextEventTitle = isGarage
+                ? (next.Name == "Pull-out" ? "Pull Out" : "Pull In")
+                : $"{next.EventType} · {next.Patient}";
+
+            // fa-car for the garage, fa-user for a pickup, fa-location-dot for a drop-off.
+            NextEventGlyph = isGarage ? "" : next.EventType == Models.ScheduleEventType.Pickup ? "" : "";
+        }
+
+        /// <summary>
+        /// Opens the next event straight from the Dashboard. It is the first pending event, the
+        /// same one Today opens with its actions enabled, and it goes with the same three values
+        /// Today sends, so the order of the day is enforced exactly as it is there.
+        /// </summary>
+        [RelayCommand]
+        private async Task OpenNextEvent()
+        {
+            if (IsBusy || NextEvent is null) return;
+
+            var page = NextEvent.Name is "Pull-out" or "Pull-in" ? nameof(PullOutDetailPage) : nameof(EventDetailPage);
+
+            await Shell.Current.GoToAsync(page, new Dictionary<string, object>
+            {
+                { "EventDetail", NextEvent },
+                { "IsFirstEvent", true },
+                { "Events", _pendingEvents }
+            });
+        }
+
         [RelayCommand]
         private async Task GoToSchedule()
         {
-            if (IsBusy || string.IsNullOrWhiteSpace(RunLogin)) return;
+            if (IsBusy) return;
+
+            // No run of this driver's today: the Schedule page, where a run login can be typed.
+            if (string.IsNullOrWhiteSpace(RunLogin))
+            {
+                await Shell.Current.GoToAsync("//SchedulePage");
+                return;
+            }
 
             IsBusy = true;
             try
@@ -106,4 +200,9 @@ namespace Raphael.Driver.ViewModels
             }
         }
     }
+}
+namespace Raphael.Driver.ViewModels
+{
+    /// <summary>One segment of the Dashboard's progress bar: an event of the day.</summary>
+    public record EventSegment(bool IsDone, bool IsNext);
 }

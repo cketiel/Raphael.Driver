@@ -5,9 +5,10 @@
              xmlns:models="clr-namespace:Raphael.Driver.Models"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
+             xmlns:cards="clr-namespace:Raphael.Driver.Controls.ScheduleCards"
              x:Class="Raphael.Driver.Views.SettingsPage"
              x:DataType="viewmodels:SettingsViewModel"
-             BackgroundColor="#1C1C1E">
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <!--
         The same bar as every other page. It used to build its own: a title of a different
@@ -22,48 +23,177 @@
         <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding LoadMapAppsCommand}" />
     </ContentPage.Behaviors>
 
-    <Grid RowDefinitions="Auto, *" Padding="15,0">
-        <Label Grid.Row="0"
-               Text="Select Default Maps Type"
-               TextColor="White"
-               FontSize="18"
-               FontAttributes="Bold"
-               Margin="0,20,0,10"/>
+    <!--
+        V7 Settings (COMPONENTES.md, «.opt»): small upper-case section titles, each option a
+        rounded card. The chosen map gets the accent border, a 10 % accent tint and a filled dot.
 
-        <CollectionView Grid.Row="1"
+        ⚠️ The selected / not-selected colours come from two DataTriggers, never from a local
+        value plus one trigger: leaving a trigger, MAUI removes every DynamicResource on the
+        properties it set, and the local one with it (see Styles.xaml, buttons).
+    -->
+    <ContentPage.Resources>
+        <Style TargetType="Label" x:Key="SectionTitleStyle">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CharacterSpacing" Value="1.2" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+            <Setter Property="Margin" Value="4,22,0,10" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, *" Padding="16,0">
+
+        <!-- Theme. The same switch as the sign-in page; the choice is kept on this phone. -->
+        <Label Grid.Row="0" Text="THEME" Style="{StaticResource SectionTitleStyle}" />
+
+        <Border Grid.Row="1"
+                BackgroundColor="{DynamicResource CardBackgroundColor}"
+                Stroke="{DynamicResource SeparatorColor}"
+                StrokeThickness="1.5"
+                StrokeShape="RoundRectangle 12"
+                Padding="14,10">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <controls:ThemeSwitcher CapsuleColor="{DynamicResource TintColor}"
+                                        RingColor="{DynamicResource InkColor}" />
+                <Button Grid.Column="1"
+                        Text="Use phone setting"
+                        Command="{Binding FollowPhoneThemeCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource TertiaryTextColor}"
+                        FontSize="14"
+                        Padding="0"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!--
+            How the stops look in Today's Schedule and on each stop (Controls/ScheduleCards). Each
+            tile is a real card in that style, shrunk; a tap opens a preview with "Use this style".
+            Kept on this phone, like the theme. Until a driver picks one it is Legacy, the old look.
+        -->
+        <Label Grid.Row="2" Text="SCHEDULE STYLE" Style="{StaticResource SectionTitleStyle}" />
+
+        <Border Grid.Row="3"
+                BackgroundColor="{DynamicResource CardBackgroundColor}"
+                Stroke="{DynamicResource SeparatorColor}"
+                StrokeThickness="1.5"
+                StrokeShape="RoundRectangle 12"
+                Padding="12,10">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="How stops look in Today's Schedule and on each stop. Tap one to preview it."
+                       FontSize="13"
+                       TextColor="{DynamicResource SecondaryTextColor}" />
+                <CollectionView x:Name="StylesList"
+                                ItemsSource="{Binding ScheduleStyles}"
+                                SelectionMode="None"
+                                HeightRequest="146">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ScheduleStyleOption">
+                            <Border WidthRequest="126"
+                                    Padding="6,6,6,8"
+                                    StrokeThickness="2"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{DynamicResource PageBackgroundColor}">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                        <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnStyleTapped" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="5">
+                                    <cards:StyleThumbnail CardStyle="{Binding Style}" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="{Binding Name}" FontSize="12.5" FontAttributes="Bold"
+                                               TextColor="{DynamicResource InkColor}" LineBreakMode="TailTruncation" />
+                                        <Label Grid.Column="1" Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12"
+                                               TextColor="{DynamicResource AccentColor}" IsVisible="{Binding IsSelected}"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                    <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </Border>
+
+        <Label Grid.Row="4" Text="SELECT DEFAULT MAPS TYPE" Style="{StaticResource SectionTitleStyle}" />
+
+        <CollectionView Grid.Row="5"
                         ItemsSource="{Binding AvailableMaps}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:MapApp">
-                    <VerticalStackLayout Spacing="0">
-                        <Grid Padding="15" ColumnSpacing="15" BackgroundColor="#2C2C2E">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                    <Grid Padding="0,0,0,10">
+                        <Border StrokeThickness="1.5"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="14">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource AccentSoftColor}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                    <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+                                </DataTrigger>
+                            </Border.Triggers>
 
-                            <!-- SINGLE SOURCE OF INTERACTION: The Grid TapGesture -->
-                            <Grid.GestureRecognizers>
+                            <!-- SINGLE SOURCE OF INTERACTION: The Border TapGesture -->
+                            <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:SettingsViewModel}}, Path=SelectMapCommand}"
                                                       CommandParameter="{Binding .}"/>
-                            </Grid.GestureRecognizers>
+                            </Border.GestureRecognizers>
 
-                            <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" HeightRequest="45" WidthRequest="45" VerticalOptions="Center">
-                                <Image Source="{Binding Icon}" Aspect="AspectFit" />
-                            </Border>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
 
-                            <Label Grid.Column="1" Text="{Binding Name}" TextColor="White" FontSize="16" VerticalOptions="Center"/>
-                           
-                            <RadioButton Grid.Column="2"
-                                         IsChecked="{Binding IsSelected}"
-                                         VerticalOptions="Center"
-                                         InputTransparent="True" />
-                            
+                                <!-- The app's own icon, in a rounded tile. -->
+                                <Border StrokeShape="RoundRectangle 10"
+                                        StrokeThickness="0"
+                                        BackgroundColor="White"
+                                        HeightRequest="40"
+                                        WidthRequest="40"
+                                        VerticalOptions="Center">
+                                    <Image Source="{Binding Icon}" Aspect="AspectFill" />
+                                </Border>
 
-                        </Grid>
-                        <BoxView HeightRequest="1" Color="#404040" HorizontalOptions="Fill"/>
-                    </VerticalStackLayout>
+                                <Label Grid.Column="1"
+                                       Text="{Binding Name}"
+                                       TextColor="{DynamicResource InkColor}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"/>
+
+                                <!-- The radio dot, in the accent colour (it was always red before). -->
+                                <Grid Grid.Column="2" WidthRequest="22" HeightRequest="22" VerticalOptions="Center">
+                                    <Ellipse StrokeThickness="2" Fill="Transparent">
+                                        <Ellipse.Triggers>
+                                            <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="False">
+                                                <Setter Property="Stroke" Value="{DynamicResource BorderColor}" />
+                                            </DataTrigger>
+                                        </Ellipse.Triggers>
+                                    </Ellipse>
+                                    <Ellipse WidthRequest="10" HeightRequest="10"
+                                             HorizontalOptions="Center" VerticalOptions="Center"
+                                             Fill="{DynamicResource AccentColor}"
+                                             IsVisible="{Binding IsSelected}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

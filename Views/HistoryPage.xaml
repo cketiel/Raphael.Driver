@@ -9,7 +9,7 @@
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              x:DataType="vm:HistoryViewModel"
              Title="HISTORY"
-             BackgroundColor="#2C2C2E">
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <!-- No bell: on a page reached from somewhere else it competes with the back arrow. -->
     <Shell.TitleView>
@@ -24,9 +24,9 @@
 
     <Grid RowDefinitions="Auto, *">
         <!-- Top bar with date -->
-        <Border Grid.Row="0" BackgroundColor="#4A4A4C" Padding="15,10" Margin="10,10,10,0"
+        <Border Grid.Row="0" BackgroundColor="{DynamicResource TintColor}" Padding="15,10" Margin="10,10,10,0"
                 StrokeShape="RoundRectangle 5" StrokeThickness="0">
-            <Label Text="{Binding HistoryDateText}" TextColor="White" HorizontalOptions="Center" />
+            <Label Text="{Binding HistoryDateText}" TextColor="{DynamicResource InkColor}" HorizontalOptions="Center" />
         </Border>
 
         <!-- List of events in timeline format -->
@@ -38,15 +38,15 @@
                         <Grid IsVisible="{Binding IsCanceled}" ColumnDefinitions="Auto, *" ColumnSpacing="15" Margin="0,0,0,-1" Padding="0,10,0,0">
                             <!-- Column 0: BLACK timeline -->
                             <Grid Grid.Column="0" RowDefinitions="*,Auto,*" WidthRequest="40">
-                                <BoxView Grid.Row="0" BackgroundColor="Black" WidthRequest="4" HorizontalOptions="Center" />
-                                <Border Grid.Row="1" WidthRequest="40" HeightRequest="40" BackgroundColor="Black" StrokeShape="RoundRectangle 20" VerticalOptions="Center">
-                                    <Label Text="&#xf00d;" FontFamily="FontAwesomeSolid" FontSize="20" TextColor="Red" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                <BoxView Grid.Row="0" BackgroundColor="{DynamicResource BorderColor}" WidthRequest="4" HorizontalOptions="Center" />
+                                <Border Grid.Row="1" WidthRequest="40" HeightRequest="40" BackgroundColor="{DynamicResource BorderColor}" StrokeShape="RoundRectangle 20" VerticalOptions="Center">
+                                    <Label Text="&#xf00d;" FontFamily="FontAwesomeSolid" FontSize="20" TextColor="{DynamicResource DangerColor}" HorizontalOptions="Center" VerticalOptions="Center"/>
                                 </Border>
-                                <BoxView Grid.Row="2" BackgroundColor="Black" WidthRequest="4" HorizontalOptions="Center" />
+                                <BoxView Grid.Row="2" BackgroundColor="{DynamicResource BorderColor}" WidthRequest="4" HorizontalOptions="Center" />
                             </Grid>
                             <!-- Column 1: Canceled details -->
                             <VerticalStackLayout Grid.Column="1" Spacing="8" Padding="0,10,0,30">
-                                <Label FontAttributes="Bold" FontSize="18" TextColor="White">
+                                <Label FontAttributes="Bold" FontSize="18" TextColor="{DynamicResource InkColor}">
                                     <Label.FormattedText>
                                         <FormattedString>
                                             <Span Text="{Binding ScheduledTime, Converter={StaticResource TimeSpanConverter}}" />
@@ -59,15 +59,15 @@
                                 </Label>
                                 <VerticalStackLayout Spacing="5" Margin="0,5,0,0">
                                     <StackLayout Orientation="Horizontal" Spacing="10">
-                                        <Label Text="&#xf007;" FontFamily="FontAwesomeSolid" TextColor="White" VerticalOptions="Center"/>
-                                        <Label Text="{Binding Patient}" TextColor="White"/>
+                                        <Label Text="&#xf007;" FontFamily="FontAwesomeSolid" TextColor="{DynamicResource AccentColor}" VerticalOptions="Center"/>
+                                        <Label Text="{Binding Patient}" TextColor="{DynamicResource PrimaryTextColor}"/>
                                     </StackLayout>
                                     <StackLayout Orientation="Horizontal" Spacing="10">
-                                        <Label Text="&#xf5a0;" FontFamily="FontAwesomeSolid" TextColor="White" VerticalOptions="Start"/>
-                                        <Label Text="{Binding Address}" TextColor="White"/>
+                                        <Label Text="&#xf5a0;" FontFamily="FontAwesomeSolid" TextColor="{DynamicResource AccentColor}" VerticalOptions="Start"/>
+                                        <Label Text="{Binding Address}" TextColor="{DynamicResource PrimaryTextColor}"/>
                                     </StackLayout>
                                 </VerticalStackLayout>
-                                <Button Text="View Details" BackgroundColor="#5A8F4A" TextColor="White" HorizontalOptions="Start" Margin="0,10,0,0"/>
+                                <Button Text="View Details" Style="{StaticResource TertiaryButtonStyle}" HorizontalOptions="Start" Margin="0,10,0,0"/>
                             </VerticalStackLayout>
                         </Grid>
 
@@ -78,7 +78,7 @@
                                 <BoxView Grid.Row="0" BackgroundColor="{Binding ., Converter={StaticResource ScheduleHistoryColorConverter}}" WidthRequest="4" HorizontalOptions="Center" />
                                 <Border Grid.Row="1" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20" VerticalOptions="Center" BackgroundColor="{Binding ., Converter={StaticResource ScheduleHistoryColorConverter}}">
                                     <Grid>
-                                        <Label Text="&#xf5e4;" FontFamily="FontAwesomeSolid" FontSize="20" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False">
+                                        <Label Text="&#xf5e4;" FontFamily="FontAwesomeSolid" FontSize="20" TextColor="{DynamicResource SurfaceColor}" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False">
                                             <Label.Triggers>
                                                 <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-in">
                                                     <Setter Property="IsVisible" Value="True" />
@@ -106,7 +106,7 @@
                             <!-- Column 1: Completed event details -->
                             <VerticalStackLayout Grid.Column="1" Spacing="8" Padding="0,10,0,30">
                                 <!-- Title for Pull-in/Pull-out Events -->
-                                <Label FontAttributes="Bold" FontSize="18" TextColor="White" IsVisible="False">
+                                <Label FontAttributes="Bold" FontSize="18" TextColor="{DynamicResource InkColor}" IsVisible="False">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-in">
                                             <Setter Property="IsVisible" Value="True" />
@@ -125,7 +125,7 @@
                                 </Label>
 
                                 <!-- Title for Normal Events (Completed) -->
-                                <Label FontAttributes="Bold" FontSize="18" TextColor="White" IsVisible="True">
+                                <Label FontAttributes="Bold" FontSize="18" TextColor="{DynamicResource InkColor}" IsVisible="True">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding Name}" Value="Pull-in">
                                             <Setter Property="IsVisible" Value="False" />
@@ -156,12 +156,12 @@
                                         </DataTrigger>
                                     </VerticalStackLayout.Triggers>
                                     <StackLayout Orientation="Horizontal" Spacing="10">
-                                        <Label Text="&#xf007;" FontFamily="FontAwesomeSolid" TextColor="White" VerticalOptions="Center"/>
-                                        <Label Text="{Binding Patient}" TextColor="White"/>
+                                        <Label Text="&#xf007;" FontFamily="FontAwesomeSolid" TextColor="{DynamicResource AccentColor}" VerticalOptions="Center"/>
+                                        <Label Text="{Binding Patient}" TextColor="{DynamicResource PrimaryTextColor}"/>
                                     </StackLayout>
                                     <StackLayout Orientation="Horizontal" Spacing="10">
-                                        <Label Text="&#xf5a0;" FontFamily="FontAwesomeSolid" TextColor="White" VerticalOptions="Start"/>
-                                        <Label Text="{Binding Address}" TextColor="White"/>
+                                        <Label Text="&#xf5a0;" FontFamily="FontAwesomeSolid" TextColor="{DynamicResource AccentColor}" VerticalOptions="Start"/>
+                                        <Label Text="{Binding Address}" TextColor="{DynamicResource PrimaryTextColor}"/>
                                     </StackLayout>
                                 </VerticalStackLayout>
                                 <!-- Direction for Pull-in/out -->
@@ -174,8 +174,8 @@
                                             <Setter Property="IsVisible" Value="True" />
                                         </DataTrigger>
                                     </StackLayout.Triggers>
-                                    <Label Text="&#xf5a0;" FontFamily="FontAwesomeSolid" TextColor="White" VerticalOptions="Start"/>
-                                    <Label Text="{Binding Address}" TextColor="White"/>
+                                    <Label Text="&#xf5a0;" FontFamily="FontAwesomeSolid" TextColor="{DynamicResource AccentColor}" VerticalOptions="Start"/>
+                                    <Label Text="{Binding Address}" TextColor="{DynamicResource PrimaryTextColor}"/>
                                 </StackLayout>
                             </VerticalStackLayout>
                         </Grid>

@@ -19,15 +19,45 @@ namespace Raphael.Driver
         // Static property to access the service from MAUI
         public static IGpsService GpsService { get; private set; }
 
+        // The window's own background, put back once the splash has handed over.
+        private Android.Graphics.Drawables.Drawable _windowBackground;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            // Between Android's launch frame and the animated splash's first frame the window shows
+            // its own background, which the phone's dark mode makes black: a black flash between
+            // two frames of the same colour. Until the splash hands over, the window wears the
+            // launch frame's colour (MauiSplashScreen in the csproj).
+            _windowBackground = Window?.DecorView?.Background;
+            Window?.SetBackgroundDrawableResource(Resource.Color.maui_splash_color);
+
             // Start and bind the service
             StartAndBindGpsService();
 
             // The app may have been launched by a push. The request is parked here and taken
             // up once there is a Shell and a session.
             HandleNotificationIntent(Intent);
+        }
+
+        /// <summary>Called by App when the splash hands over to the Shell.</summary>
+        public void RestoreWindowBackground()
+        {
+            if (_windowBackground is not null)
+                Window?.SetBackgroundDrawable(_windowBackground);
+        }
+
+        /// <summary>
+        /// The phone switched between light and dark. MAUI's RequestedThemeChanged did not fire
+        /// for it here, so the theme follows the phone from Android's own notice instead.
+        /// </summary>
+        public override void OnConfigurationChanged(Android.Content.Res.Configuration newConfig)
+        {
+            base.OnConfigurationChanged(newConfig);
+
+            var night = (newConfig.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+            ThemeManager.OnPhoneThemeChanged(night ? AppTheme.Dark : AppTheme.Light);
         }
 
         protected override void OnNewIntent(Intent intent)

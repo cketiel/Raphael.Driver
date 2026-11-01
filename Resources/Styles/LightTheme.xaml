@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Light theme. Values are the V7 design tokens (02_Diseno/tokens.json); the token each key
+    comes from is noted beside it.
+
+    Every theme dictionary declares exactly the same keys. ThemeManager swaps the whole
+    dictionary, so a key missing here keeps showing the previous theme's value.
+    Pages read these with DynamicResource, which is what lets them repaint on a switch.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    x:Class="Raphael.Driver.Resources.Styles.LightTheme">
+
+    <!-- Surfaces -->
+    <Color x:Key="PageBackgroundColor">#E8EEF2</Color>        <!-- bg -->
+    <Color x:Key="CardBackgroundColor">#FFFFFF</Color>        <!-- card -->
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>               <!-- surface -->
+    <Color x:Key="TintColor">#EEF3F6</Color>                  <!-- tint -->
+    <Color x:Key="SeparatorColor">#D3DDE4</Color>             <!-- line -->
+    <Color x:Key="BorderColor">#B9C7D0</Color>                <!-- line-strong -->
+
+    <!-- Text -->
+    <Color x:Key="PrimaryTextColor">#1F2F38</Color>           <!-- text -->
+    <Color x:Key="InkColor">#053F59</Color>                   <!-- ink: titles and strong values -->
+    <Color x:Key="SecondaryTextColor">#566872</Color>         <!-- muted -->
+    <Color x:Key="TertiaryTextColor">#1A6A88</Color>       <!-- acc: "Tap to Copy" and links -->
+    <Color x:Key="AccentColor">#1A6A88</Color>             <!-- acc: field icons -->
+    <Color x:Key="PlaceholderColor">#7B8C95</Color>
+    <Color x:Key="OnBrandTextColor">#FFFFFF</Color>
+
+    <!-- Brand and actions -->
+    <Color x:Key="Primary">#C9412F</Color>                 <!-- coral-700: main action -->
+    <Color x:Key="PrimaryColor">#C9412F</Color>            <!-- coral-700: main action -->
+    <Color x:Key="PrimaryDark">#053F59</Color>                <!-- ink -->
+    <Color x:Key="Tertiary">#07577A</Color>                <!-- blue -->
+    <Color x:Key="Secondary">#EEF3F6</Color>                  <!-- tint -->
+    <Color x:Key="BrandBlueColor">#07577A</Color>          <!-- blue: secondary action -->
+    <Color x:Key="BrandTealColor">#318FB0</Color>          <!-- teal -->
+    <Color x:Key="NavBarColor">#07577A</Color>             <!-- blue: top bar and status bar -->
+    <Color x:Key="NavBarTextColor">#FFFFFF</Color>
+    <Color x:Key="StatusBarColor">#075475</Color>          <!-- the bar colour 4 % darker: the faint seam under the status bar -->
+
+    <!-- States -->
+    <Color x:Key="OkColor">#11795B</Color>                 <!-- ok -->
+    <Color x:Key="OnOkTextColor">#FFFFFF</Color>             <!-- text on ok: white fails on the light greens -->
+    <Color x:Key="WarnColor">#B26A00</Color>               <!-- warn -->
+    <Color x:Key="DangerColor">#C2362F</Color>             <!-- danger -->
+    <Color x:Key="DangerTextColor">#B42318</Color>         <!-- danger-t -->
+    <Color x:Key="AccentColorRed">#B42318</Color>          <!-- danger-t: errors, environment banner -->
+    <Color x:Key="BadgeColor">#C2362F</Color>              <!-- danger: unread count -->
+    <Color x:Key="OkSoftColor">#E3F5EE</Color>             <!-- ok-50 -->
+    <Color x:Key="WarnSoftColor">#FFF2D6</Color>           <!-- warn-50 -->
+    <Color x:Key="DangerSoftColor">#FDECEA</Color>         <!-- danger-50 -->
+    <Color x:Key="DisabledBackgroundColor">#D3DDE4</Color>
+    <Color x:Key="DisabledTextColor">#566872</Color>          <!-- muted -->
+    <Color x:Key="OverlayColor">#80030C12</Color>
+
+    <!-- "Call me" button, one colour per state (COMPONENTES.md, «Call me») -->
+    <Color x:Key="CallIdleColor">#07577A</Color>
+    <Color x:Key="CallWaitingColor">#B86E00</Color>
+    <Color x:Key="CallOnItColor">#11795B</Color>
+    <Color x:Key="CallMissedColor">#C2362F</Color>
+
+    <!-- Next step (V7 nextc / nextc-t / next-50): the next event on the Dashboard, the selected
+         menu icon. AccentSoftColor is acc at 10 % over card, the selected row in Settings. -->
+    <Color x:Key="NextColor">#C9412F</Color>
+    <Color x:Key="NextTextColor">#A8321F</Color>
+    <Color x:Key="NextSoftColor">#FFF1EE</Color>
+    <Color x:Key="AccentSoftColor">#E8F0F3</Color>
+
+    <!-- V7 grad: the head of the side menu. -->
+    <LinearGradientBrush x:Key="HeaderGradientBrush" StartPoint="0,0" EndPoint="1,0.35">
+        <GradientStop Color="#07577A" Offset="0" />
+        <GradientStop Color="#318FB0" Offset="0.55" />
+        <GradientStop Color="#3FA2C3" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- The logo this theme shows (menu, sign-in, Schedule). -->
+    <FileImageSource x:Key="LogoImage" File="logo.png" />
+    <FileImageSource x:Key="OfficialLogoImage" File="logo_official.png" />   <!-- the official logo, with its shadow: side menu and sign-in -->
+    <FileImageSource x:Key="SignatureMarkImage" File="r_mark.png" />   <!-- logo 03, the R of the sign-in signature -->
+    <Color x:Key="LogoTileColor">#FFFFFF</Color>          <!-- the tile behind the logo in the side menu -->
+
+</ResourceDictionary>

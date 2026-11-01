@@ -39,10 +39,12 @@ namespace Raphael.Driver.ViewModels
 
         private const string Emergencies = "Emergencies: call 911.";
 
-        private static readonly Color IdleColor = Color.FromArgb("#1565C0");
-        private static readonly Color WaitingColor = Color.FromArgb("#E65100");
-        private static readonly Color OnItColor = Color.FromArgb("#2E7D32");
-        private static readonly Color MissedColor = Color.FromArgb("#C62828");
+        // One colour per state, from the active theme (CallIdleColor… in *Theme.xaml); the
+        // literals are only what shows if a theme ever lacked the key.
+        private static Color IdleColor => ThemeManager.GetColor("CallIdleColor", Color.FromArgb("#07577A"));
+        private static Color WaitingColor => ThemeManager.GetColor("CallWaitingColor", Color.FromArgb("#B86E00"));
+        private static Color OnItColor => ThemeManager.GetColor("CallOnItColor", Color.FromArgb("#11795B"));
+        private static Color MissedColor => ThemeManager.GetColor("CallMissedColor", Color.FromArgb("#C2362F"));
 
         private readonly CallRequestStore _store;
 
@@ -107,12 +109,14 @@ namespace Raphael.Driver.ViewModels
         public void Attach()
         {
             _store.PropertyChanged += OnStoreChanged;
+            ThemeManager.ThemeChanged += OnThemeChanged;
             Render();
         }
 
         public void Detach()
         {
             _store.PropertyChanged -= OnStoreChanged;
+            ThemeManager.ThemeChanged -= OnThemeChanged;
         }
 
         /// <summary>
@@ -363,6 +367,8 @@ namespace Raphael.Driver.ViewModels
         }
 
         private void OnStoreChanged(object? sender, PropertyChangedEventArgs e) => Render();
+
+        private void OnThemeChanged(object? sender, EventArgs e) => Render();
 
         private void Render()
         {

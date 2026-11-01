@@ -8,21 +8,23 @@
              xmlns:enums="clr-namespace:Raphael.Driver.Models"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
-             Title="EVENT DETAILS"
-             BackgroundColor="#F0F0F0">
+             xmlns:cards="clr-namespace:Raphael.Driver.Controls.ScheduleCards"
+             Title="STOP"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <Shell.TitleView>
-        <controls:PageTitleBar Title="EVENT DETAILS" Icon="&#xf05a;" ShowBell="False" />
+        <!-- A pickup or a dropoff is a stop of the route; pull-out and pull-in have their own page, GARAGE. -->
+        <controls:PageTitleBar Title="STOP" Icon="&#xf3c5;" ShowBell="False" />
     </Shell.TitleView>
 
     <ContentPage.Resources>
         <converters:TimeSpanToDateTimeConverter x:Key="TimeSpanToDateTimeConverter" />
         
         <Style TargetType="Grid" x:Key="NavRowStyle">
-            <Setter Property="BackgroundColor" Value="{StaticResource CardBackgroundColor}"/>
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}"/>
         </Style>
         <Style TargetType="Label" x:Key="NavLabelStyle">
-            <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="VerticalOptions" Value="Center"/>
         </Style>
@@ -35,16 +37,16 @@
         </Style>
         <Style TargetType="Label" x:Key="DetailHeaderLabel">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="TextColor" Value="{StaticResource SecondaryTextColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}"/>
         </Style>
         <Style TargetType="Label" x:Key="DetailValueLabel">
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}"/>
         </Style>
         <!-- Style for dividers inside the details card -->
         <Style TargetType="BoxView" x:Key="DetailSeparatorStyle">
             <Setter Property="HeightRequest" Value="1" />
-            <Setter Property="Color" Value="{StaticResource SeparatorColor}" />
+            <Setter Property="Color" Value="{DynamicResource SeparatorColor}" />
             <Setter Property="HorizontalOptions" Value="Fill" />
         </Style>
     </ContentPage.Resources>
@@ -55,8 +57,12 @@
     <ScrollView>
         <VerticalStackLayout Spacing="1">
 
-            <!-- ACTION LIST -->
-            <CollectionView ItemsSource="{Binding Actions}">
+            <!-- The card that was tapped, in the driver's schedule style, with the wait written
+                 out under it. Legacy never had it and shows nothing here. -->
+            <cards:EventCardView x:Name="Hero" Event="{Binding Event}" IsHero="True" Margin="0,10,0,0" />
+
+            <!-- ACTION LIST: these rows for Legacy, ActionListView below for the other styles. -->
+            <CollectionView x:Name="LegacyActions" ItemsSource="{Binding Actions}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:EventAction">
                         <!-- We use a VerticalStackLayout as the main container of the entire item -->
@@ -83,24 +89,26 @@
                                     <Label Grid.Column="0" Text="{Binding IconGlyph}" Style="{StaticResource NavIconStyle}"/>
                                     <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
                                         <Label Text="{Binding Text}" Style="{StaticResource NavLabelStyle}"/>
-                                        <Label Text="{Binding Hint}" IsVisible="{Binding HasHint}" FontSize="13" TextColor="{StaticResource SecondaryTextColor}"/>
+                                        <Label Text="{Binding Hint}" IsVisible="{Binding HasHint}" FontSize="13" TextColor="{DynamicResource SecondaryTextColor}"/>
                                     </VerticalStackLayout>
                                     <Label Grid.Column="2" Text="" FontFamily="FontAwesomeSolid" VerticalOptions="Center" IsVisible="{Binding IsEnabled}"/>
                                 </Grid>
                             </Grid>
 
                             <!-- The separator is now outside the Grid, spanning the full width -->
-                            <BoxView HeightRequest="3" Color="#E0E0E0" HorizontalOptions="Fill"/>
+                            <BoxView HeightRequest="3" Color="{DynamicResource SeparatorColor}" HorizontalOptions="Fill"/>
 
                         </VerticalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <!-- DETAILS SECTION -->
-            <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="Gray" HorizontalOptions="Center" FontAttributes="Bold"/>
+            <cards:ActionListView x:Name="StyledActions" Actions="{Binding Actions}" Event="{Binding Event}" />
 
-            <Border StrokeThickness="0" BackgroundColor="{StaticResource CardBackgroundColor}" Padding="15" Margin="10,0,10,10"
+            <!-- DETAILS SECTION -->
+            <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" HorizontalOptions="Center" FontAttributes="Bold"/>
+
+            <Border StrokeThickness="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Padding="15" Margin="10,0,10,10"
                     StrokeShape="RoundRectangle 5">
                 <VerticalStackLayout Spacing="0">
                     <!-- Address -->
@@ -114,7 +122,7 @@
                                 <Label.FormattedText>
                                     <FormattedString>
                                         <Span Text="ADDRESS "/>
-                                        <Span Text="(Tap to Copy)" TextColor="#1E90FF"/>
+                                        <Span Text="(Tap to Copy)" TextColor="{DynamicResource TertiaryTextColor}"/>
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>
@@ -199,7 +207,7 @@
                                 <Label.FormattedText>
                                     <FormattedString>
                                         <Span Text="HOME PHONE "/>
-                                        <Span Text="(Tap to Copy)" TextColor="#1E90FF"/>
+                                        <Span Text="(Tap to Copy)" TextColor="{DynamicResource TertiaryTextColor}"/>
                                     </FormattedString>
                                 </Label.FormattedText>
                             </Label>
@@ -218,7 +226,7 @@
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="NOTES "/>
-                                    <Span Text="(Tap to open)" TextColor="#1E90FF"/>
+                                    <Span Text="(Tap to open)" TextColor="{DynamicResource TertiaryTextColor}"/>
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>

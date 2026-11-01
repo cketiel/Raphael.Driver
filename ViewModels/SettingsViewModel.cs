@@ -11,10 +11,27 @@ namespace Raphael.Driver.ViewModels
         private readonly IMapService _mapService;
         public ObservableCollection<MapApp> AvailableMaps { get; } = new();
 
+        /// <summary>The eleven schedule styles, the driver's one marked.</summary>
+        public ObservableCollection<ScheduleStyleOption> ScheduleStyles { get; } =
+            new(ScheduleStyleManager.All.Select(info => new ScheduleStyleOption(info, info.Style == ScheduleStyleManager.Current)));
+
         public SettingsViewModel(IMapService mapService)
         {
             _mapService = mapService;
         }
+
+        /// <summary>Draws Today's Schedule and the stop screens in <paramref name="style"/> from now on, on this phone.</summary>
+        [RelayCommand]
+        private void UseScheduleStyle(ScheduleStyle style)
+        {
+            ScheduleStyleManager.Select(style);
+            foreach (var option in ScheduleStyles)
+                option.IsSelected = option.Style == style;
+        }
+
+        /// <summary>Drops the driver's theme choice and goes back to the phone's light/dark setting.</summary>
+        [RelayCommand]
+        private void FollowPhoneTheme() => ThemeManager.Select(SkinTheme.System);
 
         [RelayCommand]
         private async Task LoadMapAppsAsync()

@@ -7,63 +7,156 @@
     xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Title="Raphael.Driver">
 
+    <!--
+        ⚠️ The top bar and the side-menu background are painted from code (AppShell.PaintChrome),
+        not from XAML, and both ways in XAML failed:
+        - An implicit Style inside Shell.Resources styles what is inside the Shell, never the
+          Shell: the bar was MAUI's default navy (#2C3E50) all along, and the maroon the style
+          asked for never showed.
+        - A DynamicResource on the Shell paints the first theme and then stays: a theme change
+          did not reach the bar or the menu background.
+        The Shell style below stays for the record; the rows have their own templates.
+    -->
+
     <Shell.Resources>
 
         <!-- Global style for the top navigation bar (Navbar) -->
         <Style TargetType="Shell" ApplyToDerivedTypes="True">
-            <Setter Property="Shell.BackgroundColor" Value="#B82E49" />
-            <Setter Property="Shell.ForegroundColor" Value="White" />
-            <Setter Property="Shell.TitleColor" Value="White" />
+            <Setter Property="Shell.BackgroundColor" Value="{DynamicResource NavBarColor}" />
+            <Setter Property="Shell.ForegroundColor" Value="{DynamicResource NavBarTextColor}" />
+            <Setter Property="Shell.TitleColor" Value="{DynamicResource NavBarTextColor}" />
+            <Setter Property="Shell.FlyoutBackgroundColor" Value="{DynamicResource SurfaceColor}" />
         </Style>
 
+        <!--
+            One side-menu row (V7 «.flyout nav button»): the icon in the accent colour, the title,
+            and when the row is the page on screen, a rounded tint behind it and the icon in the
+            next-step coral. Used by FlyoutItems and MenuItems alike; only the bindings differ.
 
-       
-        
-        
+            ⚠️ Every colour here is set by a visual state, Normal as well as Selected, never as a
+            local value: leaving Selected, MAUI removes every DynamicResource on the properties
+            that state touched, and a local one would be lost with it (see Styles.xaml, buttons).
+        -->
+        <Style x:Key="MenuRowStyle" TargetType="Grid">
+            <Setter Property="Padding" Value="10,1" />
+            <Setter Property="VisualStateManager.VisualStateGroups">
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <VisualState.Setters>
+                                <Setter TargetName="Pill" Property="Border.BackgroundColor" Value="Transparent" />
+                                <Setter TargetName="RowIcon" Property="Label.TextColor" Value="{DynamicResource AccentColor}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Selected">
+                            <VisualState.Setters>
+                                <Setter TargetName="Pill" Property="Border.BackgroundColor" Value="{DynamicResource TintColor}" />
+                                <Setter TargetName="RowIcon" Property="Label.TextColor" Value="{DynamicResource NextColor}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </Setter>
+        </Style>
 
     </Shell.Resources>
 
-   
-    <!-- Flyout header with logo and application version -->
+    <!-- Rows of the FlyoutItems. -->
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Grid Style="{StaticResource MenuRowStyle}">
+                <Border x:Name="Pill" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="12,13">
+                    <Grid ColumnDefinitions="28,*" ColumnSpacing="14">
+                        <Label x:Name="RowIcon" Text="{Binding FlyoutIcon.Glyph}" FontFamily="FontAwesomeSolid"
+                               FontSize="18" HorizontalTextAlignment="Center" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding Title}" FontAttributes="Bold" FontSize="14.5"
+                               TextColor="{DynamicResource InkColor}" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    <!-- Rows of the MenuItems (Inspections, Messages, Sign out): never "selected", same look.
+         Their BindingContext is the item MAUI wraps each MenuItem in, which carries the icon as
+         FlyoutIcon, not IconImageSource. -->
+    <Shell.MenuItemTemplate>
+        <DataTemplate>
+            <Grid Style="{StaticResource MenuRowStyle}">
+                <Border x:Name="Pill" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="12,13">
+                    <Grid ColumnDefinitions="28,*" ColumnSpacing="14">
+                        <Label x:Name="RowIcon" Text="{Binding FlyoutIcon.Glyph}" FontFamily="FontAwesomeSolid"
+                               FontSize="18" HorizontalTextAlignment="Center" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding Text}" FontAttributes="Bold" FontSize="14.5"
+                               TextColor="{DynamicResource InkColor}" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Shell.MenuItemTemplate>
+
+    <!-- Flyout header: the V7 gradient, the logo, the name and the version. -->
     <Shell.FlyoutHeader>
 
-        <Grid Padding="20,30"
-              BackgroundColor="{StaticResource CardBackgroundColor}"
+        <Grid Padding="20,34,20,22"
+              Background="{DynamicResource HeaderGradientBrush}"
+              RowSpacing="6"
               RowDefinitions="Auto,Auto,Auto,Auto">
 
-            <Image Grid.Row="0"
-                   Source="logo.png"
-                   Aspect="AspectFit"
-                   HeightRequest="80" />
+            <!-- The logo in its own colours, never tinted: the brand is the logo as it is. A blue
+                 pin straight on the blue gradient did not read, so it sits on a tile shaped like
+                 an app icon on a phone: a superellipse ("squircle", n = 5), not a circle. The
+                 logo fills it about as much as a launcher icon fills its tile. -->
+            <Border Grid.Row="0"
+                    BackgroundColor="{DynamicResource LogoTileColor}"
+                    StrokeThickness="0"
+                    WidthRequest="96"
+                    HeightRequest="96"
+                    HorizontalOptions="Center">
+                <Border.StrokeShape>
+                    <Path Data="M96,48 L95.93,66.09 95.71,71.83 95.34,75.95 94.82,79.25 94.15,82.01 93.32,84.38 92.32,86.43 91.15,88.22 89.79,89.79 88.22,91.15 86.43,92.32 84.38,93.32 82.01,94.15 79.25,94.82 75.95,95.34 71.83,95.71 66.09,95.93 48,96 29.91,95.93 24.17,95.71 20.05,95.34 16.75,94.82 13.99,94.15 11.62,93.32 9.57,92.32 7.78,91.15 6.21,89.79 4.85,88.22 3.68,86.43 2.68,84.38 1.85,82.01 1.18,79.25 0.66,75.95 0.29,71.83 0.07,66.09 0,48 0.07,29.91 0.29,24.17 0.66,20.05 1.18,16.75 1.85,13.99 2.68,11.62 3.68,9.57 4.85,7.78 6.21,6.21 7.78,4.85 9.57,3.68 11.62,2.68 13.99,1.85 16.75,1.18 20.05,0.66 24.17,0.29 29.91,0.07 48,0 66.09,0.07 71.83,0.29 75.95,0.66 79.25,1.18 82.01,1.85 84.38,2.68 86.43,3.68 88.22,4.85 89.79,6.21 91.15,7.78 92.32,9.57 93.32,11.62 94.15,13.99 94.82,16.75 95.34,20.05 95.71,24.17 95.93,29.91 Z" />
+                </Border.StrokeShape>
+                <Border.Shadow>
+                    <Shadow Brush="#053F59" Offset="0,4" Radius="14" Opacity="0.35" />
+                </Border.Shadow>
+                <Image Source="{DynamicResource OfficialLogoImage}"
+                       Aspect="AspectFit"
+                       HeightRequest="78"
+                       Margin="0,2,0,0" />
+            </Border>
 
             <Label Grid.Row="1"
                    Text="RAPHAEL DRIVER"
-                   TextColor="{AppThemeBinding Light=Black, Dark=White}"
-                   FontSize="14"
+                   TextColor="White"
+                   FontSize="15"
                    FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"
-                   Margin="0,10,0,0" />
-
-            <Label Grid.Row="2"
-                   Text="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=Version}"
-                   TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"
-                   FontSize="11"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"
-                   Margin="0,3,0,0" />
-
-            <!-- Empty on production. Red and next to the version everywhere else, because the
-                 login page is seen once at the start of a shift and this is open all day. -->
-            <Label Grid.Row="3"
-                   Text="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=EnvironmentBanner}"
-                   IsVisible="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=ShowEnvironmentBanner}"
-                   TextColor="{StaticResource AccentColorRed}"
-                   FontAttributes="Bold"
-                   FontSize="11"
+                   CharacterSpacing="2"
                    HorizontalOptions="Center"
                    HorizontalTextAlignment="Center"
                    Margin="0,4,0,0" />
+
+            <Label Grid.Row="2"
+                   Text="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=Version}"
+                   TextColor="#D9FFFFFF"
+                   FontSize="11.5"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- Empty on production. Next to the version everywhere else, because the login page
+                 is seen once at the start of a shift and this is open all day. On a white pill:
+                 red straight on the blue gradient would not read. -->
+            <Border Grid.Row="3"
+                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=ShowEnvironmentBanner}"
+                    BackgroundColor="White"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 9"
+                    Padding="8,2"
+                    HorizontalOptions="Center">
+                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type Shell}}, Path=EnvironmentBanner}"
+                       TextColor="#B42318"
+                       FontAttributes="Bold"
+                       FontSize="11" />
+            </Border>
 
         </Grid>
 

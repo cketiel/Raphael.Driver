@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Raphael.Driver.Controls.ThemeSwitcher"
+             x:Name="Root">
+
+    <!--
+        The V7 four-position theme switch (COMPONENTES.md, «Interruptor de tema»): white, grey,
+        dark and red dots on a capsule, the chosen one ringed. Tapping a dot applies that theme
+        at once and remembers it on this phone (ThemeManager).
+
+        Each dot shows the theme it selects, so the dots never change colour; only the capsule
+        and the ring follow the page the switch sits on (CapsuleColor, RingColor).
+
+        Not the designer's draggable knob: tapping does the same job and moves nothing else on
+        screen, which is what «Botones quietos» asks for.
+    -->
+    <Border x:Name="Capsule"
+            BackgroundColor="{Binding Source={x:Reference Root}, Path=CapsuleColor}"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 19"
+            Padding="4"
+            HorizontalOptions="Start"
+            VerticalOptions="Center">
+
+        <HorizontalStackLayout Spacing="6">
+
+            <Grid x:Name="LightDot" WidthRequest="30" HeightRequest="30"
+                  SemanticProperties.Description="Light theme">
+                <Ellipse x:Name="LightRing" StrokeThickness="2.5" Fill="Transparent"
+                         Stroke="{Binding Source={x:Reference Root}, Path=RingColor}" IsVisible="False" />
+                <Ellipse WidthRequest="16" HeightRequest="16" HorizontalOptions="Center" VerticalOptions="Center"
+                         Fill="{StaticResource SwatchLightColor}" Stroke="#8795A0" StrokeThickness="1" />
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnLightTapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <Grid x:Name="GrayDot" WidthRequest="30" HeightRequest="30"
+                  SemanticProperties.Description="Gray theme">
+                <Ellipse x:Name="GrayRing" StrokeThickness="2.5" Fill="Transparent"
+                         Stroke="{Binding Source={x:Reference Root}, Path=RingColor}" IsVisible="False" />
+                <Ellipse WidthRequest="16" HeightRequest="16" HorizontalOptions="Center" VerticalOptions="Center"
+                         Fill="{StaticResource SwatchGrayColor}" Stroke="#8795A0" StrokeThickness="1" />
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnGrayTapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <Grid x:Name="DarkDot" WidthRequest="30" HeightRequest="30"
+                  SemanticProperties.Description="Dark theme">
+                <Ellipse x:Name="DarkRing" StrokeThickness="2.5" Fill="Transparent"
+                         Stroke="{Binding Source={x:Reference Root}, Path=RingColor}" IsVisible="False" />
+                <Ellipse WidthRequest="16" HeightRequest="16" HorizontalOptions="Center" VerticalOptions="Center"
+                         Fill="{StaticResource SwatchDarkColor}" Stroke="#8795A0" StrokeThickness="1" />
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnDarkTapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <Grid x:Name="InfraredDot" WidthRequest="30" HeightRequest="30"
+                  SemanticProperties.Description="Infrared theme">
+                <Ellipse x:Name="InfraredRing" StrokeThickness="2.5" Fill="Transparent"
+                         Stroke="{Binding Source={x:Reference Root}, Path=RingColor}" IsVisible="False" />
+                <Ellipse WidthRequest="16" HeightRequest="16" HorizontalOptions="Center" VerticalOptions="Center"
+                         Fill="{StaticResource SwatchInfraredColor}" Stroke="#8795A0" StrokeThickness="1" />
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnInfraredTapped" />
+                </Grid.GestureRecognizers>
+            </Grid>
+
+        </HorizontalStackLayout>
+    </Border>
+</ContentView>

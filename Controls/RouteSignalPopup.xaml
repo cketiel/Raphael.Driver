@@ -17,7 +17,7 @@
         So: the list underneath cannot be touched, the driver has a few seconds to read, and
         the refresh happens whether or not they do anything.
     -->
-    <Border BackgroundColor="#2C2C2E"
+    <Border BackgroundColor="{StaticResource SurfaceColor}"
             StrokeThickness="0"
             StrokeShape="RoundRectangle 14"
             Padding="22"
@@ -27,25 +27,25 @@
 
             <Label x:Name="TitleLabel"
                    Text="Route updated"
-                   TextColor="White"
+                   TextColor="{StaticResource InkColor}"
                    FontSize="19"
                    FontAttributes="Bold"
                    HorizontalTextAlignment="Center" />
 
             <Label x:Name="MessageLabel"
-                   TextColor="#D0D0D2"
+                   TextColor="{StaticResource PrimaryTextColor}"
                    FontSize="15"
                    HorizontalTextAlignment="Center" />
 
             <Label x:Name="CountdownLabel"
-                   TextColor="#8E8E93"
+                   TextColor="{StaticResource SecondaryTextColor}"
                    FontSize="13"
                    HorizontalTextAlignment="Center" />
 
             <Button x:Name="ActionButton"
                     Text="Refresh now"
-                    BackgroundColor="#B82E49"
-                    TextColor="White"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource OnBrandTextColor}"
                     CornerRadius="8"
                     Clicked="OnActionClicked" />
 

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 128" width="100" height="128">
+  <!--
+    The official logo, red version for the Infrared theme only: logo_official.svg in the reds of
+    logo_infrared.svg, so nothing blue breaks the night mode. Side menu and sign-in page.
+    The two side figures are drawn twice, a white outline first and the figure on top, which is
+    what the original's paint-order="stroke" did; the image converter does not support it.
+  -->
+  <defs>
+    <linearGradient id="rp-pin" x1="0.85" y1="0.05" x2="0.2" y2="0.95">
+      <stop offset="0" stop-color="#E04A3C"/>
+      <stop offset="0.55" stop-color="#B3261E"/>
+      <stop offset="1" stop-color="#7A221C"/>
+    </linearGradient>
+    <radialGradient id="rp-shadow"><stop offset="0" stop-color="#5A0E0B" stop-opacity=".42"/><stop offset=".6" stop-color="#5A0E0B" stop-opacity=".14"/><stop offset="1" stop-color="#5A0E0B" stop-opacity="0"/></radialGradient>
+    <clipPath id="rp-hole"><circle cx="50" cy="48" r="34"/></clipPath>
+  </defs>
+  <!-- the map shadow under the tip -->
+  <ellipse cx="50" cy="122.6" rx="19" ry="4.2" fill="url(#rp-shadow)"/>
+  <path fill="url(#rp-pin)" fill-rule="evenodd" d="M50 121.5c-2 0-3.2-1.2-4.4-3C34 100 2 82 2 49a48 48 0 0 1 96 0c0 33-32 51-43.6 69.5c-1.2 1.8-2.4 3-4.4 3ZM50 14a34 34 0 1 0 0 68a34 34 0 1 0 0-68Z"/>
+  <circle cx="50" cy="48" r="34" fill="#FFF3F1"/>
+  <g clip-path="url(#rp-hole)">
+    <g fill="#5A0E0B">
+      <!-- wings -->
+      <path d="M44.5 50c-7-1-13.5-5-16.5-12c-2.6-6-2-13 .5-17c5 4 11 8 14 14c2.4 5 3 10 2 15Z"/>
+      <path d="M55.5 50c7-1 13.5-5 16.5-12c2.6-6 2-13-.5-17c-5 4-11 8-14 14c-2.4 5-3 10-2 15Z"/>
+      <!-- central figure -->
+      <circle cx="50" cy="31.5" r="7.6"/>
+      <path d="M37.5 56c0-9.5 5.6-15 12.5-15s12.5 5.5 12.5 15c0 2.6-1.2 3.6-3.4 3.6H57V86H43V59.6h-2.1c-2.2 0-3.4-1-3.4-3.6Z"/>
+    </g>
+    <!-- side figures: the white gap that keeps them apart from the central one -->
+    <g fill="#FFF3F1" stroke="#FFF3F1" stroke-width="2.4">
+      <circle cx="31.5" cy="58" r="5.6"/>
+      <path d="M21 86V73c0-6 4.4-9.6 10.5-9.6S42 67 42 73v13Z"/>
+      <circle cx="68.5" cy="58" r="5.6"/>
+      <path d="M58 86V73c0-6 4.4-9.6 10.5-9.6S79 67 79 73v13Z"/>
+    </g>
+    <g fill="#5A0E0B">
+      <circle cx="31.5" cy="58" r="5.6"/>
+      <path d="M21 86V73c0-6 4.4-9.6 10.5-9.6S42 67 42 73v13Z"/>
+      <circle cx="68.5" cy="58" r="5.6"/>
+      <path d="M58 86V73c0-6 4.4-9.6 10.5-9.6S79 67 79 73v13Z"/>
+    </g>
+  </g>
+</svg>

@@ -5,6 +5,81 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Added (RE-061 — V7 skin)
+- Four themes (Light, Gray, Dark, Infrared) from the V7 design tokens, chosen with a four-dot
+  switch on the sign-in page and in Settings, and kept on the phone. Until a driver picks one the
+  app follows the phone's light/dark setting, as before. Settings also has "Use phone setting".
+- Animated splash, design Q "all the trips". The system's launch frame (Android's splash, iOS's
+  launch screen) shows the official logo centred on a pale street-map colour. The splash then
+  draws a street map; the day's trips appear around it as small pins, fly to the centre and melt
+  into the logo, which beats in with its map shadow; then RAPHAEL / DRIVER and "Driving Health /
+  The Rider's Angel" come in. 2.7 s, the design's own timing, counted from the first frame really
+  drawn, so a slow phone does not lose the pins. A tap skips it. The splash looks the same in
+  every theme. With the phone's animations turned off (Reduce Motion on iOS) it shows the
+  finished lockup and goes straight on.
+- Schedule styles: eleven ways to draw the events of Today's Schedule and their stop screens,
+  chosen in Settings → SCHEDULE STYLE (a strip of real cards, shrunk; a tap previews one and
+  "Use this style" takes it) and kept on the phone. Token, Folded Corner, Tint, Ticket, Road
+  Signs, Transit Line, Outline, Map Pin, Split Pill, Flap Board and Legacy, the old look, which
+  stays the default until a driver picks another. All keep the card's size and the convention
+  colours, and tell pickup from dropoff and Appt from Return without the colour too (arrows,
+  destinations, solid or striped, filled or hollow, shapes).
+  - The promised time (pickup time or appointment) carries AM/PM and its label, and is set off
+    from the ETA so the two cannot be taken for each other.
+  - The space type (AMB, WCH, STR) shows its icon: a person walking, a wheelchair, a stretcher.
+  - A pickup with a planned wait shows a stamp with the minutes over the empty right of the
+    card. A tap on the stamp explains it and opens nothing; a tap anywhere else opens the stop,
+    as before. The wait was already in the schedule (ScheduleDto.Wait); nothing new is asked of
+    the server.
+  - On the stop and garage screens the card that was tapped stays on top, the wait is written
+    out under it, and the actions are set off the way the style sets off its card. Same actions,
+    same order.
+  No help topic: the Driver has no help yet.
+
+### Changed (RE-061 — V7 skin)
+- The event screen is titled STOP (it was EVENT DETAILS) and the pull-out and pull-in screen
+  GARAGE (it was the event's name).
+- Raphael brand colours in place of the maroon: blue top and status bar, coral main buttons,
+  blue secondary buttons. Every screen now follows the theme, including Dashboard, History,
+  Notifications and Settings, which were dark whatever the phone was set to.
+- Sign-in page redesigned: picture of the van on top, a sheet with the logo, the fields, Remember
+  me and Sign In. "MILANES System" and "by Milanes Service LLC" removed. The version line still
+  opens the server dialog after seven taps.
+- Sign-in: the official logo sits centred on the seam between the picture and the sheet, half
+  on each, with the name RAPHAEL over DRIVER centred under it. "Welcome!" removed, so Sign In
+  shows without scrolling.
+- "Call me" uses the V7 colours for its four states.
+- Event cards keep their colour per event type; only their background and text follow the theme.
+- The signature pad stays white with black ink in every theme, because that image is what is saved.
+- A disabled button is now its own colour at half opacity instead of grey.
+- Side menu: the head on the V7 gradient with the logo in its own colours, on a white tile shaped
+  like a phone app icon (a squircle) so it stands out from the gradient; rounded highlight on the
+  page on screen; icons in the accent colour, the selected one in coral.
+- In the Infrared theme the logo is drawn in the theme's reds (menu, sign-in, Schedule), so
+  nothing blue breaks the night mode.
+- The menu and back buttons of the top bar sit on a rounded square (Android's own icons, at their
+  own size), and the status bar is a touch darker than the top bar, leaving the faint seam
+  between the two that V7 shows.
+- New official logo: the V7 vector replaces the old raster logo everywhere in the app and in the
+  launcher icon (white background, logo in front).
+- The official logo carries the map shadow under the tip and no halo (decided 2026-10-31). It is
+  the logo of the side menu, the sign-in page, the launcher icon and the launch frame (in the
+  Infrared theme, the menu's and sign-in's in reds). Schedule keeps the logo without the shadow.
+- Settings: rounded cards for the theme and for each map app, the app icon on a rounded tile;
+  the chosen map shows an accent border and tint and an accent dot (it was always red).
+- Dashboard redesigned: greeting, Run Info on tiles, and Today's Events with the count, one bar
+  segment per event of the day and the next event, which opens it directly. It is the first
+  pending event, opened exactly as Today opens it, so the order of the day is unchanged. The
+  Dashboard also resends trip starts made without signal (RE-057), as Today does.
+- Signing in lands on the Dashboard instead of the Schedule page.
+- Icons on SCHEDULE, TODAY'S SCHEDULE and FUTURE SCHEDULE. SCHEDULE opens the Schedule page
+  when the driver has no run of their own today, instead of doing nothing.
+
+### Fixed (RE-061 — V7 skin)
+- The top bar was MAUI's default navy, never the maroon the app asked for: the style that set it
+  never reached the Shell. It now takes the theme's colour on every page.
+- Following the phone's light/dark setting now repaints the app while it is open.
+
 ## [1.7.4] - 2026-10-26
 
 **No slice.** versionCode 18. Same code as 1.7.3; it exists to bring the phones back to the

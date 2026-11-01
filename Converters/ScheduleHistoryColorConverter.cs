@@ -12,8 +12,10 @@ namespace Raphael.Driver.Converters
                 return Colors.Gray;
         
             // For completed events:
+            // The garage line is the theme's ink: it was white when the page was always dark, and
+            // white on a light theme would vanish. The other four are the event-type colours, kept.
             if (schedule.Name == "Pull-out" || schedule.Name == "Pull-in")
-                return Colors.White; // The timeline for Pull-out in the image is white.
+                return Services.ThemeManager.GetColor("InkColor", Colors.White);
 
             if (schedule.EventType == ScheduleEventType.Pickup && schedule.TripType == "Appointment")
                 return Color.FromArgb("#2E7D32"); // Green

@@ -1,3 +1,4 @@
+using Raphael.Driver.Services;
 using Raphael.Driver.ViewModels;
 
 namespace Raphael.Driver.Views;
@@ -8,6 +9,18 @@ public partial class PullOutDetailPage : ContentPage
     {
         InitializeComponent();
         BindingContext = viewModel; 
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // The rows of the driver's schedule style: the page's own for Legacy, the styled list otherwise.
+        var legacy = ScheduleStyleManager.Current == ScheduleStyle.Legacy;
+        LegacyActions.IsVisible = legacy;
+        StyledActions.IsVisible = !legacy;
+        Hero.Build();
+        StyledActions.Build();
     }
     protected override bool OnBackButtonPressed()
     {       

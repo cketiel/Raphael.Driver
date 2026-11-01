@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 120" width="112" height="120">
+  <!--
+    Logo 03, "the R of Raphael" (_meta/design/logo/logo-proposals-2.html): the stem is a street,
+    the bowl is the pin's disc with the angel of the logo, the leg carries a heartbeat. It is the
+    shared R of the sign-in signature, DRIVE · R · APHAEL: read DRIVER one way and RAPHAEL the other.
+    The two side figures are drawn twice, a white outline first and the figure on top, which is
+    what the original's paint-order="stroke" did; the image converter does not support it.
+  -->
+  <defs>
+    <linearGradient id="rp-pin" x1="0.85" y1="0.05" x2="0.2" y2="0.95">
+      <stop offset="0" stop-color="#50ABC1"/>
+      <stop offset="0.55" stop-color="#318FB0"/>
+      <stop offset="1" stop-color="#216D92"/>
+    </linearGradient>
+    <clipPath id="rp-eye"><circle cx="64" cy="40" r="29"/></clipPath>
+  </defs>
+  <!-- the stem: a street with its broken centre line -->
+  <rect x="8" y="6" width="22" height="108" rx="7" fill="#123F55"/>
+  <line x1="19" y1="16" x2="19" y2="104" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="7 6"/>
+  <!-- the bowl: the pin's disc, with the angel and the two travellers -->
+  <rect x="26" y="7" width="38" height="7" fill="url(#rp-pin)"/>
+  <rect x="26" y="66" width="38" height="7" fill="url(#rp-pin)"/>
+  <circle cx="64" cy="40" r="33" fill="url(#rp-pin)"/>
+  <circle cx="64" cy="40" r="29" fill="#fff"/>
+  <g clip-path="url(#rp-eye)">
+    <g transform="translate(21.35 -0.94) scale(0.853)">
+        <g fill="#0A5C80">
+          <!-- wings -->
+          <path d="M44.5 50c-7-1-13.5-5-16.5-12c-2.6-6-2-13 .5-17c5 4 11 8 14 14c2.4 5 3 10 2 15Z"/>
+          <path d="M55.5 50c7-1 13.5-5 16.5-12c2.6-6 2-13-.5-17c-5 4-11 8-14 14c-2.4 5-3 10-2 15Z"/>
+          <!-- central figure -->
+          <circle cx="50" cy="31.5" r="7.6"/>
+          <path d="M37.5 56c0-9.5 5.6-15 12.5-15s12.5 5.5 12.5 15c0 2.6-1.2 3.6-3.4 3.6H57V86H43V59.6h-2.1c-2.2 0-3.4-1-3.4-3.6Z"/>
+        </g>
+        <!-- side figures: the white gap that keeps them apart from the central one -->
+        <g fill="#fff" stroke="#fff" stroke-width="2.4">
+          <circle cx="31.5" cy="58" r="5.6"/>
+          <path d="M21 86V73c0-6 4.4-9.6 10.5-9.6S42 67 42 73v13Z"/>
+          <circle cx="68.5" cy="58" r="5.6"/>
+          <path d="M58 86V73c0-6 4.4-9.6 10.5-9.6S79 67 79 73v13Z"/>
+        </g>
+        <g fill="#0A5C80">
+          <circle cx="31.5" cy="58" r="5.6"/>
+          <path d="M21 86V73c0-6 4.4-9.6 10.5-9.6S42 67 42 73v13Z"/>
+          <circle cx="68.5" cy="58" r="5.6"/>
+          <path d="M58 86V73c0-6 4.4-9.6 10.5-9.6S79 67 79 73v13Z"/>
+        </g>
+    </g>
+  </g>
+  <!-- the leg, with a heartbeat traced in white like a monitor's line -->
+  <path d="M50 66H68L104 114H86Z" fill="#C9412F"/>
+  <polyline points="59,66 71.6,82.8 75,84 75.2,87.6 81.3,88.3 75.9,96 81.6,96.2 95,114" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

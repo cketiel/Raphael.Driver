@@ -25,6 +25,13 @@ public partial class EventDetailPage : ContentPage, IRouteSignalHandler
     {
         base.OnAppearing();
 
+        // The rows of the driver's schedule style: the page's own for Legacy, the styled list otherwise.
+        var legacy = ScheduleStyleManager.Current == ScheduleStyle.Legacy;
+        LegacyActions.IsVisible = legacy;
+        StyledActions.IsVisible = !legacy;
+        Hero.Build();
+        StyledActions.Build();
+
         _signals.Register(this);
     }
 
