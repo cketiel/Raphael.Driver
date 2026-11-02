@@ -13,6 +13,8 @@
 	</array>
 	
 	<!-- Permission to access location when the app is in use -->
+	<key>NSCameraUsageDescription</key>
+	<string>The vehicle inspection takes a photo of every problem as evidence.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to record and show your route on the map while you work.</string>
 	

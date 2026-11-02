@@ -3,153 +3,336 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
+             xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.TripNotesPage"
              x:DataType="viewmodels:TripNotesViewModel"
              Title="NOTES"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
-    <!-- RE-054. The notes of one stop, in big cards a driver can read at a glance: what the driver
-         reads here, this trip's own note, the entrance's, the place's and the patient's. Every change
-         is saved at once; with no connection the driver is told so and nothing is kept for later. -->
+    <!-- RE-054, redrawn in RE-062 from the designer's V7 proposal (#notes): a header with the place, the
+         note the driver reads first, then one card per kind of note with its icon, its count and its own
+         add button; each note on a tinted panel with where it came from and its actions.
+         ⚠️ Colours that depend on a note come from the view model, never from a trigger (RE-061 H2). -->
 
     <Shell.TitleView>
         <controls:PageTitleBar Title="{Binding StopTitle}" Icon="&#xf249;" ShowBell="False" />
     </Shell.TitleView>
 
     <ContentPage.Resources>
-        <Style TargetType="Label" x:Key="SectionLabel">
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontAttributes" Value="Bold" />
-            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
-            <Setter Property="Margin" Value="4,14,0,6" />
-        </Style>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
         <Style TargetType="Border" x:Key="Card">
-            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
             <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="16,14" />
+            <Setter Property="Shadow">
+                <Shadow Brush="#22000000" Offset="0,2" Radius="8" Opacity="0.35" />
+            </Setter>
+        </Style>
+        <Style TargetType="Border" x:Key="IconTile">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource AccentSoftColor}" />
             <Setter Property="StrokeShape" Value="RoundRectangle 10" />
-            <Setter Property="Padding" Value="14,12" />
-            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="WidthRequest" Value="36" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="IconGlyph">
+            <Setter Property="FontFamily" Value="FontAwesomeSolid" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="CardTitle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CharacterSpacing" Value="0.5" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="CardHint">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+        </Style>
+        <Style TargetType="Label" x:Key="CountBadge">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
         </Style>
         <Style TargetType="Label" x:Key="NoteText">
-            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontSize" Value="16" />
             <Setter Property="TextColor" Value="{DynamicResource PrimaryTextColor}" />
             <Setter Property="LineBreakMode" Value="WordWrap" />
         </Style>
-        <Style TargetType="Button" x:Key="CardAction">
+        <Style TargetType="Label" x:Key="Empty">
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="HeightRequest" Value="40" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+            <Setter Property="Margin" Value="2,4,0,2" />
+        </Style>
+        <!-- The small add button on a card's header. -->
+        <Style TargetType="Button" x:Key="AddChip">
+            <Setter Property="Text" Value="+  ADD" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="HeightRequest" Value="34" />
+            <Setter Property="MinimumWidthRequest" Value="0" />
+            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="BorderWidth" Value="1.5" />
+            <Setter Property="BorderColor" Value="{DynamicResource AccentColor}" />
             <Setter Property="BackgroundColor" Value="Transparent" />
-            <Setter Property="TextColor" Value="{DynamicResource PrimaryColor}" />
+            <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <!-- A note's actions: tertiary, secondary and danger-ghost, as in the proposal. -->
+        <Style TargetType="Button" x:Key="NoteAction">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="HeightRequest" Value="34" />
+            <Setter Property="MinimumWidthRequest" Value="0" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="BorderColor" Value="{DynamicResource BorderColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
         </Style>
 
         <DataTemplate x:Key="NoteCard" x:DataType="viewmodels:NoteItem">
-            <Border Style="{StaticResource Card}">
-                <Border.Triggers>
-                    <DataTrigger TargetType="Border" Binding="{Binding IsToReview}" Value="True">
-                        <Setter Property="BackgroundColor" Value="{DynamicResource WarnSoftColor}" />
-                        <Setter Property="Stroke" Value="{DynamicResource WarnColor}" />
-                        <Setter Property="StrokeThickness" Value="1" />
-                    </DataTrigger>
-                </Border.Triggers>
-                <VerticalStackLayout Spacing="4">
-                    <Label Text="{Binding Text}" Style="{StaticResource NoteText}" />
-                    <Label Text="{Binding Meta}" FontSize="12" TextColor="{DynamicResource SecondaryTextColor}" />
-                    <HorizontalStackLayout HorizontalOptions="End" Spacing="4">
-                        <Button Text="CONFIRM" Style="{StaticResource CardAction}" IsVisible="{Binding IsToReview}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=ConfirmNoteCommand}"
-                                CommandParameter="{Binding .}" />
-                        <Button Text="EDIT" Style="{StaticResource CardAction}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=EditNoteCommand}"
-                                CommandParameter="{Binding .}" />
-                        <Button Text="DELETE" Style="{StaticResource CardAction}" TextColor="{DynamicResource DangerTextColor}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=DeleteNoteCommand}"
-                                CommandParameter="{Binding .}" />
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
+            <Border StrokeThickness="0" BackgroundColor="{Binding Background}" StrokeShape="RoundRectangle 12" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="4,*">
+                    <BoxView Color="{Binding Stripe}" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="8" Padding="12,10,12,10">
+                        <!-- To review: what the office or the file wrote and nobody has confirmed. -->
+                        <Border StrokeThickness="0" BackgroundColor="{DynamicResource WarnColor}" StrokeShape="RoundRectangle 6"
+                                Padding="8,2" HorizontalOptions="Start" IsVisible="{Binding IsToReview}">
+                            <Label Text="TO REVIEW" FontSize="10" FontAttributes="Bold" CharacterSpacing="1" TextColor="{DynamicResource OnBrandTextColor}" />
+                        </Border>
+                        <Label Text="{Binding Text}" Style="{StaticResource NoteText}" />
+                        <HorizontalStackLayout Spacing="6">
+                            <Label Text="{Binding SourceGlyph}" FontFamily="FontAwesomeSolid" FontSize="11"
+                                   TextColor="{DynamicResource SecondaryTextColor}" VerticalOptions="Center" />
+                            <Label Text="{Binding Meta}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource SecondaryTextColor}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="EDIT" Style="{StaticResource NoteAction}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=EditNoteCommand}"
+                                    CommandParameter="{Binding .}" />
+                            <Button Text="CONFIRM" Style="{StaticResource NoteAction}" IsVisible="{Binding IsToReview}"
+                                    BackgroundColor="{DynamicResource BrandBlueColor}" TextColor="{DynamicResource OnBrandTextColor}" BorderWidth="0"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=ConfirmNoteCommand}"
+                                    CommandParameter="{Binding .}" />
+                            <Button Text="DELETE" Style="{StaticResource NoteAction}"
+                                    TextColor="{DynamicResource DangerTextColor}" BorderColor="{DynamicResource DangerTextColor}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TripNotesViewModel}}, Path=DeleteNoteCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
             </Border>
         </DataTemplate>
     </ContentPage.Resources>
 
     <Grid RowDefinitions="*,Auto">
         <ScrollView Grid.Row="0">
-                <VerticalStackLayout Padding="14,6,14,24">
+            <VerticalStackLayout Spacing="14" Padding="0,0,0,16">
 
-                    <!-- What the driver reads here: the reason this page exists. -->
-                    <Label Text="WHAT YOU READ AT THIS STOP" Style="{StaticResource SectionLabel}" />
-                    <Border Style="{StaticResource Card}" BackgroundColor="{DynamicResource OkSoftColor}" Stroke="{DynamicResource OkColor}" StrokeThickness="1">
-                        <Label Text="{Binding DriverReads}" Style="{StaticResource NoteText}" />
+                <!-- ── Header: where this stop is ─────────────────────────────────────────────── -->
+                <Border StrokeThickness="0" Background="{DynamicResource HeaderGradientBrush}" Padding="20,16,20,20">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="0,0,28,28" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="2">
+                        <Label Text="{Binding StopCaption}" FontSize="12" FontAttributes="Bold" CharacterSpacing="1.5"
+                               TextColor="{DynamicResource OnBrandTextColor}" Opacity="0.85" />
+                        <Label Grid.Row="1" Text="{Binding PlaceName, TargetNullValue='This stop'}" FontSize="22" FontAttributes="Bold"
+                               TextColor="{DynamicResource OnBrandTextColor}" LineBreakMode="TailTruncation" MaxLines="2" />
+                        <Label Grid.Row="2" Text="{Binding PlaceAddress}" FontSize="13" TextColor="{DynamicResource OnBrandTextColor}"
+                               Opacity="0.85" IsVisible="{Binding HasPlace}" />
+                        <Border Grid.RowSpan="3" Grid.Column="1" StrokeThickness="0" BackgroundColor="#33FFFFFF"
+                                StrokeShape="RoundRectangle 22" WidthRequest="52" HeightRequest="52" VerticalOptions="Center">
+                            <Label Text="&#xf249;" FontFamily="FontAwesomeSolid" FontSize="22" TextColor="{DynamicResource OnBrandTextColor}"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <Border Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10,0,0" StrokeThickness="0" BackgroundColor="#33FFFFFF"
+                                StrokeShape="RoundRectangle 10" Padding="10,3" HorizontalOptions="Start" IsVisible="{Binding HasToReview}">
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="&#xf071;" FontFamily="FontAwesomeSolid" FontSize="11" TextColor="{DynamicResource OnBrandTextColor}"
+                                       VerticalOptions="Center" />
+                                <Label Text="{Binding ToReviewText}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource OnBrandTextColor}" />
+                            </HorizontalStackLayout>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <VerticalStackLayout Spacing="14" Padding="14,0">
+
+                    <!-- ── What the driver reads here: the reason this page exists ─────────────── -->
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <Grid ColumnDefinitions="5,*">
+                            <BoxView Color="{DynamicResource OkColor}" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="10" Padding="14,14,16,16">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                    <Border Style="{StaticResource IconTile}" BackgroundColor="{DynamicResource OkSoftColor}">
+                                        <Label Text="&#xf06e;" Style="{StaticResource IconGlyph}" TextColor="{DynamicResource OkColor}" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="WHAT YOU READ AT THIS STOP" Style="{StaticResource CardTitle}" />
+                                        <Label Text="Everything below, put together" Style="{StaticResource CardHint}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                                <Label Text="{Binding DriverReads}" FontSize="17" FontAttributes="Bold" LineHeight="1.15"
+                                       TextColor="{DynamicResource InkColor}" LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Grid>
                     </Border>
 
-                    <!-- The place -->
-                    <VerticalStackLayout IsVisible="{Binding HasPlace}">
-                        <Label Text="PLACE" Style="{StaticResource SectionLabel}" />
-                        <Border Style="{StaticResource Card}">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="{Binding PlaceName}" FontSize="17" FontAttributes="Bold" TextColor="{DynamicResource PrimaryTextColor}" />
-                                <Label Text="{Binding PlaceAddress}" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </VerticalStackLayout>
-
-                    <!-- This trip only -->
-                    <Label Text="THIS TRIP ONLY" Style="{StaticResource SectionLabel}" />
+                    <!-- ── This trip only ────────────────────────────────────────────────────────── -->
                     <Border Style="{StaticResource Card}">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding EditTripNoteCommand}" />
                         </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="{Binding TripNote, TargetNullValue='Nothing for this trip. Tap to add.'}" Style="{StaticResource NoteText}" />
-                            <Label Text="Past or closed trip: it cannot change." FontSize="12" TextColor="{DynamicResource SecondaryTextColor}">
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding CanEditTripNote}" Value="True">
-                                        <Setter Property="IsVisible" Value="False" />
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf0f6;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="THIS TRIP ONLY" Style="{StaticResource CardTitle}" />
+                                    <Label Text="Holds for today's trip, not the next ones" Style="{StaticResource CardHint}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="&#xf304;" FontFamily="FontAwesomeSolid" FontSize="15" VerticalOptions="Center"
+                                       TextColor="{DynamicResource AccentColor}" IsVisible="{Binding CanEditTripNote}" />
+                                <Label Grid.Column="2" Text="&#xf023;" FontFamily="FontAwesomeSolid" FontSize="15" VerticalOptions="Center"
+                                       TextColor="{DynamicResource SecondaryTextColor}"
+                                       IsVisible="{Binding CanEditTripNote, Converter={StaticResource InvertedBoolConverter}}" />
+                            </Grid>
+                            <Border StrokeThickness="0" BackgroundColor="{DynamicResource TintColor}" StrokeShape="RoundRectangle 12"
+                                    Padding="12,10" IsVisible="{Binding HasTripNote}">
+                                <Label Text="{Binding TripNote}" Style="{StaticResource NoteText}" />
+                            </Border>
+                            <Border StrokeThickness="1.5" Stroke="{DynamicResource BorderColor}" StrokeDashArray="4,3" StrokeShape="RoundRectangle 12"
+                                    Padding="12,12" IsVisible="{Binding HasTripNote, Converter={StaticResource InvertedBoolConverter}}">
+                                <Label Text="Nothing for this trip. Tap to add." FontSize="14" HorizontalTextAlignment="Center"
+                                       TextColor="{DynamicResource SecondaryTextColor}" />
+                            </Border>
+                            <Label Text="Past or closed trip: it cannot change." FontSize="12" TextColor="{DynamicResource SecondaryTextColor}"
+                                   IsVisible="{Binding CanEditTripNote, Converter={StaticResource InvertedBoolConverter}}" />
                         </VerticalStackLayout>
                     </Border>
 
-                    <!-- This entrance -->
-                    <VerticalStackLayout IsVisible="{Binding HasEntrance}">
-                        <Label Text="{Binding EntranceName, StringFormat='{0}'}" Style="{StaticResource SectionLabel}" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding EntranceNotes}"
-                                             BindableLayout.ItemTemplate="{StaticResource NoteCard}" />
-                    </VerticalStackLayout>
-
-                    <!-- The place's notes -->
-                    <VerticalStackLayout IsVisible="{Binding HasPlace}">
-                        <Label Text="NOTES OF THIS PLACE" Style="{StaticResource SectionLabel}" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding PlaceNotes}"
-                                             BindableLayout.ItemTemplate="{StaticResource NoteCard}">
-                            <BindableLayout.EmptyView>
-                                <Label Text="No notes yet." FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" Margin="4,0" />
-                            </BindableLayout.EmptyView>
+                    <!-- ── This entrance ─────────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasEntrance}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf52b;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                    <Label Text="{Binding EntranceName}" Style="{StaticResource CardTitle}" LineBreakMode="TailTruncation" />
+                                    <Border StrokeThickness="0" BackgroundColor="{DynamicResource AccentSoftColor}" StrokeShape="RoundRectangle 9"
+                                            HeightRequest="20" MinimumWidthRequest="22" Padding="6,0" VerticalOptions="Center">
+                                        <Label Text="{Binding EntranceCount}" Style="{StaticResource CountBadge}" />
+                                    </Border>
+                                </HorizontalStackLayout>
+                                <Button Grid.Column="2" Style="{StaticResource AddChip}" Command="{Binding AddEntranceNoteCommand}" />
+                            </Grid>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding EntranceNotes}"
+                                                 BindableLayout.ItemTemplate="{StaticResource NoteCard}">
+                                <BindableLayout.EmptyView>
+                                    <Label Text="No notes yet." Style="{StaticResource Empty}" />
+                                </BindableLayout.EmptyView>
+                            </VerticalStackLayout>
                         </VerticalStackLayout>
-                    </VerticalStackLayout>
+                    </Border>
 
-                    <!-- The patient -->
-                    <Label Text="{Binding PatientName, StringFormat='ABOUT {0}'}" Style="{StaticResource SectionLabel}" />
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding PatientNotes}"
-                                         BindableLayout.ItemTemplate="{StaticResource NoteCard}">
-                        <BindableLayout.EmptyView>
-                            <Label Text="No notes yet." FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" Margin="4,0" />
-                        </BindableLayout.EmptyView>
-                    </VerticalStackLayout>
+                    <!-- ── The place's notes ─────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasPlace}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf3c5;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                    <Label Text="NOTES OF THIS PLACE" Style="{StaticResource CardTitle}" />
+                                    <Border StrokeThickness="0" BackgroundColor="{DynamicResource AccentSoftColor}" StrokeShape="RoundRectangle 9"
+                                            HeightRequest="20" MinimumWidthRequest="22" Padding="6,0" VerticalOptions="Center">
+                                        <Label Text="{Binding PlaceCount}" Style="{StaticResource CountBadge}" />
+                                    </Border>
+                                </HorizontalStackLayout>
+                                <Button Grid.Column="2" Style="{StaticResource AddChip}" Command="{Binding AddPlaceNoteCommand}" />
+                            </Grid>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding PlaceNotes}"
+                                                 BindableLayout.ItemTemplate="{StaticResource NoteCard}">
+                                <BindableLayout.EmptyView>
+                                    <Label Text="No notes yet." Style="{StaticResource Empty}" />
+                                </BindableLayout.EmptyView>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
 
-                    <!-- What the file sent, untouched -->
-                    <VerticalStackLayout IsVisible="{Binding HasFileComment}">
-                        <Label Text="SENT BY THE CLINIC OR THE FILE" Style="{StaticResource SectionLabel}" />
-                        <Label Text="{Binding FileComment}" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" Margin="4,0" />
-                    </VerticalStackLayout>
+                    <!-- ── The patient ───────────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf007;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="8">
+                                        <Label Text="ABOUT THE PATIENT" Style="{StaticResource CardTitle}" />
+                                        <Border StrokeThickness="0" BackgroundColor="{DynamicResource AccentSoftColor}" StrokeShape="RoundRectangle 9"
+                                                HeightRequest="20" MinimumWidthRequest="22" Padding="6,0" VerticalOptions="Center">
+                                            <Label Text="{Binding PatientCount}" Style="{StaticResource CountBadge}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding PatientName}" Style="{StaticResource CardHint}" LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" Style="{StaticResource AddChip}" Command="{Binding AddPatientNoteCommand}" />
+                            </Grid>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding PatientNotes}"
+                                                 BindableLayout.ItemTemplate="{StaticResource NoteCard}">
+                                <BindableLayout.EmptyView>
+                                    <Label Text="No notes yet." Style="{StaticResource Empty}" />
+                                </BindableLayout.EmptyView>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- ── What the file sent, untouched ─────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding HasFileComment}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf56f;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="SENT BY THE CLINIC OR THE FILE" Style="{StaticResource CardTitle}" />
+                                    <Label Text="As it arrived, read only" Style="{StaticResource CardHint}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <Border StrokeThickness="0" BackgroundColor="{DynamicResource TintColor}" StrokeShape="RoundRectangle 12" Padding="12,10">
+                                <Label Text="{Binding FileComment}" FontSize="14" TextColor="{DynamicResource PrimaryTextColor}" FontAttributes="Italic" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
+            </VerticalStackLayout>
         </ScrollView>
 
         <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
-                           Color="{DynamicResource PrimaryColor}" HorizontalOptions="Center" VerticalOptions="Center" />
+                           Color="{DynamicResource AccentColor}" HorizontalOptions="Center" VerticalOptions="Center" />
 
         <!-- Always in reach of a thumb, whatever is scrolled. -->
-        <Button Grid.Row="1" Text="ADD NOTE" Command="{Binding AddAnyNoteCommand}" IsEnabled="{Binding IsLoaded}"
-                Style="{StaticResource PrimaryActionButtonStyle}" FontSize="17" FontAttributes="Bold"
-                HeightRequest="56" CornerRadius="0" />
+        <Border Grid.Row="1" StrokeThickness="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Padding="14,10,14,14">
+            <Border.Shadow>
+                <Shadow Brush="#33000000" Offset="0,-2" Radius="10" Opacity="0.4" />
+            </Border.Shadow>
+            <Button Text="+   ADD NOTE" Command="{Binding AddAnyNoteCommand}" IsEnabled="{Binding IsLoaded}"
+                    Style="{StaticResource PrimaryActionButtonStyle}" FontSize="16" FontAttributes="Bold" HeightRequest="54" />
+        </Border>
     </Grid>
 </ContentPage>

@@ -40,6 +40,36 @@ namespace Raphael.Driver
             (Platform.CurrentActivity as MainActivity)?.RestoreWindowBackground();
 #endif
             Shell.Current.GoToAsync("///LoginPage");
+            SendWhatIsWaiting();
+
+            var outbox = ServiceHelper.GetService<Services.Offline.Outbox>();
+            if (outbox is not null) outbox.Kept += OnKeptOnPhone;
+        }
+
+        private DateTime _lastKeptNotice = DateTime.MinValue;
+
+        /// <summary>
+        /// RE-062: the driver is told, without stopping them, that what they just did is safe on the
+        /// phone and will reach the office by itself. Once every two minutes at most: a stretch without
+        /// coverage keeps many changes and one notice says it.
+        /// </summary>
+        private void OnKeptOnPhone(object? sender, EventArgs e)
+        {
+            if (DateTime.UtcNow - _lastKeptNotice < TimeSpan.FromMinutes(2)) return;
+            _lastKeptNotice = DateTime.UtcNow;
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    await CommunityToolkit.Maui.Alerts.Toast
+                        .Make("No connection. Saved on the phone: it will be sent automatically.", CommunityToolkit.Maui.Core.ToastDuration.Long)
+                        .Show();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Toast: {ex.Message}");
+                }
+            });
         }
 
         /// <summary>
@@ -59,6 +89,20 @@ namespace Raphael.Driver
 
             if (store is not null)
                 _ = store.ResumeAsync();
+
+            SendWhatIsWaiting();
+        }
+
+        /// <summary>
+        /// RE-062: what was saved on the phone without coverage goes now, if it can. The outbox also
+        /// tries on its own when the connection comes back and every half minute while it holds anything.
+        /// </summary>
+        public static void SendWhatIsWaiting()
+        {
+            _ = ServiceHelper.GetService<Services.Offline.Outbox>()?.FlushAsync();
+            var factory = ServiceHelper.GetService<IHttpClientFactory>();
+            if (factory is not null && Services.Offline.GpsBuffer.Count > 0)
+                _ = Services.Offline.GpsBuffer.FlushAsync(factory.CreateClient("GpsClient"));
         }
 
     }

@@ -20,6 +20,21 @@ namespace Raphael.Driver.ViewModels
         private readonly IScheduleService _scheduleService;
         private readonly IGpsService _gpsService;
         private readonly IMapService _mapService;
+        private readonly IInspectionService _inspections;
+
+        /// <summary>RE-062: what this garage event asks of the driver. Null until it is known.</summary>
+        private VehicleInspectionRequirementDto? _requirement;
+
+        /// <summary>The Provider requires the vehicle inspection here: it replaces Odometer (and the Pull-in signature).</summary>
+        [ObservableProperty]
+        private bool _inspectionRequired;
+
+        /// <summary>The inspection of this event is done (sent, or kept on the phone to send).</summary>
+        [ObservableProperty]
+        private bool _isInspected;
+
+        [ObservableProperty]
+        private bool _showInspectionAction;
 
         [ObservableProperty]
         private ObservableCollection<ScheduleDto> _events;
@@ -78,9 +93,10 @@ namespace Raphael.Driver.ViewModels
         /// </summary>
         public ObservableCollection<EventAction> Actions { get; } = new();
 
-        public PullOutDetailPageViewModel(IScheduleService scheduleService, IGpsService gpsService, IMapService mapService)
+        public PullOutDetailPageViewModel(IScheduleService scheduleService, IGpsService gpsService, IMapService mapService, IInspectionService inspections)
         {
             _scheduleService = scheduleService;
+            _inspections = inspections;
             _gpsService = gpsService;
             _mapService = mapService;
 
@@ -116,6 +132,14 @@ namespace Raphael.Driver.ViewModels
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            // RE-062: back from the inspection. Its odometer is this event's reading.
+            if (query.TryGetValue("InspectionDone", out var odometer) && odometer is long reading)
+            {
+                if (Event != null) Event.Odometer = reading;
+                IsInspected = true;
+                _ = RefreshStates();
+            }
+
             if (query.TryGetValue("SignatureSaved", out var saved) && (bool)saved)
             {
 
@@ -156,7 +180,16 @@ namespace Raphael.Driver.ViewModels
             // We simulate the signature verification by looking if it already exists in the object
             IsSignatureEntered = !string.IsNullOrEmpty(Event.PassengerSignature?.ToString());
 
-            if (Event.Name == "Pull-in")
+            if (InspectionRequired)
+            {
+                // RE-062: Inspection -> Perform. The inspection carries the odometer and, at Pull-in,
+                // the driver's signature, which then certifies that inspection only.
+                ShowInspectionAction = !IsInspected;
+                ShowOdometerAction = false;
+                ShowSignatureAction = false;
+                ShowPerformAction = IsInspected;
+            }
+            else if (Event.Name == "Pull-in")
             {
                 // Pull-in sequence: Odometer -> Signature -> Perform
                 ShowOdometerAction = !IsOdometerEntered;
@@ -185,6 +218,8 @@ namespace Raphael.Driver.ViewModels
 
             if (IsPrimaryActionVisible)
             {
+                if (ShowInspectionAction)
+                    Actions.Add(new EventAction { IsMain = true, Text = "Vehicle Inspection", IconGlyph = "\uf46d", Command = GoToInspectionCommand });
                 if (ShowOdometerAction)
                     Actions.Add(new EventAction { IsMain = true, Text = "Odometer", IconGlyph = "", Command = OdometerOrPerformActionCommand });
                 if (ShowSignatureAction)
@@ -195,6 +230,43 @@ namespace Raphael.Driver.ViewModels
 
             Actions.Add(new EventAction { Text = MapActionText, IconGlyph = "", Command = GoToMapsCommand });
         }
+        [RelayCommand]
+        private async Task GoToInspection()
+        {
+            if (IsBusy || Event is null) return;
+
+            _requirement ??= await _inspections.GetRequirementAsync(Event.Id, Event.Name);
+
+            await Shell.Current.GoToAsync(nameof(VehicleInspectionPage), new Dictionary<string, object>
+            {
+                { "Requirement", _requirement },
+                { "EventDetail", Event }
+            });
+        }
+
+        /// <summary>
+        /// RE-062: asks once per event whether the Provider requires the inspection here. Without
+        /// coverage the phone's copy answers (see InspectionService).
+        /// </summary>
+        private async Task LoadRequirementAsync(ScheduleDto value)
+        {
+            try
+            {
+                var requirement = await _inspections.GetRequirementAsync(value.Id, value.Name);
+                if (Event?.Id != value.Id) return;
+
+                _requirement = requirement;
+                InspectionRequired = requirement.Required;
+                IsInspected = requirement.Existing is not null || _inspections.IsDoneOnPhone(value.Id);
+                if (requirement.Existing is not null && value.Odometer is null) value.Odometer = requirement.Existing.Odometer;
+                await RefreshStates();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Inspection requirement: {ex.Message}");
+            }
+        }
+
         [RelayCommand]
         private async Task GoToSignature()
         {
@@ -211,7 +283,15 @@ namespace Raphael.Driver.ViewModels
         [RelayCommand(CanExecute = nameof(CanExecuteAction))]
         private async Task OdometerOrPerformAction()
         {
-            if (IsOdometerEntered)
+            // The whole row of the Legacy style answers to this command: with the inspection pending,
+            // a tap anywhere on it opens the inspection, never the old odometer prompt.
+            if (ShowInspectionAction)
+            {
+                await GoToInspection();
+                return;
+            }
+
+            if (IsOdometerEntered && (!InspectionRequired || IsInspected))
             {
                 // Logic for when the user presses "Perform"
                 await PerformAction();
@@ -335,7 +415,23 @@ namespace Raphael.Driver.ViewModels
                 Event.Performed = true;
                 Event.ETA = Event.Perform;
 
-                bool success = await _scheduleService.UpdateScheduleAsync(Event);
+                // Through the outbox (RE-062): with no coverage it is kept and sent later, and the
+                // driver carries on. Refused with 409, the Provider requires the inspection first.
+                var result = await _scheduleService.SaveScheduleAsync(Event);
+                bool success = result.Accepted;
+
+                if (result.Status == 409 && (result.Body ?? "").Contains("inspection_required"))
+                {
+                    Event.Perform = null;
+                    Event.Performed = false;
+                    Event.ETA = oldEta;
+                    InspectionRequired = true;
+                    IsInspected = false;
+                    await RefreshStates();
+                    await Shell.Current.DisplayAlert("Vehicle inspection",
+                        "Your company requires the vehicle inspection before this step.", "OK");
+                    return;
+                }
 
                 if (success)
                 {
@@ -536,7 +632,10 @@ namespace Raphael.Driver.ViewModels
                 EventColor = (Color)_colorConverter.Convert(value, typeof(Color), null, System.Globalization.CultureInfo.CurrentCulture);
                 IsOdometerEntered = value.Odometer != null && value.Odometer > -1;
 
+                _requirement = null;
+                IsInspected = _inspections.IsDoneOnPhone(value.Id);
                 _ = RefreshStates();
+                _ = LoadRequirementAsync(value);
             }
             else
             {               

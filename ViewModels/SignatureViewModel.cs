@@ -10,6 +10,7 @@ namespace Raphael.Driver.ViewModels
 {
     [QueryProperty(nameof(ScheduleId), "ScheduleId")]
     [QueryProperty(nameof(IsDriverSignature), "IsDriverSignature")]
+    [QueryProperty(nameof(InspectionKind), "InspectionKind")]
     public partial class SignatureViewModel : ObservableObject
     {
         private readonly IScheduleService _scheduleService;
@@ -41,6 +42,21 @@ namespace Raphael.Driver.ViewModels
         // PROPERTY CALCULATED FOR THE XAML: Only legal sample if it is Driver and has NOT accepted
         public bool ShowLegalText => IsDriverSignature && !HasAcceptedTerms;
         public bool ShowSignaturePad => !IsDriverSignature || HasAcceptedTerms;
+        /// <summary>
+        /// RE-062: set when the pad signs a vehicle inspection (<c>PullOut</c> or <c>PullIn</c>). The
+        /// image then goes back to the inspection, which sends it with the rest, instead of to the stop.
+        /// </summary>
+        [ObservableProperty]
+        private string? _inspectionKind;
+
+        partial void OnInspectionKindChanged(string? value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            LegalText = value == "PullIn"
+                ? "I hereby certify that I personally inspected this vehicle on returning it to the garage (post-trip inspection), and that every reading, answer and photo in this inspection is true, complete and correct to the best of my knowledge."
+                : "I hereby certify that I personally inspected this vehicle before leaving the garage (pre-trip inspection), and that every reading, answer and photo in this inspection is true, complete and correct to the best of my knowledge.";
+        }
+
         private bool CanSaveSignature => Lines.Any() && !IsBusy && (!IsDriverSignature || HasAcceptedTerms);
         //private bool CanSaveSignature => Lines.Any() && !IsBusy;
 
@@ -102,6 +118,12 @@ namespace Raphael.Driver.ViewModels
                 using var memoryStream = new MemoryStream();
                 await signatureStream.CopyToAsync(memoryStream);
                 var signatureBytes = memoryStream.ToArray();
+
+                if (!string.IsNullOrEmpty(InspectionKind))
+                {
+                    await Shell.Current.GoToAsync("..", new Dictionary<string, object> { { "InspectionSignature", signatureBytes } });
+                    return;
+                }
 
                 // Convert the bytes to Base64 to send it through the API
                 var signatureBase64 = Convert.ToBase64String(signatureBytes);

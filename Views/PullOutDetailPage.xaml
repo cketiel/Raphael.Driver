@@ -78,6 +78,17 @@
 
             <Grid Grid.Column="1" Padding="0" >
 
+                    <!-- 0. VEHICLE INSPECTION (RE-062: when the Provider requires it; it carries the odometer
+                         and, at Pull-in, the driver's signature) -->
+                    <Grid ColumnDefinitions="Auto, *, Auto" IsVisible="{Binding ShowInspectionAction}" Padding="15">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToInspectionCommand}"/>
+                        </Grid.GestureRecognizers>
+                        <Label Grid.Column="0" Text="&#xf46d;" Style="{StaticResource NavIconStyle}"/>
+                        <Label Grid.Column="1" Text="Vehicle Inspection" Style="{StaticResource NavLabelStyle}"/>
+                        <Label Grid.Column="2" Text="" FontFamily="FontAwesomeSolid" VerticalOptions="Center"/>
+                    </Grid>
+
                     <!-- 1. ODOMETER (Visible if not entered) -->
                     <Grid ColumnDefinitions="Auto, *, Auto" IsVisible="{Binding ShowOdometerAction}" Padding="15">
                         <Grid.GestureRecognizers>

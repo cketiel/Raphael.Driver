@@ -10,6 +10,7 @@ namespace Raphael.Driver.Services
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _serializerOptions;
+        private Offline.Outbox Outbox => ServiceHelper.GetService<Offline.Outbox>();
 
         public ProviderService(HttpClient httpClient)
         {
@@ -43,22 +44,7 @@ namespace Raphael.Driver.Services
             }
         }
 
-        public async Task<bool> UpdateContactProviderAsync(ProviderDto provider)
-        {
-            var requestUri = "api/Providers/contact";
-            var jsonContent = JsonSerializer.Serialize(provider, _serializerOptions);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await _httpClient.PutAsync(requestUri, content);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in UpdateContactProviderAsync: {ex.Message}");
-                return false;
-            }
-        }
+        public async Task<bool> UpdateContactProviderAsync(ProviderDto provider) =>
+            (await Outbox.SendAsync(Offline.OutboxRequest.Json("PUT", "api/Providers/contact", provider, "contact"))).Accepted;
     }
 }

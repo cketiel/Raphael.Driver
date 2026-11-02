@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace Raphael.Driver.Services
 {
     /// <summary>The answer of a notes call: the whole notes of the trip again, or why not.</summary>
-    public sealed record NotesResult(TripNotesDto? Notes, string? Error, bool Offline)
+    public sealed record NotesResult(TripNotesDto? Notes, string? Error, bool Offline, bool Queued = false)
     {
         public bool Ok => Notes != null;
     }
@@ -17,8 +17,8 @@ namespace Raphael.Driver.Services
     /// </summary>
     /// <remarks>
     /// Every call answers with the trip's whole notes, so the page never works out on its own what
-    /// will show. Nothing is kept on the phone to send later: with no connection the driver is told
-    /// so and tries again. Note texts are PHI: never logged.
+    /// will show. Without coverage a change is kept on the phone and sent when it comes back (RE-062);
+    /// it shows once the server has it. Note texts are PHI: never logged.
     /// </remarks>
     public interface ITripNotesService
     {
@@ -37,10 +37,12 @@ namespace Raphael.Driver.Services
         private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
         private readonly HttpClient _http;
+        private readonly Offline.Outbox _outbox;
 
-        public TripNotesService(HttpClient http)
+        public TripNotesService(HttpClient http, Offline.Outbox outbox)
         {
             _http = http;
+            _outbox = outbox;
         }
 
         private static string Notes(int tripId) => $"api/trips/{tripId}/notes";
@@ -49,25 +51,66 @@ namespace Raphael.Driver.Services
             SendAsync(() => _http.GetAsync(Notes(tripId)));
 
         public Task<NotesResult> SetTripNoteAsync(int tripId, string side, string? text) =>
-            SendAsync(() => _http.PutAsJsonAsync($"{Notes(tripId)}/{side}/trip-note", new TripNoteUpdateDto { Text = text }));
+            WriteAsync("PUT", $"{Notes(tripId)}/{side}/trip-note", new TripNoteUpdateDto { Text = text });
 
         public Task<NotesResult> AddPlaceNoteAsync(int tripId, string side, NoteUpsertDto note) =>
-            SendAsync(() => _http.PostAsJsonAsync($"{Notes(tripId)}/{side}/place-notes", note));
+            WriteAsync("POST", $"{Notes(tripId)}/{side}/place-notes", note);
 
         public Task<NotesResult> UpdatePlaceNoteAsync(int tripId, int noteId, NoteUpsertDto note) =>
-            SendAsync(() => _http.PutAsJsonAsync($"{Notes(tripId)}/place-notes/{noteId}", note));
+            WriteAsync("PUT", $"{Notes(tripId)}/place-notes/{noteId}", note);
 
         public Task<NotesResult> RemovePlaceNoteAsync(int tripId, int noteId) =>
-            SendAsync(() => _http.DeleteAsync($"{Notes(tripId)}/place-notes/{noteId}"));
+            WriteAsync("DELETE", $"{Notes(tripId)}/place-notes/{noteId}", null);
 
         public Task<NotesResult> AddCustomerNoteAsync(int tripId, NoteUpsertDto note) =>
-            SendAsync(() => _http.PostAsJsonAsync($"{Notes(tripId)}/customer-notes", note));
+            WriteAsync("POST", $"{Notes(tripId)}/customer-notes", note);
 
         public Task<NotesResult> UpdateCustomerNoteAsync(int tripId, int noteId, NoteUpsertDto note) =>
-            SendAsync(() => _http.PutAsJsonAsync($"{Notes(tripId)}/customer-notes/{noteId}", note));
+            WriteAsync("PUT", $"{Notes(tripId)}/customer-notes/{noteId}", note);
 
         public Task<NotesResult> RemoveCustomerNoteAsync(int tripId, int noteId) =>
-            SendAsync(() => _http.DeleteAsync($"{Notes(tripId)}/customer-notes/{noteId}"));
+            WriteAsync("DELETE", $"{Notes(tripId)}/customer-notes/{noteId}", null);
+
+        /// <summary>
+        /// A change through the outbox: with coverage the server's answer is the whole notes again;
+        /// without it the change is kept and the page is told so.
+        /// </summary>
+        private async Task<NotesResult> WriteAsync(string method, string path, object? body)
+        {
+            var request = body is null
+                ? Offline.OutboxRequest.Empty(method, path, "notes")
+                : Offline.OutboxRequest.Json(method, path, body, "notes");
+
+            var result = await _outbox.SendAsync(request);
+            switch (result.Outcome)
+            {
+                case Offline.OutboxOutcome.Queued:
+                    return new NotesResult(null, null, Offline: true, Queued: true);
+                case Offline.OutboxOutcome.Sent:
+                    try
+                    {
+                        return new NotesResult(JsonSerializer.Deserialize<TripNotesDto>(result.Body ?? "", Json), null, false);
+                    }
+                    catch (JsonException)
+                    {
+                        return new NotesResult(null, "The notes could not be read.", false);
+                    }
+                default:
+                    string? message = null;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(result.Body ?? "");
+                        if (doc.RootElement.TryGetProperty("message", out var m)) message = m.GetString();
+                        else if (doc.RootElement.TryGetProperty("title", out var t)) message = t.GetString();
+                    }
+                    catch
+                    {
+                        // Not JSON: the status is all there is to say.
+                    }
+                    Debug.WriteLine($"TripNotesService: the server answered {result.Status}.");
+                    return new NotesResult(null, message ?? $"The server answered {result.Status}.", false);
+            }
+        }
 
         private static async Task<NotesResult> SendAsync(Func<Task<HttpResponseMessage>> send)
         {

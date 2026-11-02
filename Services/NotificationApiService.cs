@@ -12,9 +12,11 @@ namespace Raphael.Driver.Services
 
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _serializerOptions;
+        private readonly Offline.Outbox _outbox;
 
-        public NotificationApiService(HttpClient httpClient)
+        public NotificationApiService(HttpClient httpClient, Offline.Outbox outbox)
         {
+            _outbox = outbox;
             _httpClient = httpClient;
             _serializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
@@ -93,22 +95,8 @@ namespace Raphael.Driver.Services
             }
         }
 
-        public async Task<bool> DeleteSignalAsync(Guid recipientRecordId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var response = await _httpClient.DeleteAsync(
-                    $"{BaseRoute}/signals/{recipientRecordId}",
-                    cancellationToken);
-
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in DeleteSignalAsync: {ex.Message}");
-                return false;
-            }
-        }
+        public async Task<bool> DeleteSignalAsync(Guid recipientRecordId, CancellationToken cancellationToken = default) =>
+            (await _outbox.SendAsync(Offline.OutboxRequest.Empty("DELETE", $"{BaseRoute}/signals/{recipientRecordId}", "notification"))).Accepted;
 
         public Task<bool> MarkViewedAsync(Guid recipientRecordId, CancellationToken cancellationToken = default)
             => PostAsync($"{BaseRoute}/{recipientRecordId}/view", cancellationToken);
@@ -160,19 +148,9 @@ namespace Raphael.Driver.Services
             }
         }
 
-        private async Task<bool> PostAsync(string requestUri, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var response = await _httpClient.PostAsync(requestUri, content: null, cancellationToken);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception posting to {requestUri}: {ex.Message}");
-                return false;
-            }
-        }
+        // RE-062: marking read, unread or acknowledged is kept on the phone without coverage and sent later.
+        private async Task<bool> PostAsync(string requestUri, CancellationToken cancellationToken) =>
+            (await _outbox.SendAsync(Offline.OutboxRequest.Empty("POST", requestUri, "notification"))).Accepted;
 
         private sealed class UnreadCountResponse
         {

@@ -1,0 +1,356 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
+             xmlns:controls="clr-namespace:Raphael.Driver.Controls"
+             xmlns:converters="clr-namespace:Raphael.Driver.Converters"
+             x:Class="Raphael.Driver.Views.VehicleInspectionPage"
+             x:DataType="viewmodels:VehicleInspectionViewModel"
+             Title="INSPECTION"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
+
+    <!-- RE-062. The vehicle inspection at Pull-out and Pull-in, in the V7 skin.
+         ⚠️ Every colour that depends on an answer comes from the view model, never from a trigger:
+         a trigger that sets a DynamicResource colour wipes them all when it lets go (RE-061 H2). -->
+
+    <Shell.TitleView>
+        <controls:PageTitleBar Title="{Binding Title}" Icon="&#xf46c;" ShowBell="False" />
+    </Shell.TitleView>
+
+    <ContentPage.Resources>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        <Style TargetType="Border" x:Key="Card">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="16,14" />
+            <Setter Property="Shadow">
+                <Shadow Brush="#22000000" Offset="0,2" Radius="8" Opacity="0.35" />
+            </Setter>
+        </Style>
+        <Style TargetType="Border" x:Key="IconTile">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource AccentSoftColor}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="WidthRequest" Value="36" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="IconGlyph">
+            <Setter Property="FontFamily" Value="FontAwesomeSolid" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="CardTitle">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="CardHint">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+        </Style>
+        <Style TargetType="Label" x:Key="StatusGlyph">
+            <Setter Property="FontFamily" Value="FontAwesomeSolid" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="VerticalOptions" Value="Center" />
+            <Setter Property="HorizontalOptions" Value="End" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView>
+            <VerticalStackLayout Spacing="14" Padding="0,0,0,16">
+
+                <!-- ── Hero: what is being inspected, and how far along ───────────────────────── -->
+                <Border StrokeThickness="0" Background="{DynamicResource HeaderGradientBrush}" Padding="20,18,20,22">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="0,0,28,28" />
+                    </Border.StrokeShape>
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="4">
+                        <Label Text="{Binding KindCaption}" FontSize="12" FontAttributes="Bold" CharacterSpacing="1.5"
+                               TextColor="{DynamicResource OnBrandTextColor}" Opacity="0.85" />
+                        <Label Grid.Row="1" Text="{Binding VehicleName}" FontSize="28" FontAttributes="Bold"
+                               TextColor="{DynamicResource OnBrandTextColor}" />
+                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" StrokeThickness="0" BackgroundColor="#33FFFFFF"
+                                StrokeShape="RoundRectangle 22" WidthRequest="56" HeightRequest="56" VerticalOptions="Center">
+                            <Label Text="&#xf5e4;" FontFamily="FontAwesomeSolid" FontSize="24" TextColor="{DynamicResource OnBrandTextColor}"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <ProgressBar Grid.Row="2" Grid.ColumnSpan="2" Progress="{Binding Progress}" Margin="0,12,0,0"
+                                     ProgressColor="{DynamicResource OnBrandTextColor}" BackgroundColor="#40FFFFFF" HeightRequest="6" />
+                        <Grid Grid.Row="3" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto">
+                            <Label Text="{Binding ProgressText}" FontSize="13" TextColor="{DynamicResource OnBrandTextColor}" />
+                            <Border Grid.Column="1" StrokeThickness="0" BackgroundColor="#33FFFFFF" StrokeShape="RoundRectangle 10" Padding="10,2">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="&#xf071;" FontFamily="FontAwesomeSolid" FontSize="11" TextColor="{DynamicResource OnBrandTextColor}"
+                                           VerticalOptions="Center" IsVisible="{Binding HasProblems}" />
+                                    <Label Text="{Binding ProblemText}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource OnBrandTextColor}" />
+                                </HorizontalStackLayout>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <VerticalStackLayout Spacing="14" Padding="14,0">
+
+                    <!-- ── Odometer ──────────────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+                            <Border Style="{StaticResource IconTile}">
+                                <Label Text="&#xf625;" Style="{StaticResource IconGlyph}" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="Odometer" Style="{StaticResource CardTitle}" />
+                                <Label Text="Miles on the dashboard" Style="{StaticResource CardHint}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2" Text="{Binding OdometerStatus}" TextColor="{Binding OdometerStatusColor}" Style="{StaticResource StatusGlyph}" />
+                            <Border Grid.Row="1" Grid.ColumnSpan="3" Margin="0,12,0,0" StrokeThickness="1.5" Stroke="{DynamicResource BorderColor}"
+                                    StrokeShape="RoundRectangle 12" Padding="14,0" BackgroundColor="{DynamicResource SurfaceColor}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Entry Text="{Binding OdometerText}" Keyboard="Numeric" Placeholder="000000" FontSize="26" FontAttributes="Bold"
+                                           CharacterSpacing="2" TextColor="{DynamicResource InkColor}" PlaceholderColor="{DynamicResource PlaceholderColor}" />
+                                    <Label Grid.Column="1" Text="mi" FontSize="16" TextColor="{DynamicResource SecondaryTextColor}" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- ── VIN ───────────────────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf02a;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="VIN" Style="{StaticResource CardTitle}" />
+                                    <Label Text="Check the last 4 against the vehicle" Style="{StaticResource CardHint}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding VinStatus}" TextColor="{Binding VinStatusColor}" Style="{StaticResource StatusGlyph}" />
+                            </Grid>
+                            <Border StrokeThickness="0" BackgroundColor="{DynamicResource SurfaceColor}" StrokeShape="RoundRectangle 10" Padding="12,10">
+                                <Grid>
+                                    <!-- On file: the start muted, the last 4 big and in the accent colour. -->
+                                    <VerticalStackLayout Spacing="4" IsVisible="{Binding HasVinOnFile}">
+                                        <Label HorizontalTextAlignment="Center" VerticalTextAlignment="End" LineBreakMode="NoWrap">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding VinHead}" FontSize="16" CharacterSpacing="1.5"
+                                                          TextColor="{DynamicResource SecondaryTextColor}" />
+                                                    <Span Text="{Binding VinTail}" FontSize="26" FontAttributes="Bold" CharacterSpacing="2"
+                                                          TextColor="{DynamicResource AccentColor}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label Text="LAST 4" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.5" HorizontalOptions="End"
+                                               TextColor="{DynamicResource AccentColor}" />
+                                    </VerticalStackLayout>
+                                    <Label Text="{Binding VinOnFileText}" FontSize="15" IsVisible="{Binding NoVinOnFile}"
+                                           TextColor="{DynamicResource SecondaryTextColor}" HorizontalTextAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsVisible="{Binding HasVinOnFile}">
+                                <Button Grid.Column="0" Text="It is this vehicle" FontAttributes="Bold" CornerRadius="12" HeightRequest="44"
+                                        BackgroundColor="{Binding VinConfirmBackground}" TextColor="{Binding VinConfirmText}"
+                                        BorderColor="{DynamicResource OkColor}" BorderWidth="1.5" Command="{Binding ConfirmVinCommand}" />
+                                <Button Grid.Column="1" Text="Different VIN" FontAttributes="Bold" CornerRadius="12" HeightRequest="44"
+                                        BackgroundColor="{Binding VinOtherBackground}" TextColor="{Binding VinOtherText}"
+                                        BorderColor="{DynamicResource DangerColor}" BorderWidth="1.5" Command="{Binding OtherVinCommand}" />
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding AskOtherVin}">
+                                <Border StrokeThickness="1.5" Stroke="{DynamicResource BorderColor}" StrokeDashArray="4,3" StrokeShape="RoundRectangle 12"
+                                        WidthRequest="84" HeightRequest="84" BackgroundColor="{DynamicResource SurfaceColor}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding TakeVinPhotoCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid>
+                                        <Label Text="&#xf030;" FontFamily="FontAwesomeSolid" FontSize="24" TextColor="{DynamicResource SecondaryTextColor}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                        <Image Source="{Binding VinPhotoSource}" Aspect="AspectFill" IsVisible="{Binding HasVinPhoto}" />
+                                    </Grid>
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                    <Label Text="VIN on the vehicle" Style="{StaticResource CardHint}" />
+                                    <Entry Text="{Binding VinReported}" Placeholder="Type it as it reads" MaxLength="17" FontSize="17"
+                                           TextTransform="Uppercase" TextColor="{DynamicResource InkColor}" PlaceholderColor="{DynamicResource PlaceholderColor}" />
+                                    <Label Text="{Binding VinPhotoText}" FontSize="12" TextColor="{DynamicResource AccentColor}">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding TakeVinPhotoCommand}" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- ── Checklist: one card per group ─────────────────────────────────────────── -->
+                    <VerticalStackLayout Spacing="14" BindableLayout.ItemsSource="{Binding Groups}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:InspectionGroupViewModel">
+                                <Border Style="{StaticResource Card}" Padding="0,14,0,6">
+                                    <VerticalStackLayout>
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="16,0,16,8">
+                                            <Border Style="{StaticResource IconTile}">
+                                                <Label Text="{Binding Icon}" Style="{StaticResource IconGlyph}" />
+                                            </Border>
+                                            <Label Grid.Column="1" Text="{Binding Name}" Style="{StaticResource CardTitle}" />
+                                            <Border Grid.Column="2" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="10,3"
+                                                    BackgroundColor="{Binding ChipBackground}" VerticalOptions="Center">
+                                                <Label Text="{Binding CountText}" FontSize="12" FontAttributes="Bold" TextColor="{Binding ChipText}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate x:DataType="viewmodels:InspectionLineViewModel">
+                                                    <Grid>
+                                                        <!-- A problem tints its row. Shown and hidden, never recoloured: on Android a colour
+                                                             change inside these cards is not repainted until something else redraws them. -->
+                                                        <BoxView Color="{DynamicResource DangerSoftColor}" IsVisible="{Binding NeedsPhoto}" />
+                                                    <VerticalStackLayout Padding="16,10" Spacing="10">
+                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                            <Label Text="{Binding Label}" FontSize="15" VerticalOptions="Center" LineBreakMode="WordWrap"
+                                                                   TextColor="{DynamicResource PrimaryTextColor}" />
+
+                                                            <!-- Segmented OK / Problem: each segment has its selected and plain look, and only one shows. -->
+                                                            <Border Grid.Column="1" StrokeThickness="1.5" Stroke="{DynamicResource BorderColor}"
+                                                                    StrokeShape="RoundRectangle 12" Padding="3" VerticalOptions="Center">
+                                                                <HorizontalStackLayout Spacing="3">
+                                                                    <Grid>
+                                                                        <Grid.GestureRecognizers>
+                                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:VehicleInspectionViewModel}}, Path=MarkOkCommand}"
+                                                                                                  CommandParameter="{Binding .}" />
+                                                                        </Grid.GestureRecognizers>
+                                                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 9" Padding="12,7" BackgroundColor="{DynamicResource OkColor}" IsVisible="{Binding IsOk}">
+                                                                            <HorizontalStackLayout Spacing="6">
+                                                                                <Label Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12" TextColor="{DynamicResource OnOkTextColor}" VerticalOptions="Center" />
+                                                                                <Label Text="OK" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource OnOkTextColor}" VerticalOptions="Center" />
+                                                                            </HorizontalStackLayout>
+                                                                        </Border>
+                                                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 9" Padding="12,7" BackgroundColor="Transparent" IsVisible="{Binding NotIsOk}">
+                                                                            <HorizontalStackLayout Spacing="6">
+                                                                                <Label Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12" TextColor="{DynamicResource SecondaryTextColor}" VerticalOptions="Center" />
+                                                                                <Label Text="OK" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource SecondaryTextColor}" VerticalOptions="Center" />
+                                                                            </HorizontalStackLayout>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                    <Grid>
+                                                                        <Grid.GestureRecognizers>
+                                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:VehicleInspectionViewModel}}, Path=MarkProblemCommand}"
+                                                                                                  CommandParameter="{Binding .}" />
+                                                                        </Grid.GestureRecognizers>
+                                                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 9" Padding="12,7" BackgroundColor="{DynamicResource DangerColor}" IsVisible="{Binding IsProblemMarked}">
+                                                                            <HorizontalStackLayout Spacing="6">
+                                                                                <Label Text="&#xf071;" FontFamily="FontAwesomeSolid" FontSize="12" TextColor="White" VerticalOptions="Center" />
+                                                                                <Label Text="Problem" FontSize="13" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                                                                            </HorizontalStackLayout>
+                                                                        </Border>
+                                                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 9" Padding="12,7" BackgroundColor="Transparent" IsVisible="{Binding NotIsProblemMarked}">
+                                                                            <HorizontalStackLayout Spacing="6">
+                                                                                <Label Text="&#xf071;" FontFamily="FontAwesomeSolid" FontSize="12" TextColor="{DynamicResource SecondaryTextColor}" VerticalOptions="Center" />
+                                                                                <Label Text="Problem" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource SecondaryTextColor}" VerticalOptions="Center" />
+                                                                            </HorizontalStackLayout>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </HorizontalStackLayout>
+                                                            </Border>
+                                                        </Grid>
+
+                                                        <!-- The evidence of a problem -->
+                                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding NeedsPhoto}">
+                                                            <Grid.GestureRecognizers>
+                                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:VehicleInspectionViewModel}}, Path=RetakePhotoCommand}"
+                                                                                      CommandParameter="{Binding .}" />
+                                                            </Grid.GestureRecognizers>
+                                                            <Border StrokeThickness="1.5" Stroke="{DynamicResource DangerColor}" StrokeDashArray="4,3"
+                                                                    StrokeShape="RoundRectangle 10" WidthRequest="64" HeightRequest="64" BackgroundColor="{DynamicResource CardBackgroundColor}">
+                                                                <Grid>
+                                                                    <Label Text="&#xf030;" FontFamily="FontAwesomeSolid" FontSize="20" TextColor="{DynamicResource DangerColor}"
+                                                                           HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding NoPhoto}" />
+                                                                    <Image Source="{Binding PhotoSource}" Aspect="AspectFill" IsVisible="{Binding HasPhoto}" />
+                                                                </Grid>
+                                                            </Border>
+                                                            <Label Grid.Column="1" Text="{Binding PhotoText}" FontSize="13" FontAttributes="Bold"
+                                                                   TextColor="{DynamicResource DangerColor}" VerticalOptions="Center" />
+                                                        </Grid>
+                                                    </VerticalStackLayout>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <!-- ── Comment ───────────────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf075;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="Inspection comment" Style="{StaticResource CardTitle}" />
+                                    <Label Text="What you saw, and anything the office should know" Style="{StaticResource CardHint}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding CommentStatus}" TextColor="{Binding CommentStatusColor}" Style="{StaticResource StatusGlyph}" />
+                            </Grid>
+                            <Border StrokeThickness="1.5" Stroke="{DynamicResource BorderColor}" StrokeShape="RoundRectangle 12" Padding="10,2"
+                                    BackgroundColor="{DynamicResource SurfaceColor}">
+                                <Editor Text="{Binding Comment}" AutoSize="TextChanges" MinimumHeightRequest="96" MaxLength="2000"
+                                        Placeholder="Write your comment" TextColor="{DynamicResource PrimaryTextColor}" PlaceholderColor="{DynamicResource PlaceholderColor}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- ── Signature ─────────────────────────────────────────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SignCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource IconTile}">
+                                    <Label Text="&#xf5b7;" Style="{StaticResource IconGlyph}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="Driver signature" Style="{StaticResource CardTitle}" />
+                                    <Label Text="{Binding SignatureText}" Style="{StaticResource CardHint}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding SignatureStatus}" TextColor="{Binding SignatureStatusColor}" Style="{StaticResource StatusGlyph}" />
+                            </Grid>
+                            <!-- Always white with black ink, as signed (RE-061 D4). -->
+                            <Border StrokeThickness="1.5" Stroke="{DynamicResource BorderColor}" StrokeDashArray="4,3" StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="White" HeightRequest="96">
+                                <Grid>
+                                    <Label Text="Tap to sign" FontSize="14" TextColor="#8A99A6" HorizontalOptions="Center" VerticalOptions="Center"
+                                           IsVisible="{Binding IsSigned, Converter={StaticResource InvertedBoolConverter}}" />
+                                    <Image Source="{Binding SignatureSource}" Aspect="AspectFit" Margin="8" IsVisible="{Binding IsSigned}" />
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ── Sticky bar ───────────────────────────────────────────────────────────────────── -->
+        <Border Grid.Row="1" StrokeThickness="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Padding="14,10,14,14">
+            <Border.Shadow>
+                <Shadow Brush="#33000000" Offset="0,-2" Radius="10" Opacity="0.4" />
+            </Border.Shadow>
+            <Button Text="{Binding FinishText}" Command="{Binding FinishCommand}" Style="{StaticResource PrimaryActionButtonStyle}" />
+        </Border>
+
+        <ActivityIndicator Grid.RowSpan="2" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" Color="{DynamicResource AccentColor}" />
+    </Grid>
+</ContentPage>
