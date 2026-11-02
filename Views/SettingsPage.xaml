@@ -70,7 +70,7 @@
         <!--
             How the stops look in Today's Schedule and on each stop (Controls/ScheduleCards). Each
             tile is a real card in that style, shrunk; a tap opens a preview with "Use this style".
-            Kept on this phone, like the theme. Until a driver picks one it is Legacy, the old look.
+            Kept on this phone, like the theme. Until a driver picks one it is Map Pin.
         -->
         <Label Grid.Row="2" Text="SCHEDULE STYLE" Style="{StaticResource SectionTitleStyle}" />
 

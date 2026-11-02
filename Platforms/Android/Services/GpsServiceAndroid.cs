@@ -131,9 +131,23 @@ namespace Raphael.Driver.Services
                     Address = fullAddress
                 };               
 
-                var response = await _httpClient.PostAsJsonAsync("api/Gps", gpsData);
+                // RE-062: a fix that cannot be sent is kept on the phone and goes with the next one
+                // that can, so a stretch without coverage is not a stretch without miles.
+                HttpResponseMessage? response = null;
+                try { response = await _httpClient.PostAsJsonAsync("api/Gps", gpsData); }
+                catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException) { }
 
-                if (!response.IsSuccessStatusCode)
+                var status = (int?)response?.StatusCode;
+                if (response is null || status >= 500 || status is 401 or 408 or 429)
+                {
+                    Debug.WriteLine($"GPS fix kept on the phone: {response?.ReasonPhrase ?? "no connection"}");
+                    Raphael.Driver.Services.Offline.GpsBuffer.Add(gpsData);
+                }
+                else if (response.IsSuccessStatusCode)
+                {
+                    _ = Raphael.Driver.Services.Offline.GpsBuffer.FlushAsync(_httpClient);
+                }
+                else
                 {
                     Debug.WriteLine($"Error sending GPS data: {response.ReasonPhrase}");
                 }

@@ -100,6 +100,16 @@ namespace Raphael.Driver
             }).AddHttpMessageHandler<AuthHeaderHandler>()
             .AddHttpMessageHandler<ClientVersionHandler>();
 
+            // RE-062: every change the driver makes goes to the server through the outbox, which keeps it
+            // on the phone without coverage and sends it, in order, when the connection comes back.
+            builder.Services.AddHttpClient(nameof(Raphael.Driver.Services.Offline.Outbox), client =>
+            {
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(20);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
+            builder.Services.AddSingleton<Raphael.Driver.Services.Offline.Outbox>();
+
             // --- NOTIFICATIONS ---
             // Singletons: the bell in the navigation bar and the notifications page read the
             // same list and the same counter, so they cannot show different numbers.
@@ -147,6 +157,10 @@ namespace Raphael.Driver
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<EventDetailPageViewModel>();
             builder.Services.AddTransient<SignatureViewModel>();
+            // RE-062: the vehicle inspection.
+            builder.Services.AddSingleton<IInspectionService, InspectionService>();
+            builder.Services.AddTransient<VehicleInspectionViewModel>();
+            builder.Services.AddTransient<VehicleInspectionPage>();
             builder.Services.AddTransient<FutureScheduleViewModel>();
             builder.Services.AddTransient<FutureDetailViewModel>();
             builder.Services.AddTransient<DashboardViewModel>();

@@ -5,6 +5,49 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+⚠️ **RE-062 needs the Raphael.Backend release with RE-062.** Against an older backend the inspection
+cannot be sent and the outbox keeps it; switch the inspection on for a Provider only once its drivers
+have this version.
+
+### Added (RE-062 — vehicle inspection and working without coverage)
+- Vehicle inspection inside the Pull-out and the Pull-in, when the driver's Provider has it on: odometer
+  (miles), VIN (confirm the one on file, or photograph and type the one on the vehicle), the checklist with
+  a camera photo for every problem, a comment and the driver's signature. Without it, Perform is not
+  offered. At Pull-in its signature replaces the end-of-shift one. With the module off, nothing changes.
+- The inspection screen: a header with the vehicle and the progress, a card per step and per checklist
+  group with its count, OK/Problem as a segmented control, the photo and the signature shown in place.
+- Working without coverage: every change the driver makes (stops, signatures, Start Trip, cancellations,
+  phone numbers, notes, notification marks, the office contact, inspections with their photos) is kept
+  on the phone when it cannot be sent and sent, in order, as soon as the connection is back. The day's
+  schedule and the active run are read from the phone's copy, with the pending changes on top; GPS fixes
+  are kept and sent in batches. A notice says when something was kept. Not kept, on purpose: sign-in,
+  Call me, the SMS to the patient, push-token registration and ETA updates.
+- **Map Pin is the default schedule style** for a phone whose driver has not picked one, and it is
+  reworked: the whole card border in the stop's colour, thin; the space type and funding source on a
+  header band washed in that colour (as Tint does); the promised time framed as Ticket frames it, beside
+  the coloured calendar; and on the stop screen the next thing to do washed in the stop's colour.
+- The VIN on file shows its last 4 characters large and in the accent colour: those are what the
+  driver checks on the vehicle.
+- The stop's notes screen, redrawn from the designer's V7 proposal: a header with the place, the note the
+  driver reads first, one card per kind of note (this trip, entrance, place, patient, the file) with its
+  icon, count and its own add button, and each note on a tinted panel with its source, a *To review*
+  badge and Edit / Confirm / Delete.
+- Start Trip sends the vehicle's position and the moment it was pressed, so the server re-times the
+  pickup from where the vehicle really is.
+- Camera permission (Android and iOS).
+
+### Changed (RE-063)
+- CHANGE ROUTE to a route of another company says it is not available and goes back, and the phone's
+  copy of that route is deleted (needs the RE-063 backend).
+
+### Fixed (RE-062)
+- Inspection: tapping OK did not turn the line green until something else redrew the screen (for
+  example coming back from the camera). The OK and Problem segments now swap between their selected and
+  plain looks instead of being recoloured.
+
+### Removed (RE-062)
+- The INSPECTIONS item of the side menu, which opened Samsara Driver.
+
 ### Added (RE-061 — V7 skin)
 - Four themes (Light, Gray, Dark, Infrared) from the V7 design tokens, chosen with a four-dot
   switch on the sign-in page and in Settings, and kept on the phone. Until a driver picks one the

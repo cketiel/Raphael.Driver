@@ -77,7 +77,7 @@
         </DataTemplate>
     </Shell.ItemTemplate>
 
-    <!-- Rows of the MenuItems (Inspections, Messages, Sign out): never "selected", same look.
+    <!-- Rows of the MenuItems (Messages, Sign out): never "selected", same look.
          Their BindingContext is the item MAUI wraps each MenuItem in, which carries the icon as
          FlyoutIcon, not IconImageSource. -->
     <Shell.MenuItemTemplate>
@@ -174,21 +174,8 @@
     </FlyoutItem>
 
 
-    <!--<FlyoutItem Title="INSPECTIONS" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-        <ShellContent Route="InspectionsPage" ContentTemplate="{DataTemplate views:ComingSoonPage}" />
-    </FlyoutItem>-->
-
-
-    <MenuItem
-        Text="INSPECTIONS"
-        IconImageSource="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-
-        <MenuItem.Command>
-            <Binding Path="BindingContext.OpenInspectionsCommand"
-                     Source="{RelativeSource AncestorType={x:Type Shell}}" />
-        </MenuItem.Command>
-
-    </MenuItem>
+    <!-- RE-062: no INSPECTIONS item. It opened Samsara Driver; the vehicle is now inspected
+         inside the Pull-out and the Pull-in. -->
 
 
     <FlyoutItem Title="SCHEDULE"

@@ -68,6 +68,12 @@ namespace Raphael.Driver.ViewModels
                     Events.Add(ev);
                 }
             }
+            catch (RouteNotAllowedException)
+            {
+                Events.Clear();
+                await Shell.Current.DisplayAlert(RouteNotAllowedException.Title, RouteNotAllowedException.Explanation, "OK");
+                await Shell.Current.GoToAsync("..");
+            }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error loading next day events: {ex.Message}");

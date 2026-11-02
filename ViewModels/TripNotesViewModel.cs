@@ -19,6 +19,11 @@ namespace Raphael.Driver.ViewModels
         public bool IsToReview { get; init; }
         public bool IsCustomer { get; init; }
         public bool ForEntrance { get; init; }
+
+        // Colours come from here, never from a trigger (RE-061 H2).
+        public Color Background { get; init; } = Colors.Transparent;
+        public Color Stripe { get; init; } = Colors.Transparent;
+        public string SourceGlyph { get; init; } = "";
     }
 
     /// <summary>
@@ -54,6 +59,13 @@ namespace Raphael.Driver.ViewModels
         [ObservableProperty] private string? _patientName;
         [ObservableProperty] private string? _fileComment;
         [ObservableProperty] private bool _hasFileComment;
+        [ObservableProperty] private bool _hasTripNote;
+        [ObservableProperty] private string _stopCaption = string.Empty;
+        [ObservableProperty] private string _entranceCount = "0";
+        [ObservableProperty] private string _placeCount = "0";
+        [ObservableProperty] private string _patientCount = "0";
+        [ObservableProperty] private string _toReviewText = string.Empty;
+        [ObservableProperty] private bool _hasToReview;
 
         public ObservableCollection<NoteItem> EntranceNotes { get; } = new();
         public ObservableCollection<NoteItem> PlaceNotes { get; } = new();
@@ -160,10 +172,16 @@ namespace Raphael.Driver.ViewModels
             try
             {
                 var result = await call();
+                if (result.Queued)
+                {
+                    await Shell.Current.DisplayAlert("Saved on the phone",
+                        "There is no connection. The change is kept on the phone and will be sent, and shown here, as soon as the connection comes back.", "OK");
+                    return;
+                }
                 if (result.Offline)
                 {
                     await Shell.Current.DisplayAlert("No connection",
-                        "The notes could not be reached. Nothing was saved: try again when you have signal.", "OK");
+                        "The notes could not be reached. Try again when you have signal.", "OK");
                     return;
                 }
                 if (!result.Ok)
@@ -194,8 +212,10 @@ namespace Raphael.Driver.ViewModels
             PlaceName = stop.Place?.Name;
             PlaceAddress = stop.Place?.Address;
             HasEntrance = stop.Place?.EntranceId != null;
-            EntranceName = string.IsNullOrWhiteSpace(stop.Place?.EntranceLabel) ? "This entrance" : $"Entrance: {stop.Place!.EntranceLabel}";
+            EntranceName = string.IsNullOrWhiteSpace(stop.Place?.EntranceLabel) ? "THIS ENTRANCE" : $"ENTRANCE: {stop.Place!.EntranceLabel.ToUpperInvariant()}";
+            StopCaption = Side == "Dropoff" ? "DROP-OFF · WHERE YOU STOP" : "PICKUP · WHERE YOU STOP";
             TripNote = stop.TripNote;
+            HasTripNote = !string.IsNullOrWhiteSpace(stop.TripNote);
             CanEditTripNote = !notes.TripReadOnly;
             PatientName = notes.CustomerName;
             FileComment = stop.FileComment;
@@ -204,8 +224,17 @@ namespace Raphael.Driver.ViewModels
             Fill(EntranceNotes, stop.EntranceNotes, customer: false, forEntrance: true);
             Fill(PlaceNotes, stop.PlaceNotes, customer: false, forEntrance: false);
             Fill(PatientNotes, notes.CustomerNotes, customer: true, forEntrance: false);
+            EntranceCount = EntranceNotes.Count.ToString();
+            PlaceCount = PlaceNotes.Count.ToString();
+            PatientCount = PatientNotes.Count.ToString();
+            var toReview = EntranceNotes.Concat(PlaceNotes).Concat(PatientNotes).Count(n => n.IsToReview);
+            HasToReview = toReview > 0;
+            ToReviewText = toReview == 1 ? "1 note to review" : $"{toReview} notes to review";
             IsLoaded = true;
         }
+
+        private static Color Theme(string key) =>
+            Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color c ? c : Colors.Gray;
 
         private static void Fill(ObservableCollection<NoteItem> target, IEnumerable<NoteDto> notes, bool customer, bool forEntrance)
         {
@@ -214,14 +243,18 @@ namespace Raphael.Driver.ViewModels
             {
                 var who = n.UpdatedBy ?? n.CreatedBy;
                 var source = n.Source switch { "Import" => "From the file", "Driver" => "Driver", "History" => "History", _ => "Office" };
+                var review = n.Status == "ToReview";
                 target.Add(new NoteItem
                 {
                     Id = n.Id,
                     Text = n.Text,
-                    Meta = n.Status == "ToReview" ? $"{source} · {who} · TO REVIEW" : $"{source} · {who}",
-                    IsToReview = n.Status == "ToReview",
+                    Meta = string.IsNullOrWhiteSpace(who) ? source : $"{source} · {who}",
+                    IsToReview = review,
                     IsCustomer = customer,
                     ForEntrance = forEntrance,
+                    Background = Theme(review ? "WarnSoftColor" : "TintColor"),
+                    Stripe = Theme(review ? "WarnColor" : "AccentColor"),
+                    SourceGlyph = n.Source switch { "Import" => "", "Driver" => "", "History" => "", _ => "" },
                 });
             }
         }

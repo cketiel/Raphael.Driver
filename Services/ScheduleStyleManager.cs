@@ -31,12 +31,14 @@ namespace Raphael.Driver.Services
 
     /// <summary>
     /// Which schedule style the app draws with, kept on the phone like the theme. Until a driver
-    /// picks one the app keeps the look it always had (Legacy), so nobody's screen changes
-    /// without them asking.
+    /// picks one the app draws Map Pin (decision of the user, 2026-11-01).
     /// </summary>
     public static class ScheduleStyleManager
     {
         private const string PreferenceKey = "ScheduleStyle";
+
+        /// <summary>What a phone draws until its driver picks a style.</summary>
+        public const ScheduleStyle DefaultStyle = ScheduleStyle.MapPin;
 
         public static IReadOnlyList<ScheduleStyleInfo> All { get; } =
         [
@@ -78,8 +80,8 @@ namespace Raphael.Driver.Services
 
         private static ScheduleStyle Read()
         {
-            var stored = Preferences.Get(PreferenceKey, (int)ScheduleStyle.Legacy);
-            return Enum.IsDefined(typeof(ScheduleStyle), stored) ? (ScheduleStyle)stored : ScheduleStyle.Legacy;
+            var stored = Preferences.Get(PreferenceKey, (int)DefaultStyle);
+            return Enum.IsDefined(typeof(ScheduleStyle), stored) ? (ScheduleStyle)stored : DefaultStyle;
         }
     }
 }

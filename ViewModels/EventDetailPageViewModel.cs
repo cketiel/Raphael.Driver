@@ -516,29 +516,38 @@ namespace Raphael.Driver.ViewModels
             Helpers.StartedTrips.MarkStarted(tripId);
             BuildActionsList();
 
-            _ = SendStartAsync(tripId, Event.Travel);
+            _ = SendStartAsync(tripId, Event.Travel, DateTime.UtcNow);
 
             await Maps();
         }
 
         /// <summary>Tells the server, retrying a few times if there is no answer.</summary>
-        private async Task SendStartAsync(int tripId, TimeSpan? travel)
+        private async Task SendStartAsync(int tripId, TimeSpan? travel, DateTime pressedAtUtc)
         {
-            var delays = new[] { 0, 5, 15, 45 };
-            foreach (var seconds in delays)
+            // RE-062: where the vehicle is, so the server re-times the pickup from there, and when the
+            // driver pressed Start. Without a fix the trip still starts; the pickup keeps its hour.
+            var position = new StartTripPosition { StartedAtUtc = pressedAtUtc };
+            try
             {
-                if (seconds > 0) await Task.Delay(TimeSpan.FromSeconds(seconds));
-
-                var outcome = await _scheduleService.StartTripAsync(tripId, travel);
-                if (outcome != StartTripOutcome.Failed)
+                var location = await Geolocation.Default.GetLastKnownLocationAsync();
+                if (location is null || DateTimeOffset.UtcNow - location.Timestamp > TimeSpan.FromMinutes(2))
+                    location = await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(8)));
+                if (location is not null)
                 {
-                    Helpers.StartedTrips.MarkConfirmed(tripId);
-                    if (outcome == StartTripOutcome.Started && Event?.TripId == tripId)
-                        Event.Status = "Started";
-                    return;
+                    position.Latitude = location.Latitude;
+                    position.Longitude = location.Longitude;
                 }
             }
-            // Still pending: RetryPendingStarts tries again the next time a stop is opened.
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Start Trip without a position: {ex.Message}");
+            }
+
+            // The outbox sends it now or keeps it until the coverage comes back: either way it is told.
+            var outcome = await _scheduleService.StartTripAsync(tripId, travel, position);
+            Helpers.StartedTrips.MarkConfirmed(tripId);
+            if (outcome == StartTripOutcome.Started && Event?.TripId == tripId)
+                Event.Status = "Started";
         }
 
         /// <summary>Starts the server did not get earlier today, sent again without the travel time.</summary>

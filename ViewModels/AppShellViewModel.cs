@@ -15,52 +15,8 @@ namespace Raphael.Driver.ViewModels
             
         }
 
-        [RelayCommand]
-        private async Task OpenInspections()
-        {
-            bool opened = false;
-
-            try
-            {
-#if ANDROID
-                // LÓGICA NATIVA PARA ANDROID: Es la más segura para abrir por nombre de paquete
-                var context = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-                var intent = context.PackageManager.GetLaunchIntentForPackage("com.samsara.driver");
-                if (intent != null)
-                {
-                    context.StartActivity(intent);
-                    opened = true;
-                }
-#elif IOS
-                // LÓGICA PARA iOS: Usa el esquema URL
-                opened = await Launcher.Default.TryOpenAsync("samsara://");
-#endif
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error opening Inspections: {ex.Message}");
-                opened = false;
-            }
-
-            // Si no se pudo abrir (porque no está instalada o error)
-            if (!opened)
-            {
-                string storeUrl = DeviceInfo.Platform == DevicePlatform.Android
-                    ? "https://play.google.com/store/apps/details?id=com.samsara.driver"
-                    : "https://apps.apple.com/us/app/samsara-driver/id1122606567";
-
-                bool download = await Shell.Current.DisplayAlert(
-                    "App Not Found",
-                    "The Samsara Driver app is not installed. Would you like to download it from the store?",
-                    "Download",
-                    "Cancel");
-
-                if (download)
-                {
-                    await Browser.Default.OpenAsync(storeUrl, BrowserLaunchMode.SystemPreferred);
-                }
-            }
-        }
+        // RE-062: the INSPECTIONS menu item (which opened Samsara Driver) is gone: the vehicle is
+        // inspected inside the Pull-out and the Pull-in.
 
         [RelayCommand]
         private async Task SendSms()

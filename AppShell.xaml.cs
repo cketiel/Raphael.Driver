@@ -47,6 +47,7 @@ namespace Raphael.Driver
             //Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
             Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
             Routing.RegisterRoute(nameof(SignaturePage), typeof(SignaturePage));
+            Routing.RegisterRoute(nameof(Views.VehicleInspectionPage), typeof(Views.VehicleInspectionPage));
 
             Routing.RegisterRoute(nameof(FutureSchedulePage), typeof(FutureSchedulePage));
             Routing.RegisterRoute(nameof(FutureDetailPage), typeof(FutureDetailPage));
