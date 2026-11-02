@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Web;
 using Raphael.Driver.DTOs;
 using Raphael.Driver.Models;
+using Raphael.Driver.Services.Offline;
 
 namespace Raphael.Driver.Services
 {
@@ -14,8 +15,11 @@ namespace Raphael.Driver.Services
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _serializerOptions;
-        public ScheduleService(HttpClient httpClient)
+        private readonly Outbox _outbox;
+
+        public ScheduleService(HttpClient httpClient, Outbox outbox)
         {
+            _outbox = outbox;
             // The base URL of your API. It should be in a centralized place, like Preferences or a config file.
             // https://krasnovbw-001-site1.rtempurl.com/
             // https://localhost:7244/
@@ -30,132 +34,130 @@ namespace Raphael.Driver.Services
             };
         }
 
-        public async Task<List<ScheduleDto>> GetSchedulesByRunAsync(string runLogin, DateTime date)
-        {
-            if (string.IsNullOrWhiteSpace(runLogin))
-                return new List<ScheduleDto>(); 
+        public Task<List<ScheduleDto>> GetSchedulesByRunAsync(string runLogin, DateTime date) =>
+            GetDayAsync("api/Schedules/by-run-login", "all", runLogin, date, pendingOnly: false);
 
-            var dateString = date.ToString("yyyy-MM-dd");
-            //dateString = "2025-09-15"; // esto es para probar
-            var encodedRunLogin = HttpUtility.UrlEncode(runLogin);
+        public Task<List<ScheduleDto>> GetPendingSchedulesByRunAsync(string runLogin, DateTime date) =>
+            GetDayAsync("api/Schedules/driver/pending", "pending", runLogin, date, pendingOnly: true);
 
-            var requestUri = $"api/Schedules/by-run-login?runLogin={encodedRunLogin}&date={dateString}";
-
-            try
-            {
-                var response = await _httpClient.GetAsync(requestUri);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var schedules = JsonSerializer.Deserialize<List<ScheduleDto>>(content, _serializerOptions);
-                    return schedules ?? new List<ScheduleDto>();
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error fetching schedule: {response.StatusCode}");
-                    return new List<ScheduleDto>();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Exception in GetSchedulesByRunAsync: {ex.Message}");              
-                throw;
-            }
-        }
-
-        public async Task<List<ScheduleDto>> GetPendingSchedulesByRunAsync(string runLogin, DateTime date)
+        /// <summary>
+        /// The day's stops, from the server when it answers and from the phone's last copy when it
+        /// does not (RE-062), with the changes still waiting to be sent laid on top.
+        /// </summary>
+        /// <remarks>
+        /// ⚠️ The overlay is what keeps a Perform done without coverage from coming back as pending at
+        /// the next reload: the server does not know it yet, the phone does. The copy lives in the app's
+        /// own storage, like the screen it feeds, and only the last two days are kept.
+        /// </remarks>
+        private async Task<List<ScheduleDto>> GetDayAsync(string endpoint, string kind, string runLogin, DateTime date, bool pendingOnly)
         {
             if (string.IsNullOrWhiteSpace(runLogin))
                 return new List<ScheduleDto>();
 
-            var dateString = date.ToString("yyyy-MM-dd");
-            //dateString = "2025-04-23"; // esto es para probar
-            var encodedRunLogin = HttpUtility.UrlEncode(runLogin);
-          
-            var requestUri = $"api/Schedules/driver/pending?runLogin={encodedRunLogin}&date={dateString}";
+            var requestUri = $"{endpoint}?runLogin={HttpUtility.UrlEncode(runLogin)}&date={date:yyyy-MM-dd}";
+            var cache = CacheFile(kind, runLogin, date);
+            List<ScheduleDto>? schedules = null;
 
             try
             {
                 var response = await _httpClient.GetAsync(requestUri);
-                 
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var schedules = JsonSerializer.Deserialize<List<ScheduleDto>>(content, _serializerOptions);
-                    return schedules ?? new List<ScheduleDto>();
+                    schedules = JsonSerializer.Deserialize<List<ScheduleDto>>(content, _serializerOptions) ?? new List<ScheduleDto>();
+                    TryWrite(cache, content);
+
+                    // RE-062: while there is coverage, the phone learns what each garage event will ask.
+                    var garage = schedules.Where(s => s.Name is "Pull-out" or "Pull-in").Select(s => (s.Id, s.Name)).ToList();
+                    if (garage.Count > 0) _ = ServiceHelper.GetService<IInspectionService>()?.PrefetchAsync(garage);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    // RE-063: another company's route. Its copy goes too, or the phone would keep
+                    // showing it "without coverage".
+                    TryDelete(cache);
+                    throw new RouteNotAllowedException();
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error fetching schedule: {response.StatusCode}");
-                    return new List<ScheduleDto>();
+                    Debug.WriteLine($"Error fetching schedule: {response.StatusCode}");
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException)
             {
-                System.Diagnostics.Debug.WriteLine($"Exception in GetSchedulesByRunAsync: {ex.Message}");
-                throw;
+                Debug.WriteLine($"Schedule from the phone's copy: {ex.Message}");
             }
+
+            if (schedules is null)
+            {
+                if (!File.Exists(cache)) return new List<ScheduleDto>();
+                schedules = JsonSerializer.Deserialize<List<ScheduleDto>>(await File.ReadAllTextAsync(cache), _serializerOptions) ?? new List<ScheduleDto>();
+            }
+
+            // What the driver did and the server has not heard yet: the last saved state of each row wins.
+            foreach (var group in _outbox.Pending<ScheduleDto>(ScheduleKind).GroupBy(p => p.Body.Id))
+            {
+                var latest = group.Last().Body;
+                var index = schedules.FindIndex(s => s.Id == latest.Id);
+                if (index < 0) continue;
+                if (pendingOnly && latest.Performed) schedules.RemoveAt(index);
+                else schedules[index] = latest;
+            }
+
+            return schedules;
         }
 
-        public async Task<bool> UpdateScheduleAsync(ScheduleDto scheduleToUpdate)
+        private const string ScheduleKind = "schedule";
+
+        private static string CacheFile(string kind, string runLogin, DateTime date)
         {
-            if (scheduleToUpdate == null)
-                return false;
+            var folder = Path.Combine(FileSystem.AppDataDirectory, "cache");
+            Directory.CreateDirectory(folder);
+            var safe = string.Concat(runLogin.Where(char.IsLetterOrDigit));
+            return Path.Combine(folder, $"schedules-{kind}-{safe}-{date:yyyyMMdd}.json");
+        }
 
-            // Prepares JSON content to send in the request body
-            var jsonContent = JsonSerializer.Serialize(scheduleToUpdate, _serializerOptions);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-         
-            var requestUri = $"api/Schedules/{scheduleToUpdate.Id}";
+        private static void TryDelete(string file)
+        {
+            try { if (File.Exists(file)) File.Delete(file); }
+            catch (IOException ex) { Debug.WriteLine($"Could not delete {file}: {ex.Message}"); }
+        }
 
+        private static void TryWrite(string file, string content)
+        {
             try
             {
-                // The HTTP PUT verb is used, which is the standard for full updates to a resource
-                var response = await _httpClient.PutAsync(requestUri, content);
-
-                if (!response.IsSuccessStatusCode)
-                {                   
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"Error updating schedule: {response.StatusCode}. Body: {errorBody}");
-                }
-
-                return response.IsSuccessStatusCode;
+                File.WriteAllText(file, content);
+                // Only the last two days' copies stay on the phone.
+                foreach (var old in Directory.GetFiles(Path.GetDirectoryName(file)!, "schedules-*.json")
+                             .Where(f => File.GetLastWriteTimeUtc(f) < DateTime.UtcNow.AddDays(-2)))
+                    File.Delete(old);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Exception in UpdateScheduleAsync: {ex.Message}");
-                return false;
+                Debug.WriteLine($"Could not keep the schedule on the phone: {ex.Message}");
             }
         }
+
+        public async Task<bool> UpdateScheduleAsync(ScheduleDto scheduleToUpdate) =>
+            scheduleToUpdate != null && (await SaveScheduleAsync(scheduleToUpdate)).Accepted;
+
+        /// <summary>
+        /// Saves a stop through the outbox (RE-062): sent now, or kept and sent when the coverage
+        /// comes back. A refusal carries the server's status and answer, e.g. 409 inspection_required.
+        /// </summary>
+        public Task<OutboxResult> SaveScheduleAsync(ScheduleDto schedule) =>
+            _outbox.SendAsync(OutboxRequest.Json("PUT", $"api/Schedules/{schedule.Id}", schedule, ScheduleKind, schedule.Id));
 
         public async Task<bool> PerformScheduleUpdateAsync(ScheduleDto scheduleToUpdate)
         {
             if (scheduleToUpdate == null)
                 return false;
-          
-            var jsonContent = JsonSerializer.Serialize(scheduleToUpdate, _serializerOptions);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-           
-            var requestUri = $"api/Schedules/{scheduleToUpdate.Id}/perform";
 
-            try
-            {               
-                var response = await _httpClient.PutAsync(requestUri, content);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Error in PerformScheduleUpdateAsync: {response.StatusCode}. Body: {errorBody}");
-                }
-
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in PerformScheduleUpdateAsync: {ex.Message}");
-                return false;
-            }
+            var result = await _outbox.SendAsync(OutboxRequest.Json("PUT", $"api/Schedules/{scheduleToUpdate.Id}/perform", scheduleToUpdate, ScheduleKind, scheduleToUpdate.Id));
+            if (result.Outcome == OutboxOutcome.Rejected)
+                Debug.WriteLine($"Error in PerformScheduleUpdateAsync: {result.Status}");
+            return result.Accepted;
         }
 
         public Task<List<ScheduleDto>> GetTodayScheduleAsync()
@@ -202,30 +204,11 @@ namespace Raphael.Driver.Services
 
         public async Task<bool> SaveSignatureAsync(int scheduleId, string signatureBase64)
         {
-            var requestUri = $"api/Schedules/{scheduleId}/signature";
-           
             var uploadDto = new SignatureUploadDto { SignatureBase64 = signatureBase64 };
-
-            var jsonContent = JsonSerializer.Serialize(uploadDto, _serializerOptions);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await _httpClient.PostAsync(requestUri, content);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine($"Error saving signature: {response.StatusCode}. Body: {errorBody}");
-                }
-
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Exception in SaveSignatureAsync: {ex.Message}");
-                return false;
-            }
+            var result = await _outbox.SendAsync(OutboxRequest.Json("POST", $"api/Schedules/{scheduleId}/signature", uploadDto, "signature", scheduleId));
+            if (result.Outcome == OutboxOutcome.Rejected)
+                Debug.WriteLine($"Error saving signature: {result.Status}");
+            return result.Accepted;
         }
 
         public async Task<byte[]?> GetSignatureAsync(int scheduleId)
@@ -258,51 +241,30 @@ namespace Raphael.Driver.Services
             }
         }
 
-        public async Task<StartTripOutcome> StartTripAsync(int tripId, TimeSpan? travel)
+        public async Task<StartTripOutcome> StartTripAsync(int tripId, TimeSpan? travel, StartTripPosition? position = null)
         {
             // The travel time the route already carries: the patient is told how long, and nothing
-            // is asked of Google for it.
+            // is asked of Google for it. With the vehicle's position (RE-062) the server re-times the
+            // pickup from where the vehicle really is; the position travels in the body, never in the
+            // address.
             var requestUri = travel.HasValue
                 ? $"api/Trips/{tripId}/start?travel={HttpUtility.UrlEncode(travel.Value.ToString(@"hh\:mm\:ss"))}"
                 : $"api/Trips/{tripId}/start";
 
-            try
-            {
-                var response = await _httpClient.PostAsync(requestUri, content: null);
-                if (response.IsSuccessStatusCode) return StartTripOutcome.Started;
+            var request = position is null
+                ? OutboxRequest.Empty("POST", requestUri, "start")
+                : OutboxRequest.Json("POST", requestUri, position, "start");
 
-                // The server heard it and said no (a status it cannot start from, a trip not on
-                // this route). Retrying would get the same answer; the driver carries on as before.
-                var code = (int)response.StatusCode;
-                return code is >= 400 and < 500 && code != 401 && code != 408 && code != 429
-                    ? StartTripOutcome.Refused
-                    : StartTripOutcome.Failed;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Exception in StartTripAsync: {ex.Message}");
-                return StartTripOutcome.Failed;
-            }
+            var result = await _outbox.SendAsync(request);
+
+            // Kept for later counts as told: the outbox delivers it, with the moment it was pressed.
+            return result.Outcome == OutboxOutcome.Rejected ? StartTripOutcome.Refused : StartTripOutcome.Started;
         }
 
         public async Task<bool> CancelTripByDriverAsync(int tripId, string reason)
         {
-            var requestUri = $"api/Trips/{tripId}/cancel-by-driver";
             var uploadDto = new DriverCancelTripDto { Reason = reason };
-
-            var jsonContent = JsonSerializer.Serialize(uploadDto, _serializerOptions);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await _httpClient.PostAsync(requestUri, content);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Exception in CancelTripByDriverAsync: {ex.Message}");
-                return false;
-            }
+            return (await _outbox.SendAsync(OutboxRequest.Json("POST", $"api/Trips/{tripId}/cancel-by-driver", uploadDto, "cancel"))).Accepted;
         }
 
         /// <summary>
@@ -328,8 +290,10 @@ namespace Raphael.Driver.Services
                 {
                     return await response.Content.ReadFromJsonAsync<List<ScheduleDto>>();
                 }
+                if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    throw new RouteNotAllowedException();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not RouteNotAllowedException)
             {
                 Debug.WriteLine($"Error fetching next day schedules: {ex.Message}");
             }
@@ -423,29 +387,8 @@ namespace Raphael.Driver.Services
 
         public async Task<bool> UpdateContactPhoneNumberAsync(int tripId, string newPhoneNumber)
         {
-            var requestUri = $"api/Schedules/trip/{tripId}/contact-phone";
-            
             var updatePayload = new { PhoneNumber = newPhoneNumber };
-            var jsonContent = JsonSerializer.Serialize(updatePayload);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await _httpClient.PutAsync(requestUri, content);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Error updating phone number: {response.StatusCode}. Body: {errorBody}");
-                }
-
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in UpdateContactPhoneNumberAsync: {ex.Message}");
-                return false;
-            }
+            return (await _outbox.SendAsync(OutboxRequest.Json("PUT", $"api/Schedules/trip/{tripId}/contact-phone", updatePayload, "phone"))).Accepted;
         }
 
         public async Task UpdateNextSchedulesETAsAsync(List<ScheduleDto> allPendingEvents, int currentEventId, TimeSpan actualPerformTime)

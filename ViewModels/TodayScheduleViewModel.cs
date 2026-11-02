@@ -85,9 +85,25 @@ namespace Raphael.Driver.ViewModels
                 //SessionManagerService _sessionManager = new SessionManagerService(new GpsService());
                 //await _sessionManager.CheckAndResumeGpsTrackingAsync(Events);
 
-                var historyCount = await _scheduleService.GetScheduleHistoryCountAsync(RunLogin, DateTime.Today);
-                IsHistoryAvailable = historyCount > 0;
+                // RE-062: without coverage the day still shows, from the phone's copy; only the
+                // history count needs the server.
+                try
+                {
+                    var historyCount = await _scheduleService.GetScheduleHistoryCountAsync(RunLogin, DateTime.Today);
+                    IsHistoryAvailable = historyCount > 0;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"History count unavailable: {ex.Message}");
+                }
 
+            }
+            catch (RouteNotAllowedException)
+            {
+                // RE-063: CHANGE ROUTE to another company's route. Back to where it was typed.
+                Events.Clear();
+                await Shell.Current.DisplayAlert(RouteNotAllowedException.Title, RouteNotAllowedException.Explanation, "OK");
+                await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
