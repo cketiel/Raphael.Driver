@@ -216,6 +216,12 @@ namespace Raphael.Driver.Controls.ScheduleCards
                     var card = new Border { Content = grid, Padding = 0, StrokeShape = new RoundRectangle { CornerRadius = 10 }, StrokeThickness = style == ScheduleStyle.TransitLine ? 0 : 1 };
                     card.SetDynamicResource(VisualElement.BackgroundColorProperty, "CardBackgroundColor");
                     card.SetDynamicResource(Border.StrokeProperty, "SeparatorColor");
+                    if (main && style == ScheduleStyle.MapPin)
+                    {
+                        // The next thing to do, washed in the stop's colour as Ticket does it.
+                        card.BackgroundColor = EventLook.Mix(CardBg, look.Color, 0.1f);
+                        card.Stroke = look.Color.WithAlpha(0.6f);
+                    }
                     return card;
                 }
             }

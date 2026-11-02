@@ -126,6 +126,12 @@ namespace Raphael.Driver.Controls.ScheduleCards
                     card.StrokeThickness = 1.5;
                     break;
 
+                case ScheduleStyle.MapPin:
+                    // The whole border in the stop's colour, as thin as it draws: it frames, it doesn't shout.
+                    card.Stroke = look.Color.WithAlpha(0.6f);
+                    card.StrokeThickness = 1;
+                    break;
+
                 case ScheduleStyle.Outline when look.IsPull:
                     // Double, for the garage: two thin lines with a gap, the outer one carrying the margin.
                     card.Stroke = look.Ink;
@@ -204,8 +210,12 @@ namespace Raphael.Driver.Controls.ScheduleCards
                     break;
 
                 case ScheduleStyle.MapPin:
-                    left = look.IsPull ? Text($"Perform {look.KindText}", 12.5, false, null, "SecondaryTextColor") : Space(look, withFunding: false);
-                    right = Text(look.IsPull ? "Garage" : look.Event.FundingSource ?? "", 12.5, false, null, "SecondaryTextColor");
+                    // On the band everything is in the stop's colour: the space type, its icon and the funding.
+                    left = look.IsPull ? Text($"Perform {look.KindText}", 12.5, false, look.Ink) : Space(look, withFunding: false, color: look.Ink);
+                    right = Text(look.IsPull ? "Garage" : look.Event.FundingSource ?? "", 12.5, false, look.Ink);
+                    // A header band in a faint wash of the stop's colour, as Tint washes its whole card.
+                    grid.BackgroundColor = EventLook.Mix(CardBg, look.Color, 0.12f);
+                    grid.Padding = new Thickness(12, 7);
                     break;
 
                 case ScheduleStyle.SplitPill:
@@ -234,13 +244,13 @@ namespace Raphael.Driver.Controls.ScheduleCards
         private static View Meta(EventLook look) =>
             look.IsPull ? Row(4, Icon(Glyph.Garage, 12), Text("Garage", 12.5, false, null, "SecondaryTextColor")) : Space(look, withFunding: true);
 
-        private static View Space(EventLook look, bool withFunding, bool dot = false)
+        private static View Space(EventLook look, bool withFunding, bool dot = false, Color? color = null)
         {
             var text = withFunding ? $"{look.SpaceCode}{(dot ? "  •  " : " · ")}{look.Event.FundingSource}" : look.SpaceCode;
-            var label = Text(text, 12.5, false, null, "SecondaryTextColor");
+            var label = Text(text, 12.5, false, color, "SecondaryTextColor");
             label.LineBreakMode = LineBreakMode.TailTruncation;
             label.MaxLines = 1;
-            return Row(4, Icon(look.SpaceGlyph, 13), label);
+            return Row(4, Icon(look.SpaceGlyph, 13, color), label);
         }
 
         private static View Station(EventLook look, bool here) => new Border
@@ -441,13 +451,14 @@ namespace Raphael.Driver.Controls.ScheduleCards
                 }
                 case ScheduleStyle.Ticket:
                 case ScheduleStyle.SplitPill:
+                case ScheduleStyle.MapPin: // the Ticket's framed time, beside Map Pin's coloured calendar
                 {
                     var grid = new Grid { ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Auto) } };
                     grid.Add(new Border { BackgroundColor = look.Color, StrokeThickness = 0, Padding = new Thickness(7, 1), Content = Lab(Colors.White) }, 0);
                     var t = Time();
                     t.Margin = new Thickness(8, 0, 9, 0);
                     grid.Add(t, 1);
-                    return Box(grid, style == ScheduleStyle.Ticket ? 6 : 999, new Thickness(0), stroke: look.Ink);
+                    return Box(grid, style == ScheduleStyle.SplitPill ? 999 : 6, new Thickness(0), stroke: look.Ink);
                 }
                 case ScheduleStyle.RoadSigns:
                 {
@@ -468,9 +479,6 @@ namespace Raphael.Driver.Controls.ScheduleCards
 
                 case ScheduleStyle.Outline:
                     return Box(Row(6, Icon(Glyph.Flag, 11, look.Ink), Lab(look.Ink), Time()), 6, new Thickness(5, 0, 8, 0), stroke: look.Ink, dashed: look.IsReturn);
-
-                case ScheduleStyle.MapPin:
-                    return Row(6, Box(Lab(Colors.White), 999, new Thickness(7, 1), fill: look.Color), Time());
 
                 default: // FlapBoard
                     return Row(6, Lab(look.Ink), Flaps(look.PromisedText, Color.FromArgb("#1B2329"), Color.FromArgb("#F5F7F8"), 12));
