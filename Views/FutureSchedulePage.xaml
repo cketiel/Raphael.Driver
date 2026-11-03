@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -11,7 +11,7 @@
              Title="Future Schedule">
 
     <Shell.TitleView>
-        <controls:PageTitleBar Title="FUTURE SCHEDULE" Icon="&#xf784;" />
+        <controls:PageTitleBar Title="FUTURE SCHEDULE" Icon="&#xf784;" ShowBell="False" /><!-- RE-064: the bell lives in the menu now, as Alerts with its count -->
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
@@ -36,9 +36,12 @@
     </ContentPage.Resources>
 
     <RefreshView Command="{Binding LoadEventsCommand}" IsRefreshing="{Binding IsBusy}">
-        <Grid RowDefinitions="*" BackgroundColor="{DynamicResource PageBackgroundColor}">
+        <Grid RowDefinitions="Auto, *" BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-            <Grid>
+            <!-- RE-064: History · Today · Future. -->
+            <controls:ScheduleTabs Grid.Row="0" Selected="future" RunLogin="{Binding RunLogin}" />
+
+            <Grid Grid.Row="1">
                 <CollectionView ItemsSource="{Binding Events}"
                                 SelectionMode="None"
                                 IsVisible="{Binding HasEvents}">

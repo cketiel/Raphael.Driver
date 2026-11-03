@@ -178,6 +178,7 @@ namespace Raphael.Driver.ViewModels
         // Automatic loading when RunLogin is set
         partial void OnRunLoginChanged(string value)
         {
+            if (!string.IsNullOrWhiteSpace(value)) Services.ActiveRun.RunLogin = value; // RE-064: the menu's Schedule
             // When the RunLogin property receives a value, events are loaded
             if (!string.IsNullOrWhiteSpace(value))
             {

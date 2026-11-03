@@ -1,4 +1,4 @@
-using Raphael.Driver.Services;
+﻿using Raphael.Driver.Services;
 using Raphael.Driver.ViewModels;
 using System.Diagnostics;
 
@@ -88,6 +88,41 @@ namespace Raphael.Driver.Controls
             get => (bool)GetValue(ShowIntroProperty);
             set => SetValue(ShowIntroProperty, value);
         }
+
+        public static readonly BindableProperty CompactProperty =
+            BindableProperty.Create(nameof(Compact), typeof(bool), typeof(CallRequestButton), false,
+                propertyChanged: (b, _, n) => ((CallRequestButton)b).ApplyCompact((bool)n));
+
+        /// <summary>
+        /// RE-064: the button as a round icon in the title bar, where the bell used to be, so it no
+        /// longer floats over the cards. The colour and the icon still say how the request is going
+        /// (blue, orange, green, red); the words are read out to screen readers as before.
+        /// </summary>
+        public bool Compact
+        {
+            get => (bool)GetValue(CompactProperty);
+            set => SetValue(CompactProperty, value);
+        }
+
+        private void ApplyCompact(bool compact)
+        {
+            Margin = compact ? new Thickness(0) : new Thickness(0, 0, 16, 20);
+            HorizontalOptions = compact ? LayoutOptions.Center : LayoutOptions.End;
+            VerticalOptions = compact ? LayoutOptions.Center : LayoutOptions.End;
+            Surface.HeightRequest = compact ? 40 : 64;
+            Surface.MinimumWidthRequest = compact ? 40 : 64;
+            Surface.WidthRequest = compact ? 40 : -1;
+            Surface.Padding = compact ? new Thickness(0) : new Thickness(20, 0);
+            Surface.StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = compact ? 20 : 32 };
+            Surface.StrokeThickness = compact ? 2 : 0;
+            Surface.Stroke = compact ? Brush.White : null;
+            Surface.Shadow = compact ? null! : new Shadow { Brush = Colors.Black, Opacity = .35f, Radius = 8, Offset = new Point(0, 3) };
+            TextLabel.IsVisible = !compact;
+            Row.HorizontalOptions = compact ? LayoutOptions.Center : LayoutOptions.Fill;
+        }
+
+        /// <summary>The same as tapping this button; All options › Call me uses it (RE-064).</summary>
+        public void Tap() => _viewModel?.TapCommand.Execute(null);
 
         private async void OnLoaded(object? sender, EventArgs e)
         {

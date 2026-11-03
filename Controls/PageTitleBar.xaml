@@ -48,6 +48,12 @@
 
         </HorizontalStackLayout>
 
+        <!-- RE-064: what a page puts in the bell's place (Call me), when it has no bell. -->
+        <ContentView x:Name="AccessoryHost"
+                     HorizontalOptions="End"
+                     VerticalOptions="Center"
+                     Margin="0,0,8,0" />
+
         <Grid x:Name="BellArea"
               WidthRequest="46"
               HeightRequest="46"

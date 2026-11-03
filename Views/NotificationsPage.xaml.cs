@@ -1,4 +1,4 @@
-using Raphael.Driver.ViewModels;
+﻿using Raphael.Driver.ViewModels;
 
 namespace Raphael.Driver.Views
 {
@@ -9,6 +9,8 @@ namespace Raphael.Driver.Views
         public NotificationsPage(NotificationsViewModel viewModel)
         {
             InitializeComponent();
+            // RE-064: the menu at the bottom, in the style chosen in Settings.
+            Controls.Menu.NavMenuView.Attach(this, "notifications");
 
             _viewModel = viewModel;
             BindingContext = viewModel;

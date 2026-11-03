@@ -1,4 +1,4 @@
-using Raphael.Driver.Controls;
+﻿using Raphael.Driver.Controls;
 using Raphael.Driver.DTOs;
 using Raphael.Driver.Services;
 using Raphael.Driver.ViewModels;
@@ -13,6 +13,8 @@ public partial class TodaySchedulePage : ContentPage, IRouteSignalHandler
     public TodaySchedulePage(TodayScheduleViewModel viewModel, RouteSignalCoordinator signals)
     {
         InitializeComponent();
+        // RE-064: the menu at the bottom; this page is part of Schedule.
+        Controls.Menu.NavMenuView.Attach(this, "schedule");
 
         _viewModel = viewModel;
         _signals = signals;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -16,7 +16,11 @@
             The bell belongs here above all. This is where the driver spends the shift, so a
             page without it is a driver who never learns a notification arrived.
         -->
-        <controls:PageTitleBar Title="TODAY'S SCHEDULE" Icon="&#xf783;" />
+        <controls:PageTitleBar Title="TODAY'S SCHEDULE" Icon="&#xf783;" ShowBell="False" >
+            <controls:PageTitleBar.Accessory>
+                <controls:CallRequestButton Compact="True" VehicleRouteId="{Binding VehicleRouteId}" ShowIntro="True" />
+            </controls:PageTitleBar.Accessory>
+        </controls:PageTitleBar><!-- RE-064: no bell (Alerts is in the menu); Call me sits in its place instead of floating over the cards -->
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
@@ -53,10 +57,8 @@
 
         <Grid RowDefinitions="Auto, *" RowSpacing="10" BackgroundColor="{DynamicResource PageBackgroundColor}">
           
-            <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="10" Padding="10,10">
-                <Button Text="VIEW HISTORY" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="8" Command="{Binding GoToHistoryCommand}" IsEnabled="{Binding IsHistoryAvailable}"/>
-                <Button Grid.Column="1" Text="CHANGE ROUTE" Style="{StaticResource TertiaryButtonStyle}" CornerRadius="8" Command="{Binding ChangeRouteCommand}"/>
-            </Grid>
+            <!-- RE-064: History · Today · Future, and the route icon that was CHANGE ROUTE. -->
+            <controls:ScheduleTabs Grid.Row="0" Selected="today" RunLogin="{Binding RunLogin}" />
            
             <Grid Grid.Row="1">
               
@@ -100,9 +102,6 @@
         </Grid>
     </RefreshView>
 
-    <!-- The page the shift is spent on, so the one that explains the button the first time. -->
-    <controls:CallRequestButton VehicleRouteId="{Binding VehicleRouteId}"
-                                ShowIntro="True" />
 
     </Grid>
 </ContentPage>

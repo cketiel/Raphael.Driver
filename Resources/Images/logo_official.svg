@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 128" width="100" height="128">
   <!--
-    The official Raphael logo since 2026-10-31: the V7 logo (logo.svg) with the map shadow under
-    the tip and no halo (the halo of logo 02 was dropped by the company). Used in the side menu,
+    The official Raphael logo: the V7 logo (logo.svg) with the map shadow under the tip and,
+    since 2026-11-02, the gold halo of the angel (final decision). Used in the side menu,
     on the sign-in page and, centred, as the launcher icon and the launch frame.
     The two side figures are drawn twice, a white outline first and the figure on top, which is
     what the original's paint-order="stroke" did; the image converter does not support it.
@@ -42,4 +42,6 @@
       <path d="M58 86V73c0-6 4.4-9.6 10.5-9.6S79 67 79 73v13Z"/>
     </g>
   </g>
+  <!-- the halo of the angel, part of the official logo since 2026-11-02 -->
+  <ellipse cx="50" cy="21.4" rx="8.6" ry="2.4" fill="none" stroke="#E9A23B" stroke-width="2.1"/>
 </svg>

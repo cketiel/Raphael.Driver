@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Raphael.Driver.Views.SchedulePage"
@@ -9,7 +9,11 @@
              Title="SCHEDULE">
 
     <Shell.TitleView>
-        <controls:PageTitleBar Title="SCHEDULE" Icon="&#xf073;" />
+        <controls:PageTitleBar Title="SCHEDULE" Icon="&#xf073;" ShowBell="False" >
+            <controls:PageTitleBar.Accessory>
+                <controls:CallRequestButton Compact="True" />
+            </controls:PageTitleBar.Accessory>
+        </controls:PageTitleBar><!-- RE-064: no bell (Alerts is in the menu); Call me sits in its place instead of floating over the cards -->
     </Shell.TitleView>
 
     <ContentPage.BindingContext>
@@ -100,8 +104,6 @@
                            HeightRequest="50"
                            WidthRequest="50"/>
 
-        <!-- No route chosen yet: the server works out the driver's route for today, if there is one. -->
-        <controls:CallRequestButton />
         
     </Grid>
 </ContentPage>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:Raphael.Driver.ViewModels"
@@ -20,7 +20,11 @@
     -->
 
     <Shell.TitleView>
-        <controls:PageTitleBar Title="DASHBOARD" Icon="&#xf00a;" />
+        <controls:PageTitleBar Title="DASHBOARD" Icon="&#xf00a;" ShowBell="False" >
+            <controls:PageTitleBar.Accessory>
+                <controls:CallRequestButton Compact="True" VehicleRouteId="{Binding NextEvent.VehicleRouteId}" />
+            </controls:PageTitleBar.Accessory>
+        </controls:PageTitleBar><!-- RE-064: no bell (Alerts is in the menu); Call me sits in its place instead of floating over the cards -->
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
@@ -277,8 +281,5 @@
                 FontAttributes="Bold"
                 Margin="16,8,16,16" />
 
-        <!-- In the row above the SCHEDULE button, so it floats over the cards and never over it. -->
-        <controls:CallRequestButton Grid.Row="0"
-                                    VehicleRouteId="{Binding NextEvent.VehicleRouteId}" />
     </Grid>
 </ContentPage>

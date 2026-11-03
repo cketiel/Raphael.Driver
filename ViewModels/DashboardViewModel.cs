@@ -91,6 +91,7 @@ namespace Raphael.Driver.ViewModels
                 if (activeRun != null)
                 {                    
                     RunLogin = activeRun.SmartphoneLogin;
+                    Services.ActiveRun.RunLogin = RunLogin; // RE-064: the menu's Schedule opens it too
                    
                     var pendingEvents = await _scheduleService.GetPendingSchedulesByRunAsync(activeRun.SmartphoneLogin, DateTime.Today);
                    

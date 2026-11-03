@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:Raphael.Driver.ViewModels"
@@ -22,15 +22,18 @@
         <converters:TimeSpanTo12HourStringConverter x:Key="TimeSpanConverter" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, Auto, *">
+        <!-- RE-064: History · Today · Future. -->
+        <controls:ScheduleTabs Grid.Row="0" Selected="history" RunLogin="{Binding RunLogin}" />
+
         <!-- Top bar with date -->
-        <Border Grid.Row="0" BackgroundColor="{DynamicResource TintColor}" Padding="15,10" Margin="10,10,10,0"
+        <Border Grid.Row="1" BackgroundColor="{DynamicResource TintColor}" Padding="15,10" Margin="10,10,10,0"
                 StrokeShape="RoundRectangle 5" StrokeThickness="0">
             <Label Text="{Binding HistoryDateText}" TextColor="{DynamicResource InkColor}" HorizontalOptions="Center" />
         </Border>
 
         <!-- List of events in timeline format -->
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Events}" Margin="20,0,20,0">
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Events}" Margin="20,0,20,0">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="dto:ScheduleHistoryDto">
                     <Grid>
