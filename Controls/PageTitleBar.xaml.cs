@@ -1,4 +1,4 @@
-using Raphael.Driver.Services;
+﻿using Raphael.Driver.Services;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -40,6 +40,17 @@ namespace Raphael.Driver.Controls
                 typeof(PageTitleBar),
                 string.Empty,
                 propertyChanged: OnIconChanged);
+
+        public static readonly BindableProperty AccessoryProperty =
+            BindableProperty.Create(nameof(Accessory), typeof(View), typeof(PageTitleBar), null,
+                propertyChanged: (b, _, n) => ((PageTitleBar)b).AccessoryHost.Content = (View?)n);
+
+        /// <summary>RE-064: a view in the bell's place, on the right of the bar (Call me).</summary>
+        public View? Accessory
+        {
+            get => (View?)GetValue(AccessoryProperty);
+            set => SetValue(AccessoryProperty, value);
+        }
 
         public static readonly BindableProperty ShowBellProperty =
             BindableProperty.Create(

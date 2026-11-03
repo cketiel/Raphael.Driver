@@ -10,7 +10,7 @@
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
     <Shell.TitleView>
-        <controls:PageTitleBar Title="CONTACT" Icon="&#xf095;" />
+        <controls:PageTitleBar Title="CONTACT" Icon="&#xf095;" ShowBell="False" /><!-- RE-064: the bell lives in the menu now, as Alerts with its count -->
     </Shell.TitleView>
 
     <ContentPage.Resources>

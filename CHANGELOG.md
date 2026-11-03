@@ -9,6 +9,30 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 cannot be sent and the outbox keeps it; switch the inspection on for a Provider only once its drivers
 have this version.
 
+### Added (RE-064 — menu styles)
+- A menu at the bottom of Dashboard, Schedule, Notifications, Settings and Contact, with Home,
+  Schedule, Alerts and Settings always in view. It reaches the same pages and runs the same
+  commands as the side menu did.
+- Sixteen menu styles in the code (General, Thematic, Neutral, Christmas); four are offered.
+- All options: the logo with its halo, MAIN and MORE in two columns (icon and name), and Sign out.
+- Sign out asks first: "Sign out?", Cancel or Sign out.
+- Schedule opens Today with History · Today · Future tabs; the route icon beside them is Change
+  route. VIEW HISTORY and CHANGE ROUTE are gone.
+- Alerts in the menu shows the unread count, live, as notifications arrive or are read.
+- All options › MORE has Change route and Call me; the Angel's wings open with Messages, Call me (in
+  Contact's place: drivers use it more), Change route, Sign out and All options.
+- Call me sits in the title bar, as a round icon in the bell's old place, instead of floating over
+  the cards. Its colour still says how the request is going.
+- Settings › MENU STYLE offers four styles as cards with a picture of each: Angel (the default),
+  Underline (logo on the right, by the thumb), Metro and Crescent. The other styles stay in the code.
+
+### Changed (RE-064)
+- No side menu: the hamburger is gone, the menu at the bottom replaces it.
+- No bell in the title bar of the pages with the menu: Alerts in the menu replaces it.
+- The official logo has the angel's halo everywhere: side menu, sign-in, launcher icon and the
+  system launch frame (red version in Infrared).
+- Settings scrolls.
+
 ### Added (RE-062 — vehicle inspection and working without coverage)
 - Vehicle inspection inside the Pull-out and the Pull-in, when the driver's Provider has it on: odometer
   (miles), VIN (confirm the one on file, or photograph and type the one on the vehicle), the checklist with

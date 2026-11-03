@@ -1,4 +1,4 @@
-using CommunityToolkit.Maui.Views;
+﻿using CommunityToolkit.Maui.Views;
 using Raphael.Driver.Models;
 using Raphael.Driver.ViewModels;
 
@@ -9,6 +9,8 @@ public partial class SettingsPage : ContentPage
     public SettingsPage(SettingsViewModel viewModel)
     {
         InitializeComponent();
+        // RE-064: the menu at the bottom, in the style chosen in Settings.
+        Controls.Menu.NavMenuView.Attach(this, "settings");
         BindingContext = viewModel;
     }
 

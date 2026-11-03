@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
@@ -6,6 +6,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              xmlns:cards="clr-namespace:Raphael.Driver.Controls.ScheduleCards"
+             xmlns:menu="clr-namespace:Raphael.Driver.Controls.Menu"
              x:Class="Raphael.Driver.Views.SettingsPage"
              x:DataType="viewmodels:SettingsViewModel"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
@@ -16,7 +17,7 @@
         bell at all. A screen that dresses differently reads as a different application.
     -->
     <Shell.TitleView>
-        <controls:PageTitleBar Title="SETTINGS" Icon="&#xf013;" />
+        <controls:PageTitleBar Title="SETTINGS" Icon="&#xf013;" ShowBell="False" /><!-- RE-064: the bell lives in the menu now, as Alerts with its count -->
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
@@ -41,7 +42,9 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, *" Padding="16,0">
+    <!-- RE-064: in a ScrollView now that MENU STYLE lists its styles; it no longer fit on a phone. -->
+    <ScrollView>
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" Padding="16,0,16,16">
 
         <!-- Theme. The same switch as the sign-in page; the choice is kept on this phone. -->
         <Label Grid.Row="0" Text="THEME" Style="{StaticResource SectionTitleStyle}" />
@@ -127,9 +130,30 @@
             </VerticalStackLayout>
         </Border>
 
-        <Label Grid.Row="4" Text="SELECT DEFAULT MAPS TYPE" Style="{StaticResource SectionTitleStyle}" />
+        <!--
+            RE-064: how the menu at the bottom of the main pages looks: four cards, each with the
+            real menu shrunk, like SCHEDULE STYLE. The default is Angel; a tap uses it at once and
+            it is kept on this phone. The other styles stay in the code, not offered.
+        -->
+        <Label Grid.Row="4" Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
 
-        <CollectionView Grid.Row="5"
+        <Border Grid.Row="5"
+                BackgroundColor="{DynamicResource CardBackgroundColor}"
+                Stroke="{DynamicResource SeparatorColor}"
+                StrokeThickness="1.5"
+                StrokeShape="RoundRectangle 12"
+                Padding="12,10">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="How the menu at the bottom looks. Tap one to use it."
+                       FontSize="13"
+                       TextColor="{DynamicResource SecondaryTextColor}" />
+                <menu:MenuStylePicker />
+            </VerticalStackLayout>
+        </Border>
+
+        <Label Grid.Row="6" Text="SELECT DEFAULT MAPS TYPE" Style="{StaticResource SectionTitleStyle}" />
+
+        <CollectionView Grid.Row="7"
                         ItemsSource="{Binding AvailableMaps}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
@@ -198,4 +222,5 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
     </Grid>
+    </ScrollView>
 </ContentPage>

@@ -1,11 +1,15 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="Raphael.Driver.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Raphael.Driver.Views"
     xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    Title="Raphael.Driver">
+    Title="Raphael.Driver"
+    FlyoutBehavior="Disabled">
+
+    <!-- RE-064: no side menu. The menu at the bottom of the main pages (Controls/Menu/NavMenuView)
+         reaches every item below; the items stay because they define the pages and their routes. -->
 
     <!--
         ⚠️ The top bar and the side-menu background are painted from code (AppShell.PaintChrome),

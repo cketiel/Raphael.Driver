@@ -1,4 +1,4 @@
-using Raphael.Driver.ViewModels;
+﻿using Raphael.Driver.ViewModels;
 
 namespace Raphael.Driver.Views;
 
@@ -7,6 +7,8 @@ public partial class FutureSchedulePage : ContentPage
 	public FutureSchedulePage(FutureScheduleViewModel viewModel)
 	{
 		InitializeComponent();
+        // RE-064: the menu at the bottom; these pages are part of Schedule.
+        Controls.Menu.NavMenuView.Attach(this, "schedule");
         BindingContext = viewModel;
     }
 
