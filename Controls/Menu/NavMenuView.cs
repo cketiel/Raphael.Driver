@@ -160,18 +160,52 @@ namespace Raphael.Driver.Controls.Menu
             // content afterwards cut the old content off from its parent: it stopped following the
             // theme (Settings kept its light cards in Dark) and never raised Loaded.
             page.Content = null;
-            page.Content = new Grid { Children = { content, menu } };
+            var root = new Grid { Children = { content, menu } };
+            page.Content = root;
+            KeepHeight(page, root);
             page.Disappearing += (_, _) => menu.CloseAll();
             page.Appearing += (_, _) =>
             {
-                Console.WriteLine($"RAPHAEL-PERF: {current} appearing {Since()} ms");
                 menu.Settle();
-                page.Dispatcher.Dispatch(() => Console.WriteLine($"RAPHAEL-PERF: {current} shown {Since()} ms"));
             };
         }
 
-        private static long _tapTicks;
-        private static long Since() => (long)System.Diagnostics.Stopwatch.GetElapsedTime(_tapTicks).TotalMilliseconds;
+        private static double _visibleHeight;
+
+        /// <summary>
+        /// Android measures a page for a moment with the wrong height when its section is shown
+        /// again. The menu follows the height of its page, so it was drawn cut off or stretched
+        /// until the next pass. The page takes its height from the visible area of the window
+        /// instead, which that pass does not change and the keyboard does.
+        /// </summary>
+        private static void KeepHeight(ContentPage page, Grid root)
+        {
+#if ANDROID
+            if (_visibleHeight > 0)
+            {
+                root.VerticalOptions = LayoutOptions.Start;
+                root.HeightRequest = _visibleHeight;
+            }
+
+            void Measure()
+            {
+                if (root.Handler?.PlatformView is not Android.Views.View view || !view.IsShown) return;
+                var frame = new Android.Graphics.Rect();
+                view.GetWindowVisibleDisplayFrame(frame);
+                var at = new int[2];
+                view.GetLocationOnScreen(at);
+                var height = (frame.Bottom - at[1]) / DeviceDisplay.Current.MainDisplayInfo.Density;
+                if (height < 100 || Math.Abs(height - root.HeightRequest) < .5) return;
+                _visibleHeight = height;
+                root.VerticalOptions = LayoutOptions.Start;
+                root.HeightRequest = height;
+            }
+
+            root.SizeChanged += (_, _) => Measure();
+            page.Appearing += (_, _) => page.Dispatcher.Dispatch(Measure);
+#endif
+        }
+
 
         private void Rebuild()
         {
@@ -1309,7 +1343,6 @@ namespace Raphael.Driver.Controls.Menu
                     try { await Shell.Current.GoToAsync($"//SettingsPage/{nameof(Views.DocumentsPage)}"); } catch (Exception) { }
                     return;
             }
-            _tapTicks = System.Diagnostics.Stopwatch.GetTimestamp();
             CloseAll();
             if (it.Key == _current || it.Route == null) return;
             try

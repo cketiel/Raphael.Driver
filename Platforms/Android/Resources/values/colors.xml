@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#D32F2F</color>
-    <color name="colorPrimaryDark">#9A0007</color>
+    <color name="colorPrimary">#07577A</color>
+    <color name="colorPrimaryDark">#075475</color>
     <color name="colorAccent">#C62828</color>
 
     <!-- Tint of the push notification icon. Same red as the Shell navigation bar. -->

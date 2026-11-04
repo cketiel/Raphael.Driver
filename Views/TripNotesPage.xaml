@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.TripNotesPage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:TripNotesViewModel"
              Title="NOTES"
              BackgroundColor="{DynamicResource PageBackgroundColor}">

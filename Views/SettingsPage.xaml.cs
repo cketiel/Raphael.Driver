@@ -39,11 +39,9 @@ public partial class SettingsPage : ContentPage
     private void LoadAppearance()
     {
         if (AppearanceHost.Content is not null || BindingContext is not SettingsViewModel vm) return;
-        var start = System.Diagnostics.Stopwatch.GetTimestamp();
         var view = (View)((DataTemplate)Resources["AppearanceTemplate"]).CreateContent();
         AppearanceHost.Content = view;
         _stylesList = view.GetVisualTreeDescendants().OfType<CollectionView>().First();
-        Console.WriteLine($"RAPHAEL-PERF: appearance {(long)System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds} ms");
         Dispatcher.Dispatch(() =>
         {
             _stylesList.ItemsSource = vm.ScheduleStyles;
@@ -65,6 +63,7 @@ public partial class SettingsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        Helpers.ReadyPages.Documents.PrepareSoon(Dispatcher);
         if (BindingContext is SettingsViewModel loading)
         {
             loading.LoadMapAppsCommand.Execute(null);

@@ -42,16 +42,16 @@ namespace Raphael.Driver
 
             //Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
             //Routing.RegisterRoute(nameof(SchedulePage), typeof(SchedulePage));
-            Routing.RegisterRoute(nameof(Views.PullOutDetailPage), typeof(Views.PullOutDetailPage));
+            Routing.RegisterRoute(nameof(Views.PullOutDetailPage), ReadyPages.PullOutDetail);
             //Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
-            Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
+            Routing.RegisterRoute(nameof(EventDetailPage), ReadyPages.EventDetail);
             Routing.RegisterRoute(nameof(SignaturePage), typeof(SignaturePage));
             Routing.RegisterRoute(nameof(Views.VehicleInspectionPage), typeof(Views.VehicleInspectionPage));
 
             Routing.RegisterRoute(nameof(FutureDetailPage), typeof(FutureDetailPage));
             Routing.RegisterRoute(nameof(TripNotesPage), typeof(TripNotesPage)); // RE-054
-            Routing.RegisterRoute(nameof(DocumentsPage), typeof(DocumentsPage)); // RE-065
-            Routing.RegisterRoute(nameof(DocumentUploadPage), typeof(DocumentUploadPage));
+            Routing.RegisterRoute(nameof(DocumentsPage), ReadyPages.Documents); // RE-065
+            Routing.RegisterRoute(nameof(DocumentUploadPage), ReadyPages.DocumentUpload);
 
             //Routing.RegisterRoute("LoginPage", typeof(Views.LoginPage));
             //Routing.RegisterRoute("HomePage", typeof(Views.HomePage));
@@ -85,33 +85,21 @@ namespace Raphael.Driver
                     {
                         if (!routes.Contains(content.Route)) continue;
                         await Task.Yield();
-                        var start = System.Diagnostics.Stopwatch.GetTimestamp();
                         try
                         {
                             if (((IShellContentController)content).GetOrCreateContent() is Page page)
                                 _ = Microsoft.Maui.Platform.ElementExtensions.ToPlatform(page, context);
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
-                            Console.WriteLine($"RAPHAEL-PERF: warm {content.Route} failed: {ex.Message}");
+                            // built when it is opened
                         }
-                        Console.WriteLine($"RAPHAEL-PERF: warm {content.Route} {(long)System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds} ms");
                     }
-        }
-
-        private long _navTicks;
-        protected override void OnNavigating(ShellNavigatingEventArgs args)
-        {
-            base.OnNavigating(args);
-            _navTicks = System.Diagnostics.Stopwatch.GetTimestamp();
         }
 
         protected override void OnNavigated(ShellNavigatedEventArgs args)
         {
             base.OnNavigated(args);
-            var routeNow = args.Current?.Location?.OriginalString;
-            var ticks = _navTicks;
-            Dispatcher.Dispatch(() => Console.WriteLine($"RAPHAEL-PERF: {routeNow} {(long)System.Diagnostics.Stopwatch.GetElapsedTime(ticks).TotalMilliseconds} ms"));
 
             if (CurrentPage is Page page)
                 PaintBar(page);

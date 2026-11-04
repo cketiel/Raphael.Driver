@@ -48,6 +48,10 @@ public partial class TodaySchedulePage : ContentPage, IRouteSignalHandler
             vm.LoadEventsCommand.Execute(null);
         }
 
+        // The stop or garage page a tap here opens.
+        Helpers.ReadyPages.EventDetail.PrepareSoon(Dispatcher);
+        Helpers.ReadyPages.PullOutDetail.PrepareSoon(Dispatcher);
+
         _signals.Register(this);
     }
 

@@ -77,7 +77,7 @@ namespace Raphael.Driver.Services
                 // left the menu hanging open over the login page.
                 Shell.Current.FlyoutIsPresented = false;
 
-                await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+                await Shell.Current.GoToAsync($"//{nameof(LoginPage)}", false);
             });
         }
 

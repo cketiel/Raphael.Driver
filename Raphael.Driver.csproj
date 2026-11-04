@@ -100,6 +100,7 @@
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<!-- Everything precompiled: profiled AOT left pages to the JIT, measured 2x frames skipped on a low-end phone. -->
 		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<EnableLLVM>true</EnableLLVM>
 		<AndroidSigningV2Enabled>True</AndroidSigningV2Enabled>
 		<AndroidSigningV3Enabled>True</AndroidSigningV3Enabled>
 		<!-- ⚠️ This is the PropertyGroup that governs the distributed APK. It and the general
@@ -289,4 +290,7 @@
 	  </None>
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)'=='net10.0-android'">
+		<AndroidEnvironment Include="Platforms\Android\environment.txt" />
+	</ItemGroup>
 </Project>

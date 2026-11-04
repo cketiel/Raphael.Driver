@@ -12,6 +12,9 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 - The GPS service no longer stops the app when Android refuses to start it in the background.
 
 ### Fixed (RE-066 — speed)
+- The bottom menu no longer shows cut off or stretched when changing section: pages keep the height of the visible window area.
+- Internal pages open without animation and the next one is prepared in advance; returning to Today redraws only the rows that changed.
+- The status bar no longer turns red when the app is reopened.
 - The menu changes page at once: no wait of 440 ms for its animation, no page transition, and the
   full menu and its dialogs open without delays or fades.
 

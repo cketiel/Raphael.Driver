@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
              xmlns:models="clr-namespace:Raphael.Driver.Models"
              x:Class="Raphael.Driver.Views.FutureDetailPage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:FutureDetailViewModel"
              xmlns:enums="clr-namespace:Raphael.Driver.Models"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"

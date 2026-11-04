@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" 
              x:Class="Raphael.Driver.Views.SignaturePage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:SignatureViewModel"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters" 
              Shell.NavBarIsVisible="False">
