@@ -28,6 +28,7 @@ public partial class TodaySchedulePage : ContentPage, IRouteSignalHandler
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        if (BindingContext is TodayScheduleViewModel { RunLogin: null or "" } && string.IsNullOrWhiteSpace(ActiveRun.RunLogin)) { _ = Shell.Current.GoToAsync("//SchedulePage"); return; }
         if (BindingContext is TodayScheduleViewModel today && !string.IsNullOrWhiteSpace(ActiveRun.RunLogin) && today.RunLogin != ActiveRun.RunLogin) today.RunLogin = ActiveRun.RunLogin;
 
         // Back from Settings with another style or theme: the cards are drawn again from the

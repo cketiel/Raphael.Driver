@@ -33,12 +33,31 @@ public partial class SettingsPage : ContentPage
         };
     }
 
-    // Built the first time Appearance opens; the other tabs never pay for it.
+    private CollectionView? _stylesList;
+
+    // Built the first time Appearance opens, and the tiles right after it shows.
     private void LoadAppearance()
     {
-        if (MenuPickerHost.Content is not null || BindingContext is not SettingsViewModel vm) return;
-        StylesList.ItemsSource = vm.ScheduleStyles;
-        MenuPickerHost.Content = new Controls.Menu.MenuStylePicker();
+        if (AppearanceHost.Content is not null || BindingContext is not SettingsViewModel vm) return;
+        var start = System.Diagnostics.Stopwatch.GetTimestamp();
+        var view = (View)((DataTemplate)Resources["AppearanceTemplate"]).CreateContent();
+        AppearanceHost.Content = view;
+        _stylesList = view.GetVisualTreeDescendants().OfType<CollectionView>().First();
+        Console.WriteLine($"RAPHAEL-PERF: appearance {(long)System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds} ms");
+        Dispatcher.Dispatch(() => _stylesList.ItemsSource = vm.ScheduleStyles);
+    }
+
+    private async void OnContact(object? sender, EventArgs e) => await Shell.Current.GoToAsync(nameof(ContactPage));
+
+    private void OnMessages(object? sender, EventArgs e) =>
+        ((AppShellViewModel)Shell.Current.BindingContext).SendSmsCommand.Execute(null);
+
+    private async void OnChangeRoute(object? sender, EventArgs e) => await Shell.Current.GoToAsync("//SchedulePage");
+
+    private async void OnSignOut(object? sender, EventArgs e)
+    {
+        if (await DisplayAlert("Sign out?", null, "Sign out", "Cancel"))
+            ((AppShellViewModel)Shell.Current.BindingContext).SignOutCommand.Execute(null);
     }
 
     // The driver's style in view, wherever it sits in the strip. After the first layout:
@@ -46,7 +65,7 @@ public partial class SettingsPage : ContentPage
     private void ScrollToChosenStyle()
     {
         if (BindingContext is SettingsViewModel vm && vm.ScheduleStyles.FirstOrDefault(o => o.IsSelected) is { } chosen)
-            Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(300), () => StylesList.ScrollTo(chosen, position: ScrollToPosition.Center, animate: false));
+            Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(300), () => _stylesList?.ScrollTo(chosen, position: ScrollToPosition.Center, animate: false));
     }
 
     protected override void OnAppearing()

@@ -5,6 +5,12 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Changed (RE-066 — navigation)
+- Native bottom bar and tabs: main pages and Today, History and Future are built once and reused.
+- Pages are prepared at the sign-in screen; Appearance is built when it first opens.
+- Settings › Account has Contact, Messages, Change route and Sign out.
+- The GPS service no longer stops the app when Android refuses to start it in the background.
+
 ### Fixed (RE-066 — speed)
 - The menu changes page at once: no wait of 440 ms for its animation, no page transition, and the
   full menu and its dialogs open without delays or fades.

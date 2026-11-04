@@ -171,7 +171,7 @@
     <!-- DEFINITION OF MENU ITEMS -->
 
     <!-- Native bar: pages are built once and reused. -->
-<TabBar>
+<TabBar Shell.TabBarBackgroundColor="#0B5A7A" Shell.TabBarForegroundColor="White" Shell.TabBarTitleColor="White" Shell.TabBarUnselectedColor="#B8CFDA">
         <Tab Title="Home" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph=&#xf015;, Color=#0B5A7A}"><ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" /></Tab>
         <Tab Title="Schedule" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph=&#xf073;, Color=#0B5A7A}">
             <ShellContent Route="TodaySchedulePage" Title="Today" ContentTemplate="{DataTemplate views:TodaySchedulePage}" />
@@ -183,7 +183,6 @@
     </TabBar>
 
     <ShellContent Route="SchedulePage" FlyoutItemIsVisible="False" ContentTemplate="{DataTemplate views:SchedulePage}" />
-    <ShellContent Route="ContactPage" FlyoutItemIsVisible="False" ContentTemplate="{DataTemplate views:ContactPage}" />
 
     <MenuItem
         Text="MESSAGES"

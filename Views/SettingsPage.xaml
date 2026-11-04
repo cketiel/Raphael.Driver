@@ -83,6 +83,82 @@
             <Setter Property="StrokeShape" Value="RoundRectangle 12" />
             <Setter Property="Padding" Value="12,2" />
         </Style>
+        <DataTemplate x:Key="AppearanceTemplate" x:DataType="viewmodels:SettingsViewModel">
+<VerticalStackLayout IsVisible="{Binding IsAppearance}">
+
+            <!-- Theme. The same switch as the sign-in page; the choice is kept on this phone. -->
+            <Label Text="THEME" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <controls:ThemeSwitcher CapsuleColor="{DynamicResource TintColor}"
+                                            RingColor="{DynamicResource InkColor}" />
+                    <Button Grid.Column="1"
+                            Text="Use phone setting"
+                            Command="{Binding FollowPhoneThemeCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{DynamicResource TertiaryTextColor}"
+                            FontSize="14"
+                            Padding="0"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!--
+                How the stops look in Today's Schedule and on each stop (Controls/ScheduleCards). Each
+                tile is a real card in that style, shrunk; a tap opens a preview with "Use this style".
+                Kept on this phone, like the theme. Until a driver picks one it is Map Pin.
+            -->
+            <Label Text="SCHEDULE STYLE" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="12,10">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="How stops look in Today's Schedule and on each stop. Tap one to preview it."
+                           FontSize="13"
+                           TextColor="{DynamicResource SecondaryTextColor}" />
+                    <CollectionView 
+                                    
+                                    SelectionMode="None"
+                                    HeightRequest="146">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ScheduleStyleOption">
+                                <Border WidthRequest="126"
+                                        Padding="6,6,6,8"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{DynamicResource PageBackgroundColor}">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                            <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStyleTapped" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="5">
+                                        <cards:StyleThumbnail CardStyle="{Binding Style}" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}" FontSize="12.5" FontAttributes="Bold"
+                                                   TextColor="{DynamicResource InkColor}" LineBreakMode="TailTruncation" />
+                                            <Label Grid.Column="1" Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12"
+                                                   TextColor="{DynamicResource AccentColor}" IsVisible="{Binding IsSelected}"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                        <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+        </DataTemplate>
     </ContentPage.Resources>
 
     <Grid x:Name="Root">
@@ -173,6 +249,14 @@
                 </VerticalStackLayout>
             </Border>
 
+            <Label Text="MORE" Style="{StaticResource SectionTitleStyle}" />
+            <VerticalStackLayout Spacing="8">
+                <Button Text="Contact" Clicked="OnContact" Style="{StaticResource SecondaryButtonStyle}" />
+                <Button Text="Messages" Clicked="OnMessages" Style="{StaticResource SecondaryButtonStyle}" />
+                <Button Text="Change route" Clicked="OnChangeRoute" Style="{StaticResource SecondaryButtonStyle}" />
+                <Button Text="Sign out" Clicked="OnSignOut" Style="{StaticResource SecondaryButtonStyle}" />
+            </VerticalStackLayout>
+
             <Label Text="ABOUT" Style="{StaticResource SectionTitleStyle}" />
             <Border Style="{StaticResource Card}" Padding="14,12">
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
@@ -187,95 +271,8 @@
             </Border>
         </VerticalStackLayout>
 
-        <!-- APPEARANCE ==================================================================== -->
-        <VerticalStackLayout IsVisible="{Binding IsAppearance}">
-
-            <!-- Theme. The same switch as the sign-in page; the choice is kept on this phone. -->
-            <Label Text="THEME" Style="{StaticResource SectionTitleStyle}" />
-            <Border Style="{StaticResource Card}" Padding="14,10">
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                    <controls:ThemeSwitcher CapsuleColor="{DynamicResource TintColor}"
-                                            RingColor="{DynamicResource InkColor}" />
-                    <Button Grid.Column="1"
-                            Text="Use phone setting"
-                            Command="{Binding FollowPhoneThemeCommand}"
-                            BackgroundColor="Transparent"
-                            TextColor="{DynamicResource TertiaryTextColor}"
-                            FontSize="14"
-                            Padding="0"
-                            HorizontalOptions="End"
-                            VerticalOptions="Center" />
-                </Grid>
-            </Border>
-
-            <!--
-                How the stops look in Today's Schedule and on each stop (Controls/ScheduleCards). Each
-                tile is a real card in that style, shrunk; a tap opens a preview with "Use this style".
-                Kept on this phone, like the theme. Until a driver picks one it is Map Pin.
-            -->
-            <Label Text="SCHEDULE STYLE" Style="{StaticResource SectionTitleStyle}" />
-            <Border Style="{StaticResource Card}" Padding="12,10">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="How stops look in Today's Schedule and on each stop. Tap one to preview it."
-                           FontSize="13"
-                           TextColor="{DynamicResource SecondaryTextColor}" />
-                    <CollectionView x:Name="StylesList"
-                                    
-                                    SelectionMode="None"
-                                    HeightRequest="146">
-                        <CollectionView.ItemsLayout>
-                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
-                        </CollectionView.ItemsLayout>
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:ScheduleStyleOption">
-                                <Border WidthRequest="126"
-                                        Padding="6,6,6,8"
-                                        StrokeThickness="2"
-                                        StrokeShape="RoundRectangle 12"
-                                        BackgroundColor="{DynamicResource PageBackgroundColor}">
-                                    <Border.Triggers>
-                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                            <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
-                                            <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
-                                        </DataTrigger>
-                                    </Border.Triggers>
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnStyleTapped" />
-                                    </Border.GestureRecognizers>
-                                    <VerticalStackLayout Spacing="5">
-                                        <cards:StyleThumbnail CardStyle="{Binding Style}" />
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding Name}" FontSize="12.5" FontAttributes="Bold"
-                                                   TextColor="{DynamicResource InkColor}" LineBreakMode="TailTruncation" />
-                                            <Label Grid.Column="1" Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12"
-                                                   TextColor="{DynamicResource AccentColor}" IsVisible="{Binding IsSelected}"
-                                                   VerticalOptions="Center" />
-                                        </Grid>
-                                        <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
-                                    </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
-            </Border>
-
-            <!--
-                RE-064: how the menu at the bottom of the main pages looks: four cards, each with the
-                real menu shrunk, like SCHEDULE STYLE. A tap uses it at once; kept on this phone.
-            -->
-            <Label Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
-            <Border Style="{StaticResource Card}" Padding="12,10">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="How the menu at the bottom looks. Tap one to use it."
-                           FontSize="13"
-                           TextColor="{DynamicResource SecondaryTextColor}" />
-                    <ContentView x:Name="MenuPickerHost" />
-                </VerticalStackLayout>
-            </Border>
-        </VerticalStackLayout>
+        <!-- APPEARANCE: built the first time it opens (AppearanceTemplate). -->
+        <ContentView x:Name="AppearanceHost" IsVisible="{Binding IsAppearance}" />
 
         <!-- NAVIGATION ==================================================================== -->
         <VerticalStackLayout IsVisible="{Binding IsNavigation}">

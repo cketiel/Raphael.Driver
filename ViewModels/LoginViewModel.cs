@@ -134,7 +134,6 @@ public partial class LoginViewModel : ObservableObject
                 // this page as the new root, restoring the menu. A driver with no run of their
                 // own today reaches the Schedule page, to type one, from its SCHEDULE button.
                 await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
-                (Shell.Current as AppShell)?.WarmUpPages();
 
                 // Notifications on: hidden list for this driver, inbox, live hub and the push
                 // token. It runs after the token is in Preferences because every one of those
