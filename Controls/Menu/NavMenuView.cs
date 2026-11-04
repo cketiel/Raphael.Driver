@@ -150,7 +150,6 @@ namespace Raphael.Driver.Controls.Menu
         /// <summary>Puts the menu on <paramref name="page"/>: its content and the menu share one grid.</summary>
         public static void Attach(ContentPage page, string current)
         {
-            if (UseNativeBar) return;
             var content = page.Content;
             var menu = new NavMenuView(current);
             var bottom = content.Margin.Bottom;
@@ -170,9 +169,6 @@ namespace Raphael.Driver.Controls.Menu
                 page.Dispatcher.Dispatch(() => Console.WriteLine($"RAPHAEL-PERF: {current} shown {Since()} ms"));
             };
         }
-
-        /// <summary>Test build: the native bar instead of this menu.</summary>
-        public const bool UseNativeBar = true;
 
         private static long _tapTicks;
         private static long Since() => (long)System.Diagnostics.Stopwatch.GetElapsedTime(_tapTicks).TotalMilliseconds;
@@ -1321,7 +1317,7 @@ namespace Raphael.Driver.Controls.Menu
                 // Schedule opens Today, with its History · Today · Future tabs, when the run is
                 // known, as the Dashboard's SCHEDULE button does; otherwise the Run Login page.
                 if (it.Key == "schedule" && !string.IsNullOrWhiteSpace(ActiveRun.RunLogin))
-                    await Shell.Current.GoToAsync($"//SchedulePage/{nameof(Views.TodaySchedulePage)}", animate: false, new Dictionary<string, object> { { "runLogin", ActiveRun.RunLogin! } });
+                    await Shell.Current.GoToAsync($"//{nameof(Views.TodaySchedulePage)}", animate: false, new Dictionary<string, object> { { "runLogin", ActiveRun.RunLogin! } });
                 else
                     await Shell.Current.GoToAsync("//" + it.Route, animate: false);
             }

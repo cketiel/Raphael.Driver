@@ -49,7 +49,6 @@ namespace Raphael.Driver
             Routing.RegisterRoute(nameof(Views.VehicleInspectionPage), typeof(Views.VehicleInspectionPage));
 
             Routing.RegisterRoute(nameof(FutureDetailPage), typeof(FutureDetailPage));
-            Routing.RegisterRoute(nameof(ContactPage), typeof(ContactPage));
             Routing.RegisterRoute(nameof(TripNotesPage), typeof(TripNotesPage)); // RE-054
             Routing.RegisterRoute(nameof(DocumentsPage), typeof(DocumentsPage)); // RE-065
             Routing.RegisterRoute(nameof(DocumentUploadPage), typeof(DocumentUploadPage));
@@ -79,7 +78,7 @@ namespace Raphael.Driver
             _warmed = true;
             var context = Handler?.MauiContext;
             if (context is null) return;
-            string[] routes = ["DashboardPage", "TodaySchedulePage", "NotificationsPage", "SettingsPage", "HistoryPage", "FutureSchedulePage"];
+            string[] routes = ["DashboardPage", "SchedulePage", "ContactPage", "TodaySchedulePage", "NotificationsPage", "SettingsPage", "HistoryPage", "FutureSchedulePage"];
             foreach (var item in Items)
                 foreach (var section in item.Items)
                     foreach (var content in section.Items)

@@ -150,7 +150,16 @@
                                                    VerticalOptions="Center" />
                                         </Grid>
                                         <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
-                                    </VerticalStackLayout>
+                                    <Label Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="12,10">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="How the menu at the bottom looks. Tap one to use it."
+                           FontSize="13"
+                           TextColor="{DynamicResource SecondaryTextColor}" />
+                    <menu:MenuStylePicker />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -248,14 +257,6 @@
                     </Grid>
                 </VerticalStackLayout>
             </Border>
-
-            <Label Text="MORE" Style="{StaticResource SectionTitleStyle}" />
-            <VerticalStackLayout Spacing="8">
-                <Button Text="Contact" Clicked="OnContact" Style="{StaticResource SecondaryButtonStyle}" />
-                <Button Text="Messages" Clicked="OnMessages" Style="{StaticResource SecondaryButtonStyle}" />
-                <Button Text="Change route" Clicked="OnChangeRoute" Style="{StaticResource SecondaryButtonStyle}" />
-                <Button Text="Sign out" Clicked="OnSignOut" Style="{StaticResource SecondaryButtonStyle}" />
-            </VerticalStackLayout>
 
             <Label Text="ABOUT" Style="{StaticResource SectionTitleStyle}" />
             <Border Style="{StaticResource Card}" Padding="14,12">

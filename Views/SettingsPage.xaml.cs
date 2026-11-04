@@ -47,19 +47,6 @@ public partial class SettingsPage : ContentPage
         Dispatcher.Dispatch(() => _stylesList.ItemsSource = vm.ScheduleStyles);
     }
 
-    private async void OnContact(object? sender, EventArgs e) => await Shell.Current.GoToAsync(nameof(ContactPage));
-
-    private void OnMessages(object? sender, EventArgs e) =>
-        ((AppShellViewModel)Shell.Current.BindingContext).SendSmsCommand.Execute(null);
-
-    private async void OnChangeRoute(object? sender, EventArgs e) => await Shell.Current.GoToAsync("//SchedulePage");
-
-    private async void OnSignOut(object? sender, EventArgs e)
-    {
-        if (await DisplayAlert("Sign out?", null, "Sign out", "Cancel"))
-            ((AppShellViewModel)Shell.Current.BindingContext).SignOutCommand.Execute(null);
-    }
-
     // The driver's style in view, wherever it sits in the strip. After the first layout:
     // asked for any earlier, the list has no items on screen yet and does not move.
     private void ScrollToChosenStyle()
