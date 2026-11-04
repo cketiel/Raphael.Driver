@@ -9,6 +9,7 @@
              xmlns:menu="clr-namespace:Raphael.Driver.Controls.Menu"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.SettingsPage"
+             x:Name="ThisPage"
              x:DataType="viewmodels:SettingsViewModel"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
@@ -22,8 +23,8 @@
     </Shell.TitleView>
 
     <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding LoadMapAppsCommand}" />
-        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding LoadProfileCommand}" />
+        <toolkit:EventToCommandBehavior BindingContext="{Binding Path=BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}" EventName="Appearing" Command="{Binding LoadMapAppsCommand}" />
+        <toolkit:EventToCommandBehavior BindingContext="{Binding Path=BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}" EventName="Appearing" Command="{Binding LoadProfileCommand}" />
     </ContentPage.Behaviors>
 
     <!--
