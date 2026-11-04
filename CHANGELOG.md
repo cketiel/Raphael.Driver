@@ -5,6 +5,14 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Changed (RE-066 — Google Play)
+- Targets Android 16 (API 36) on .NET 10, as Google Play requires. CommunityToolkit.Maui 14.
+- The stamp's wait explanation opens centered: the toolkit no longer anchors popups.
+
+### Security (RE-066)
+- `allowBackup=false`: patient data is not copied to Android backups. A reinstall signs in again.
+- Removed the `QUERY_ALL_PACKAGES` permission.
+
 ⚠️ **RE-062 needs the Raphael.Backend release with RE-062.** Against an older backend the inspection
 cannot be sent and the outbox keeps it; switch the inspection on for a Provider only once its drivers
 have this version.

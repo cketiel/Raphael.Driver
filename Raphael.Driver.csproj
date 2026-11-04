@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Raphael.Driver</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -14,8 +14,8 @@
 		<!-- Propiedades Generales -->
 		<ApplicationTitle>Raphael.Driver</ApplicationTitle>
 		<ApplicationId>com.raphael.driver</ApplicationId>
-		<ApplicationDisplayVersion>1.7.4</ApplicationDisplayVersion>
-		<ApplicationVersion>18</ApplicationVersion>
+		<ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+		<ApplicationVersion>22</ApplicationVersion>
 		<AssemblyVersion>1.2.0</AssemblyVersion>
 		<FileVersion>1.2.0</FileVersion>
 
@@ -57,23 +57,23 @@
 	<!-- =================================================================== -->
 
 	<!-- Configuración para Android -->
-	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-android'">
+	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-android'">
 		<!-- Versión mínima recomendada para estabilidad (Android 7.0) -->
 		<SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<!-- Configuración para iOS -->
-	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-ios'">
+	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-ios'">
 		<SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<!-- Configuración para Mac Catalyst -->
-	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-maccatalyst'">
+	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-maccatalyst'">
 		<SupportedOSPlatformVersion>13.1</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<!-- Configuración para Windows -->
-	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-windows10.0.19041.0'">
+	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-windows10.0.19041.0'">
 		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 		<!-- Propiedades de publicación de Windows movidas aquí -->
@@ -95,7 +95,7 @@
 	<!-- =================================================================== -->
 	<!-- INICIO: CONFIGURACIÓN DE PUBLICACIÓN (RELEASE) PARA ANDROID -->
 	<!-- =================================================================== -->
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
 		<!-- Esta propiedad FUERZA la generación de un .apk en lugar de un .aab -->
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<AndroidSigningV2Enabled>True</AndroidSigningV2Enabled>
@@ -105,8 +105,8 @@
 		     ApplicationVersion is the Android versionCode: Google Play refuses an upload whose
 		     versionCode is not strictly greater than the last one, so it only ever goes up,
 		     never back, and never repeats — even for a build that is thrown away. -->
-		<ApplicationDisplayVersion>1.7.4</ApplicationDisplayVersion>
-		<ApplicationVersion>18</ApplicationVersion>
+		<ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+		<ApplicationVersion>22</ApplicationVersion>
 
 		<!-- Aquí irán las propiedades de firma que el asistente de publicación añade automáticamente -->
 		<!-- Ejemplo: -->
@@ -115,33 +115,33 @@
 		<!-- <AndroidSigningKeyPass>mi_password</AndroidSigningKeyPass> -->
 		<!-- <AndroidSigningStorePass>mi_password</AndroidSigningStorePass> -->
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-android|AnyCPU'">
 	  <!-- Kept in step with Release so a phone under test reports the version it is actually
 	       running. It never reaches a store, so its versionCode has nothing to collide with. -->
 	  <ApplicationDisplayVersion>1.4.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>9</ApplicationVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-ios|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-maccatalyst|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-maccatalyst|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-windows10.0.19041.0|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-ios|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-maccatalyst|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-maccatalyst|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-windows10.0.19041.0|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
@@ -178,17 +178,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="14.2.2" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<!-- Live in-app notifications: the /hubs/notifications SignalR hub -->
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.11" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
 	</ItemGroup>
 
 	<!-- =================================================================== -->
@@ -198,7 +198,7 @@
 	<!-- google-services.json sale del proyecto Firebase "raphael-nemt", -->
 	<!-- el mismo que firma el backend. Sin él, el push no se entrega. -->
 	<!-- =================================================================== -->
-	<ItemGroup Condition="'$(TargetFramework)'=='net8.0-android'">
+	<ItemGroup Condition="'$(TargetFramework)'=='net10.0-android'">
 		<!-- ⚠️ Pinned to the 123.1.x line on purpose. From 123.2 onwards Firebase pulls the
 		     AndroidX generation that merged the .ktx artifacts into their parents (Collection
 		     1.4, Lifecycle 2.8), while .NET MAUI 8 still pins the split ones. Both ship

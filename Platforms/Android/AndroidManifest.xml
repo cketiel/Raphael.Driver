@@ -17,10 +17,9 @@
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 	<!-- RE-062: the vehicle inspection takes a photo of every problem, with the camera only. -->
 	<uses-permission android:name="android.permission.CAMERA" />
-	<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 		
 	<application
-		android:allowBackup="true"
+		android:allowBackup="false"
 		android:icon="@mipmap/appicon"
 		android:supportsRtl="true"
 		android:usesCleartextTraffic="true"

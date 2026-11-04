@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls.Shapes;
 using Raphael.Driver.DTOs;
@@ -651,8 +652,8 @@ namespace Raphael.Driver.Controls.ScheduleCards
 
         private WaitPopup(EventLook look)
         {
-            Color = Colors.Transparent;
-            CanBeDismissedByTappingOutsideOfPopup = true;
+            BackgroundColor = Colors.Transparent;
+            Padding = 0;
             var title = new Label { Text = $"Wait {look.WaitMinutes} min", FontSize = 13.5, FontAttributes = FontAttributes.Bold, TextColor = Colors.White };
             var body = new Label { Text = look.WaitExplanation, FontSize = 13, TextColor = Colors.White, LineBreakMode = LineBreakMode.WordWrap };
             Content = new Border
@@ -679,9 +680,9 @@ namespace Raphael.Driver.Controls.ScheduleCards
                 return;
 
             _open?.CloseQuietly();
-            var popup = new WaitPopup(look) { Anchor = anchor };
+            var popup = new WaitPopup(look);
             _open = popup;
-            page.ShowPopup(popup);
+            page.ShowPopup(popup, new CommunityToolkit.Maui.PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true, Shape = null, Shadow = null });
             anchor.Dispatcher.DispatchDelayed(TimeSpan.FromSeconds(6), popup.CloseQuietly);
         }
 
@@ -692,7 +693,7 @@ namespace Raphael.Driver.Controls.ScheduleCards
             _closed = true;
             try
             {
-                Close();
+                _ = CloseAsync();
             }
             catch (Exception ex)
             {

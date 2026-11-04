@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui.Views;
+﻿using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using Raphael.Driver.Models;
 using Raphael.Driver.ViewModels;
 
@@ -51,6 +52,6 @@ public partial class SettingsPage : ContentPage
         if ((sender as BindableObject)?.BindingContext is not ScheduleStyleOption option || BindingContext is not SettingsViewModel vm)
             return;
 
-        this.ShowPopup(new ScheduleStylePreviewPopup(option.Info, () => vm.UseScheduleStyleCommand.Execute(option.Style)));
+        this.ShowPopup(new ScheduleStylePreviewPopup(option.Info, () => vm.UseScheduleStyleCommand.Execute(option.Style)), new CommunityToolkit.Maui.PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true, Shape = null, Shadow = null });
     }
 }
