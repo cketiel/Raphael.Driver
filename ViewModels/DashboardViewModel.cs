@@ -190,7 +190,7 @@ namespace Raphael.Driver.ViewModels
             IsBusy = true;
             try
             {
-                await Shell.Current.GoToAsync(nameof(TodaySchedulePage), new Dictionary<string, object>
+                await Shell.Current.GoToAsync("//" + nameof(TodaySchedulePage), new Dictionary<string, object>
                 {
                     { "runLogin", RunLogin }
                 });

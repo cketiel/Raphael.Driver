@@ -150,6 +150,7 @@ namespace Raphael.Driver.Controls.Menu
         /// <summary>Puts the menu on <paramref name="page"/>: its content and the menu share one grid.</summary>
         public static void Attach(ContentPage page, string current)
         {
+            if (UseNativeBar) return;
             var content = page.Content;
             var menu = new NavMenuView(current);
             var bottom = content.Margin.Bottom;
@@ -169,6 +170,9 @@ namespace Raphael.Driver.Controls.Menu
                 page.Dispatcher.Dispatch(() => Console.WriteLine($"RAPHAEL-PERF: {current} shown {Since()} ms"));
             };
         }
+
+        /// <summary>Test build: the native bar instead of this menu.</summary>
+        public const bool UseNativeBar = true;
 
         private static long _tapTicks;
         private static long Since() => (long)System.Diagnostics.Stopwatch.GetElapsedTime(_tapTicks).TotalMilliseconds;

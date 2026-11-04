@@ -42,10 +42,10 @@ namespace Raphael.Driver.ViewModels
             if (IsBusy) return;
 
             IsBusy = true;
-            Events.Clear();
             try
             {
                 var completedEvents = await _scheduleService.GetScheduleHistoryAsync(RunLogin, DateTime.Today);
+                Events.Clear();
                 foreach (var ev in completedEvents)
                 {
                     Events.Add(ev);
@@ -67,7 +67,7 @@ namespace Raphael.Driver.ViewModels
             }
 
             // We use ".." to navigate to the previous page in the navigation stack.
-            await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync("//TodaySchedulePage");
         }
     }
 }

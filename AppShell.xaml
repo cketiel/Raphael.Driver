@@ -7,7 +7,7 @@
     xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Title="Raphael.Driver"
     FlyoutBehavior="Disabled"
-    Shell.TabBarIsVisible="False">
+    >
 
     <!-- RE-064: no side menu. The menu at the bottom of the main pages (Controls/Menu/NavMenuView)
          reaches every item below; the items stay because they define the pages and their routes. -->
@@ -170,14 +170,20 @@
 
     <!-- DEFINITION OF MENU ITEMS -->
 
-    <!-- One item and one section per main page: changing page only swaps a section already built. -->
-<TabBar Shell.TabBarIsVisible="False">
-        <ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" />
-        <ShellContent Route="SchedulePage" ContentTemplate="{DataTemplate views:SchedulePage}" />
-        <ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" />
-        <ShellContent Route="ContactPage" ContentTemplate="{DataTemplate views:ContactPage}" />
-        <ShellContent Route="SettingsPage" ContentTemplate="{DataTemplate views:SettingsPage}" />
+    <!-- Native bar: pages are built once and reused. -->
+<TabBar>
+        <Tab Title="Home" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph=&#xf015;, Color=#0B5A7A}"><ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" /></Tab>
+        <Tab Title="Schedule" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph=&#xf073;, Color=#0B5A7A}">
+            <ShellContent Route="TodaySchedulePage" Title="Today" ContentTemplate="{DataTemplate views:TodaySchedulePage}" />
+            <ShellContent Route="HistoryPage" Title="History" ContentTemplate="{DataTemplate views:HistoryPage}" />
+            <ShellContent Route="FutureSchedulePage" Title="Future" ContentTemplate="{DataTemplate views:FutureSchedulePage}" />
+        </Tab>
+        <Tab Title="Alerts" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph=&#xf0f3;, Color=#0B5A7A}"><ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" /></Tab>
+        <Tab Title="Settings" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph=&#xf013;, Color=#0B5A7A}"><ShellContent Route="SettingsPage" ContentTemplate="{DataTemplate views:SettingsPage}" /></Tab>
     </TabBar>
+
+    <ShellContent Route="SchedulePage" FlyoutItemIsVisible="False" ContentTemplate="{DataTemplate views:SchedulePage}" />
+    <ShellContent Route="ContactPage" FlyoutItemIsVisible="False" ContentTemplate="{DataTemplate views:ContactPage}" />
 
     <MenuItem
         Text="MESSAGES"

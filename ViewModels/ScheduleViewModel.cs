@@ -39,7 +39,7 @@ namespace Raphael.Driver.ViewModels
                     { "runLogin", RunLogin }
                 };
 
-                await Shell.Current.GoToAsync(nameof(TodaySchedulePage), navigationParameter);
+                await Shell.Current.GoToAsync("//" + nameof(TodaySchedulePage), navigationParameter);
             }
             catch (Exception ex)
             {               
@@ -66,7 +66,7 @@ namespace Raphael.Driver.ViewModels
             try
             {
                 IsBusy = true;
-                await Shell.Current.GoToAsync(nameof(FutureSchedulePage), new Dictionary<string, object>
+                await Shell.Current.GoToAsync("//" + nameof(FutureSchedulePage), new Dictionary<string, object>
                 {
                     { "runLogin", RunLogin }
                 });

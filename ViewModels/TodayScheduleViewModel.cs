@@ -103,7 +103,7 @@ namespace Raphael.Driver.ViewModels
                 // RE-063: CHANGE ROUTE to another company's route. Back to where it was typed.
                 Events.Clear();
                 await Shell.Current.DisplayAlert(RouteNotAllowedException.Title, RouteNotAllowedException.Explanation, "OK");
-                await Shell.Current.GoToAsync("..");
+                await Shell.Current.GoToAsync("//SchedulePage");
             }
             catch (Exception ex)
             {
@@ -163,7 +163,7 @@ namespace Raphael.Driver.ViewModels
         {
             if (string.IsNullOrWhiteSpace(RunLogin)) return;
           
-            await Shell.Current.GoToAsync(nameof(HistoryPage), new Dictionary<string, object>
+            await Shell.Current.GoToAsync("//" + nameof(HistoryPage), new Dictionary<string, object>
             {
                 { "runLogin", RunLogin }
             });

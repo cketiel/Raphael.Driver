@@ -42,18 +42,14 @@ namespace Raphael.Driver
 
             //Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
             //Routing.RegisterRoute(nameof(SchedulePage), typeof(SchedulePage));
-            Routing.RegisterRoute(nameof(TodaySchedulePage), typeof(TodaySchedulePage));
             Routing.RegisterRoute(nameof(Views.PullOutDetailPage), typeof(Views.PullOutDetailPage));
             //Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
             Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
             Routing.RegisterRoute(nameof(SignaturePage), typeof(SignaturePage));
             Routing.RegisterRoute(nameof(Views.VehicleInspectionPage), typeof(Views.VehicleInspectionPage));
 
-            Routing.RegisterRoute(nameof(FutureSchedulePage), typeof(FutureSchedulePage));
             Routing.RegisterRoute(nameof(FutureDetailPage), typeof(FutureDetailPage));
-            Routing.RegisterRoute(nameof(HistoryPage), typeof(HistoryPage));
             Routing.RegisterRoute(nameof(TripNotesPage), typeof(TripNotesPage)); // RE-054
-            Routing.RegisterRoute(nameof(ContactPage), typeof(ContactPage));
             Routing.RegisterRoute(nameof(DocumentsPage), typeof(DocumentsPage)); // RE-065
             Routing.RegisterRoute(nameof(DocumentUploadPage), typeof(DocumentUploadPage));
 
@@ -70,9 +66,19 @@ namespace Raphael.Driver
         /// Shell, a theme change left the bar of the theme the app started with: the Shell reads
         /// its appearance from the page first, and does not repaint for a resource it already used.
         /// </summary>
+        private long _navTicks;
+        protected override void OnNavigating(ShellNavigatingEventArgs args)
+        {
+            base.OnNavigating(args);
+            _navTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+        }
+
         protected override void OnNavigated(ShellNavigatedEventArgs args)
         {
             base.OnNavigated(args);
+            var routeNow = args.Current?.Location?.OriginalString;
+            var ticks = _navTicks;
+            Dispatcher.Dispatch(() => Console.WriteLine($"RAPHAEL-PERF: {routeNow} {(long)System.Diagnostics.Stopwatch.GetElapsedTime(ticks).TotalMilliseconds} ms"));
 
             if (CurrentPage is Page page)
                 PaintBar(page);

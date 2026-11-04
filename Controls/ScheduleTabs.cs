@@ -48,6 +48,7 @@ namespace Raphael.Driver.Controls
         private void Render()
         {
             Children.Clear();
+            if (Menu.NavMenuView.UseNativeBar) { IsVisible = false; return; }
 
             // The app's one style of tabs; a tap here swaps the page instead of selecting.
             var tabs = new SegmentedTabs
