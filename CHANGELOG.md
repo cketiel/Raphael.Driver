@@ -39,7 +39,7 @@ have this version.
 - A menu at the bottom of Dashboard, Schedule, Notifications, Settings and Contact, with Home,
   Schedule, Alerts and Settings always in view. It reaches the same pages and runs the same
   commands as the side menu did.
-- Sixteen menu styles in the code (General, Thematic, Neutral, Christmas); four are offered.
+- Sixteen menu styles in the code (General, Thematic, Neutral, Christmas); three are offered.
 - All options: the logo with its halo, MAIN and MORE in two columns (icon and name), and Sign out.
 - Sign out asks first: "Sign out?", Cancel or Sign out.
 - Schedule opens Today with History · Today · Future tabs; the route icon beside them is Change
@@ -49,8 +49,9 @@ have this version.
   Contact's place: drivers use it more), Change route, Sign out and All options.
 - Call me sits in the title bar, as a round icon in the bell's old place, instead of floating over
   the cards. Its colour still says how the request is going.
-- Settings › MENU STYLE offers four styles as cards with a picture of each: Angel (the default),
-  Underline (logo on the right, by the thumb), Metro and Crescent. The other styles stay in the code.
+- Settings › MENU STYLE offers three styles as cards with a picture of each: Metro (the default),
+  Underline (logo on the right, by the thumb) and Crescent. The other styles, Angel among them, stay in
+  the code and are not offered; a phone that had one goes to Metro.
 
 ### Changed (RE-064)
 - No side menu: the hamburger is gone, the menu at the bottom replaces it.

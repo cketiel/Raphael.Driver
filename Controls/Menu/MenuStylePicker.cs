@@ -4,7 +4,7 @@ using Raphael.Driver.Services;
 namespace Raphael.Driver.Controls.Menu
 {
     /// <summary>
-    /// Settings › MENU STYLE (RE-064): the four styles on offer as cards in a strip, like SCHEDULE
+    /// Settings › MENU STYLE (RE-064): the three styles on offer as cards in a strip, like SCHEDULE
     /// STYLE. Each card shows a picture of the real menu in that style; the one in use has the
     /// accent border and a check. A tap uses the style at once and keeps it on this
     /// phone. Every other style stays in the code (<see cref="MenuStyleManager.All"/>).
@@ -16,7 +16,7 @@ namespace Raphael.Driver.Controls.Menu
             MenuStyle.Underline => "menu_preview_underline.png",
             MenuStyle.Metro => "menu_preview_metro.png",
             MenuStyle.Crescent => "menu_preview_crescent.png",
-            _ => "menu_preview_angel.png",
+            _ => "menu_preview_metro.png",
         };
 
         public MenuStylePicker()

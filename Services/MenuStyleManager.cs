@@ -9,7 +9,7 @@ namespace Raphael.Driver.Services
     public enum MenuStyle
     {
         // General: the identity of Raphael, the angel.
-        AngelWings = 0,   // K with the wings of round 5 (the default)
+        AngelWings = 0,   // K with the wings of round 5
         AngelDove = 1,    // K with the dove wings
         Crescent = 2,     // N, the four on the thumb's arc, right or left hand
         Pulse = 3,        // L, an ECG line beats over the selected item
@@ -24,7 +24,7 @@ namespace Raphael.Driver.Services
 
         // Neutral.
         Underline = 20,     // C
-        Metro = 21,         // S
+        Metro = 21,         // S (the default)
         HealthCross = 22,   // T
         Island = 23,        // F
         Jump = 24,          // J
@@ -38,8 +38,8 @@ namespace Raphael.Driver.Services
 
     /// <param name="Ready">False for a style that is listed but not built yet: it shows as
     /// "Coming soon" and cannot be picked.</param>
-    /// <param name="Listed">Offered in Settings. Every style stays in the code; only these four are
-    /// shown to choose from (decision of 2026-11-02): Angel, Underline, Metro and Crescent.</param>
+    /// <param name="Listed">Offered in Settings. Every style stays in the code; only these three are
+    /// shown to choose from: Metro, Underline and Crescent.</param>
     public sealed record MenuStyleInfo(MenuStyle Style, string Name, MenuStyleGroup Group, bool Ready, string About, bool Listed = false);
 
     /// <summary>The menu style on this phone, chosen in Settings. Same pattern as
@@ -49,11 +49,11 @@ namespace Raphael.Driver.Services
         private const string PreferenceKey = "MenuStyle";
 
         /// <summary>What a phone shows until its driver picks a style.</summary>
-        public const MenuStyle DefaultStyle = MenuStyle.AngelWings;
+        public const MenuStyle DefaultStyle = MenuStyle.Metro;
 
         public static IReadOnlyList<MenuStyleInfo> All { get; } =
         [
-            new(MenuStyle.AngelWings, "Angel", MenuStyleGroup.General, true, "The logo in the middle; its wings open the menu.", Listed: true),
+            new(MenuStyle.AngelWings, "Angel", MenuStyleGroup.General, true, "The logo in the middle; its wings open the menu."),
             new(MenuStyle.AngelDove, "Angel Dove", MenuStyleGroup.General, true, "The same angel, with the soft wings of a dove."),
             new(MenuStyle.Crescent, "Crescent", MenuStyleGroup.General, true, "The four on the arc of your thumb, for either hand.", Listed: true),
             new(MenuStyle.Pulse, "Pulse", MenuStyleGroup.General, true, "A heartbeat line marks where you are."),
@@ -83,7 +83,7 @@ namespace Raphael.Driver.Services
 
         /// <summary>The styles Settings offers, in this order.</summary>
         public static IReadOnlyList<MenuStyleInfo> Listed { get; } =
-            [Info(MenuStyle.AngelWings), Info(MenuStyle.Underline), Info(MenuStyle.Metro), Info(MenuStyle.Crescent)];
+            [Info(MenuStyle.Metro), Info(MenuStyle.Underline), Info(MenuStyle.Crescent)];
 
         /// <summary>Raised after the driver picks another style, so the menus on screen rebuild.</summary>
         public static event EventHandler? StyleChanged;
@@ -103,7 +103,7 @@ namespace Raphael.Driver.Services
         {
             var stored = Preferences.Get(PreferenceKey, (int)DefaultStyle);
             // A stored style that is unknown, or not built in this version, falls back to the default.
-            // One no longer offered (a phone that had another style before) goes back to Angel.
+            // One no longer offered (a phone that had another style before) goes back to the default.
             return Enum.IsDefined(typeof(MenuStyle), stored) && Info((MenuStyle)stored).Listed
                 ? (MenuStyle)stored
                 : DefaultStyle;
