@@ -66,6 +66,39 @@ namespace Raphael.Driver
         /// Shell, a theme change left the bar of the theme the app started with: the Shell reads
         /// its appearance from the page first, and does not repaint for a resource it already used.
         /// </summary>
+        private bool _warmed;
+
+        /// <summary>
+        /// Prepares the main pages after sign-in, one at a time, so the first tap finds them ready.
+        /// A page that fails here is simply built when it is opened.
+        /// </summary>
+        public async void WarmUpPages()
+        {
+            if (_warmed) return;
+            _warmed = true;
+            var context = Handler?.MauiContext;
+            if (context is null) return;
+            string[] routes = ["TodaySchedulePage", "NotificationsPage", "SettingsPage", "HistoryPage", "FutureSchedulePage"];
+            foreach (var item in Items)
+                foreach (var section in item.Items)
+                    foreach (var content in section.Items)
+                    {
+                        if (!routes.Contains(content.Route)) continue;
+                        await Task.Yield();
+                        var start = System.Diagnostics.Stopwatch.GetTimestamp();
+                        try
+                        {
+                            if (((IShellContentController)content).GetOrCreateContent() is Page page)
+                                _ = Microsoft.Maui.Platform.ElementExtensions.ToPlatform(page, context);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"RAPHAEL-PERF: warm {content.Route} failed: {ex.Message}");
+                        }
+                        Console.WriteLine($"RAPHAEL-PERF: warm {content.Route} {(long)System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds} ms");
+                    }
+        }
+
         private long _navTicks;
         protected override void OnNavigating(ShellNavigatingEventArgs args)
         {

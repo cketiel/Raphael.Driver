@@ -121,7 +121,9 @@ namespace Raphael.Driver.ViewModels
 
         public async Task OnAppearingAsync()
         {
-            await _store.RefreshAsync();
+            IsRefreshing = true;
+            try { await _store.RefreshAsync(); }
+            finally { IsRefreshing = false; }
         }
     }
 }
