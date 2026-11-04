@@ -658,8 +658,7 @@ namespace Raphael.Driver.Controls.Menu
             _placers.Add(() => At(light, Cx - 20, Height - BarH - 36));
             void Lit(int k) { for (var i = 0; i < 3; i++) lamps[i].Fill = new SolidColorBrush(i == k ? Color.FromArgb(lamps[i].ClassId) : Color.FromArgb("#2B3A42")); }
             Lit(0);
-            _panelDelay = 520;
-            _onOpen = async () => { Lit(1); await Task.Delay(260); Lit(2); };
+            _onOpen = () => Lit(2);
             _onClose = () => Lit(0);
         }
 
@@ -1304,21 +1303,14 @@ namespace Raphael.Driver.Controls.Menu
             }
             CloseAll();
             if (it.Key == _current || it.Route == null) return;
-            var from = Index(_current);
-            var to = Index(it.Key);
-            if (from >= 0 && to >= 0 && _arrivals.Count > 0)
-            {
-                foreach (var move in _arrivals) move(from, to);
-                await Task.Delay(440);
-            }
             try
             {
                 // Schedule opens Today, with its History · Today · Future tabs, when the run is
                 // known, as the Dashboard's SCHEDULE button does; otherwise the Run Login page.
                 if (it.Key == "schedule" && !string.IsNullOrWhiteSpace(ActiveRun.RunLogin))
-                    await Shell.Current.GoToAsync($"//SchedulePage/{nameof(Views.TodaySchedulePage)}", new Dictionary<string, object> { { "runLogin", ActiveRun.RunLogin! } });
+                    await Shell.Current.GoToAsync($"//SchedulePage/{nameof(Views.TodaySchedulePage)}", animate: false, new Dictionary<string, object> { { "runLogin", ActiveRun.RunLogin! } });
                 else
-                    await Shell.Current.GoToAsync("//" + it.Route);
+                    await Shell.Current.GoToAsync("//" + it.Route, animate: false);
             }
             catch (Exception) { /* stays on this page; the menu is still there to try again */ }
         }
@@ -1326,7 +1318,7 @@ namespace Raphael.Driver.Controls.Menu
         private void ShowVeil()
         {
             _veil.IsVisible = true;
-            _veil.FadeTo(.32, 200);
+            _veil.Opacity = .32;
         }
 
         private void OpenFan()
@@ -1342,33 +1334,22 @@ namespace Raphael.Driver.Controls.Menu
                 v.TranslationX = Cx - (v.Margin.Left + _fanW / 2);
                 v.TranslationY = Cy - (v.Margin.Top + _fanH / 2);
                 v.Scale = .3;
-                var delay = _fanFirst + i * _fanStep;
-                Task.Delay(delay).ContinueWith(_ => MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    if (!_fanOpen) return;
-                    v.TranslateTo(0, 0, 420, Easing.SpringOut);
-                    v.ScaleTo(1, 420, Easing.SpringOut);
-                    v.FadeTo(1, 200);
-                }));
+                v.TranslationX = 0;
+                v.TranslationY = 0;
+                v.Scale = 1;
+                v.Opacity = 1;
             }
         }
 
-        private async Task CloseFan()
+        private Task CloseFan()
         {
-            if (!_fanOpen) return;
+            if (!_fanOpen) return Task.CompletedTask;
             _fanOpen = false;
-            foreach (var v in _fan)
-            {
-                _ = v.FadeTo(0, 150);
-                _ = v.TranslateTo(Cx - (v.Margin.Left + _fanW / 2), Cy - (v.Margin.Top + _fanH / 2), 200, Easing.CubicIn);
-            }
-            _onClose?.Invoke();
-            await Task.Delay(220);
+            
             foreach (var v in _fan) v.IsVisible = false;
-            if (_center != null) _center.ZIndex = 12;
-        }
-
-        private async void OpenPanel(bool skipDelay = false)
+            
+            foreach (var v in _fan) v.Opacity = 0;
+            return Task.CompletedTask;(bool skipDelay = false)
         {
             _panelOpen = true;
             ShowVeil();
@@ -1376,13 +1357,11 @@ namespace Raphael.Driver.Controls.Menu
             if (!skipDelay)
             {
                 _onOpen?.Invoke();
-                if (_panelDelay > 0) await Task.Delay(_panelDelay);
             }
             if (!_panelOpen) return;
             _panel.IsVisible = true;
-            _panel.TranslationY = 24;
-            _ = _panel.FadeTo(1, 200);
-            _ = _panel.TranslateTo(0, 0, 320, Easing.SpringOut);
+            _panel.TranslationY = 0;
+            _panel.Opacity = 1;
         }
 
         private void HidePanel()
@@ -1399,20 +1378,17 @@ namespace Raphael.Driver.Controls.Menu
             _confirmOpen = true;
             ShowVeil();
             _confirm.IsVisible = true;
-            _confirm.Scale = .92;
-            _confirm.FadeTo(1, 180);
-            _confirm.ScaleTo(1, 220, Easing.CubicOut);
+            _confirm.Scale = 1;
+            _confirm.Opacity = 1;
         }
 
-        private async void CloseAll()
+        private void CloseAll()
         {
-            await CloseFan();
-            HidePanel();
-            _confirmOpen = false;
+            _ = CloseFan();
             _confirm.Opacity = 0;
             _confirm.IsVisible = false;
-            await _veil.FadeTo(0, 150);
-            if (!_fanOpen && !_panelOpen && !_confirmOpen) _veil.IsVisible = false;
+            _veil.Opacity = 0;
+            _veil.IsVisible = false;
         }
 
         // ---------------- animations ----------------

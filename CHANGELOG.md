@@ -5,6 +5,10 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Fixed (RE-066 — speed)
+- The menu changes page at once: no wait of 440 ms for its animation, no page transition, and the
+  full menu and its dialogs open without delays or fades.
+
 ### Changed (RE-066 — Google Play)
 - Targets Android 16 (API 36) on .NET 10, as Google Play requires. CommunityToolkit.Maui 14.
 - The stamp's wait explanation opens centered: the toolkit no longer anchors popups.
