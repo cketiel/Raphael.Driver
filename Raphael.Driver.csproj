@@ -98,6 +98,8 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
 		<!-- Esta propiedad FUERZA la generación de un .apk en lugar de un .aab -->
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<!-- Everything precompiled: profiled AOT left pages to the JIT, measured 2x frames skipped on a low-end phone. -->
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
 		<AndroidSigningV2Enabled>True</AndroidSigningV2Enabled>
 		<AndroidSigningV3Enabled>True</AndroidSigningV3Enabled>
 		<!-- ⚠️ This is the PropertyGroup that governs the distributed APK. It and the general

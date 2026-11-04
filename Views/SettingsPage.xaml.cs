@@ -43,6 +43,11 @@ public partial class SettingsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        if (BindingContext is SettingsViewModel loading)
+        {
+            loading.LoadMapAppsCommand.Execute(null);
+            loading.LoadProfileCommand.Execute(null);
+        }
         if (BindingContext is SettingsViewModel { IsAppearance: true }) ScrollToChosenStyle();
     }
 

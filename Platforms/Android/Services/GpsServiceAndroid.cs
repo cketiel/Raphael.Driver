@@ -60,6 +60,8 @@ namespace Raphael.Driver.Services
             if (IsTracking) return;
 
             _idVehicleRoute = idVehicleRoute;
+            // Started as well as bound, or it would die with the activity while tracking.
+            StartService(new Intent(this, typeof(GpsServiceAndroid)));
             PromoteToForegroundService();
 
             _timer = new System.Timers.Timer(30000); // 30 segundos

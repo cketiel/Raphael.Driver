@@ -9,7 +9,6 @@
              xmlns:menu="clr-namespace:Raphael.Driver.Controls.Menu"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.SettingsPage"
-             x:Name="ThisPage"
              x:DataType="viewmodels:SettingsViewModel"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
@@ -21,11 +20,6 @@
     <Shell.TitleView>
         <controls:PageTitleBar Title="SETTINGS" Icon="&#xf013;" ShowBell="False" /><!-- RE-064: the bell lives in the menu now, as Alerts with its count -->
     </Shell.TitleView>
-
-    <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior BindingContext="{Binding Path=BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}" EventName="Appearing" Command="{Binding LoadMapAppsCommand}" />
-        <toolkit:EventToCommandBehavior BindingContext="{Binding Path=BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}" EventName="Appearing" Command="{Binding LoadProfileCommand}" />
-    </ContentPage.Behaviors>
 
     <!--
         RE-065 layout: who is signed in at the top, then three tabs.
