@@ -9,6 +9,32 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 cannot be sent and the outbox keeps it; switch the inspection on for a Provider only once its drivers
 have this version.
 
+### Added (RE-065 — compliance documents)
+
+- Settings › MY DOCUMENTS (also in All options): the driver's documents and those of the vehicle of
+  their route, each with its state (valid, expiring, expired, in review, rejected with the reason).
+- Upload or renew a document with a photo, an image from the gallery or a PDF, and its expiration date.
+  The five vehicle photos are guided step by step with the outline of each side.
+- A banner on the Dashboard when a document expires within a week, has expired or was rejected.
+- The office's message about documents (sent from the Desktop) stays on the Dashboard until read;
+  tapping it shows it whole, with a way into My documents.
+- Angel and Metro menus: the tab in use in the accent colour in Dark and Infrared, where it barely
+  stood out.
+- My documents redesigned: a header with the driver and three counters (valid, need you, in review),
+  tabs with a badge, and cards with a stripe in the colour of their state, the kind of file (PDF,
+  image, 5 photos), the expiry date and a bar of the year left.
+- Settings reorganised: the driver, username and vehicle at the top, then three tabs — Account (my
+  documents, change password, version), Appearance (theme, schedule and menu styles) and Navigation
+  (default maps app).
+- Change password from Settings › Account, with the current one, in a sheet from the bottom.
+- One style of tabs in the whole app (the schedule's History · Today · Future), now also in My documents
+  and Settings. No red backgrounds on tabs, headers or actions: red is kept for errors.
+- My documents: the counters say whose they are (My documents or the vehicle's); View and Upload / Renew
+  have icons and are centred; View shows "Opening…" while the file comes, and an upload covers the page
+  with its progress ("Uploading photo 2 of 5…").
+
+⚠️ Needs the Raphael.Backend release with RE-065.
+
 ### Added (RE-064 — menu styles)
 - A menu at the bottom of Dashboard, Schedule, Notifications, Settings and Contact, with Home,
   Schedule, Alerts and Settings always in view. It reaches the same pages and runs the same

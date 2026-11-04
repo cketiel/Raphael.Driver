@@ -36,6 +36,7 @@ namespace Raphael.Driver.Controls.Menu
         private static readonly Item SignOut = new("out", "", "Sign out", null);
         private static readonly Item AllOptions = new("all", "", "All options", null);
         private static readonly Item CallMe = new("callme", "", "Call me", null);
+        private static readonly Item Documents = new("docs", "", "Documents", null); // RE-065
         private static readonly Item ChangeRoute = new("route", "", "Change route", "SchedulePage");
 
         private const double BarH = 76, CenterD = 70, Raise = 26, PanelGap = 96;
@@ -260,7 +261,9 @@ namespace Raphael.Driver.Controls.Menu
         /// <summary>K: the logo in the middle; its wings are folded beside it and open with the fan.</summary>
         private void BuildAngel()
         {
-            var bar = Bar(CardBrush(.97f));
+            // The tab in use in the accent: InkColor is near white in Dark and Infrared and did not
+            // stand out from the others there.
+            var bar = Bar(CardBrush(.97f), IsLightish ? "InkColor" : "AccentColor");
             var halo = Halo(30, 9, Gold());
             Add(halo);
             Bob(halo);
@@ -761,7 +764,7 @@ namespace Raphael.Driver.Controls.Menu
         /// <summary>S: a metro line; the items are stations and a train runs to the page.</summary>
         private void BuildMetro()
         {
-            Bar(CardBrush(.97f));
+            Bar(CardBrush(.97f), IsLightish ? "InkColor" : "AccentColor");
             var line = new BoxView { HeightRequest = 4, Color = ThemeManager.GetColor("SeparatorColor", Colors.LightGray), ZIndex = 11, InputTransparent = true, VerticalOptions = LayoutOptions.Start, HorizontalOptions = LayoutOptions.Start };
             var fill = new BoxView { HeightRequest = 4, Color = Accent(), ZIndex = 11, InputTransparent = true, VerticalOptions = LayoutOptions.Start, HorizontalOptions = LayoutOptions.Start };
             var train = new BoxView { WidthRequest = 28, HeightRequest = 10, CornerRadius = 5, Color = Next(), ZIndex = 11, InputTransparent = true, HorizontalOptions = LayoutOptions.Start, VerticalOptions = LayoutOptions.Start };
@@ -975,7 +978,7 @@ namespace Raphael.Driver.Controls.Menu
                 }
                 var text = new Label { Text = it.Label, FontSize = 10.5, FontAttributes = on ? FontAttributes.Bold : FontAttributes.None, HorizontalTextAlignment = TextAlignment.Center };
                 if (onHex != null || offHex != null) text.TextColor = Color.FromArgb(on ? onHex ?? "#FFFFFF" : offHex ?? "#8EA2AD");
-                else text.SetDynamicResource(Label.TextColorProperty, on ? "InkColor" : "SecondaryTextColor");
+                else text.SetDynamicResource(Label.TextColorProperty, on ? onKey ?? "InkColor" : "SecondaryTextColor");
                 var v = new VerticalStackLayout { Spacing = 3, VerticalOptions = LayoutOptions.Center, Padding = new Thickness(0, 8), Children = { Badged(icon, it), text } };
                 SemanticProperties.SetDescription(v, it.Label);
                 v.GestureRecognizers.Add(Tap(() => Run(it)));
@@ -1108,7 +1111,7 @@ namespace Raphael.Driver.Controls.Menu
             var head = new Grid { ColumnDefinitions = Columns("Auto,*,Auto"), ColumnSpacing = 12 };
             head.Add(tile, 0); head.Add(title, 1); head.Add(close, 2);
 
-            var stack = new VerticalStackLayout { Spacing = 8, Children = { head, Section("MAIN"), Tiles(Main), Section("MORE"), Tiles([Messages, Contact, ChangeRoute, CallMe]) } };
+            var stack = new VerticalStackLayout { Spacing = 8, Children = { head, Section("MAIN"), Tiles(Main), Section("MORE"), Tiles([Messages, Contact, ChangeRoute, CallMe, Documents]) } };
             var outGrid = new Grid { ColumnDefinitions = Columns("28,*"), ColumnSpacing = 10, Padding = new Thickness(14, 12) };
             outGrid.Add(Glyph(SignOut.Glyph, 17, "DangerColor"), 0);
             var outText = new Label { Text = "Sign out", FontAttributes = FontAttributes.Bold, FontSize = 14, VerticalOptions = LayoutOptions.Center };
@@ -1292,6 +1295,11 @@ namespace Raphael.Driver.Controls.Menu
                 case "callme":
                     CloseAll();
                     CallRequest();
+                    return;
+                case "docs":
+                    // Under Settings, where MY DOCUMENTS lives: Back returns there.
+                    CloseAll();
+                    try { await Shell.Current.GoToAsync($"//SettingsPage/{nameof(Views.DocumentsPage)}"); } catch (Exception) { }
                     return;
             }
             CloseAll();

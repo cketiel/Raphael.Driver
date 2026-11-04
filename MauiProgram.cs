@@ -100,6 +100,25 @@ namespace Raphael.Driver
             }).AddHttpMessageHandler<AuthHeaderHandler>()
             .AddHttpMessageHandler<ClientVersionHandler>();
 
+            // RE-065: compliance documents. Two minutes: five photos over a weak signal take a while,
+            // and the driver is watching a spinner, not driving.
+            builder.Services.AddHttpClient<IComplianceService, ComplianceService>(client =>
+            {
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+                client.Timeout = TimeSpan.FromMinutes(2);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
+            // Settings › Account: the driver's own password.
+            builder.Services.AddHttpClient<IAccountService, AccountService>(client =>
+            {
+                client.BaseAddress = new Uri(ApiEnvironment.BaseUrl);
+            }).AddHttpMessageHandler<AuthHeaderHandler>()
+            .AddHttpMessageHandler<ClientVersionHandler>();
+            builder.Services.AddTransient<DocumentsViewModel>();
+            builder.Services.AddTransient<DocumentsPage>();
+            builder.Services.AddTransient<DocumentUploadViewModel>();
+            builder.Services.AddTransient<DocumentUploadPage>();
+
             // RE-062: every change the driver makes goes to the server through the outbox, which keeps it
             // on the phone without coverage and sends it, in order, when the connection comes back.
             builder.Services.AddHttpClient(nameof(Raphael.Driver.Services.Offline.Outbox), client =>

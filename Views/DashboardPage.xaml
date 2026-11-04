@@ -114,6 +114,10 @@
                                TextColor="{DynamicResource InkColor}" />
                     </VerticalStackLayout>
 
+                    <!-- RE-065: only when a document expires within a week, expired or was rejected. -->
+                    <controls:ComplianceNoticeBanner />
+                    <controls:DocumentsStatusCard Banner="True" IsVisible="False" />
+
                     <!-- ============================================================== -->
                     <!-- Run Info                                                         -->
                     <!-- ============================================================== -->

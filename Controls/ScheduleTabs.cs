@@ -36,7 +36,6 @@ namespace Raphael.Driver.Controls
         ];
 
         private bool _busy;
-        private readonly List<View> _icons = [];
 
         public ScheduleTabs()
         {
@@ -46,48 +45,19 @@ namespace Raphael.Driver.Controls
             Render();
         }
 
-        private Border _track = null!;
-        private Grid _thumb = null!;
-
         private void Render()
         {
             Children.Clear();
-            var i = Array.FindIndex(Tabs, t => t.Key == Selected);
 
-            _icons.Clear();
-            // The thumb is a card on the tinted track, in the theme's colours, with a coral line
-            // under the tab in use (design: «.stabs .th»).
-            var line = new BoxView { HeightRequest = 3, WidthRequest = 22, CornerRadius = 2, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.End, Margin = new Thickness(0, 0, 0, 5) };
-            line.SetDynamicResource(BoxView.ColorProperty, "NextColor");
-            var card = new Border { StrokeThickness = 1, StrokeShape = new RoundRectangle { CornerRadius = 10 }, Shadow = new Shadow { Brush = Colors.Black, Opacity = .12f, Radius = 6, Offset = new Point(0, 2) } };
-            card.SetDynamicResource(BackgroundColorProperty, "CardBackgroundColor");
-            card.SetDynamicResource(Border.StrokeProperty, "SeparatorColor");
-            _thumb = new Grid { Margin = new Thickness(3), Children = { card, line } };
-            var grid = new Grid { ColumnDefinitions = [new(GridLength.Star), new(GridLength.Star), new(GridLength.Star)], HeightRequest = 44 };
-            grid.Add(_thumb, Math.Max(i, 0));
-            for (var k = 0; k < Tabs.Length; k++)
+            // The app's one style of tabs; a tap here swaps the page instead of selecting.
+            var tabs = new SegmentedTabs
             {
-                var t = Tabs[k];
-                var on = k == i;
-                var icon = new Label { Text = t.Glyph, FontFamily = "FontAwesomeSolid", FontSize = 13, VerticalOptions = LayoutOptions.Center };
-                icon.SetDynamicResource(Label.TextColorProperty, on ? "NextColor" : "SecondaryTextColor");
-                var text = new Label { Text = t.Label, FontSize = 13, FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
-                text.SetDynamicResource(Label.TextColorProperty, on ? "InkColor" : "SecondaryTextColor");
-                var cell = new HorizontalStackLayout { Spacing = 6, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center, Children = { icon, text } };
-                _icons.Add(icon);
-                var hit = new Grid { BackgroundColor = Colors.Transparent, Children = { cell } };
-                SemanticProperties.SetDescription(hit, on ? $"{t.Label}, selected" : t.Label);
-                var page = t.Page;
-                var key = t.Key;
-                var tap = new TapGestureRecognizer();
-                var index = k;
-                tap.Tapped += async (_, _) => await Go(key, page, index);
-                hit.GestureRecognizers.Add(tap);
-                grid.Add(hit, k);
-            }
-            _track = new Border { StrokeThickness = 0, StrokeShape = new RoundRectangle { CornerRadius = 12 }, Content = grid };
-            _track.SetDynamicResource(BackgroundColorProperty, "TintColor");
-            Children.Add(_track);
+                AutoSelect = false,
+                Items = string.Join(";", Tabs.Select(t => $"{t.Key}|{t.Glyph}|{t.Label}")),
+                Selected = Selected
+            };
+            tabs.TabTapped += async (_, key) => await Go(key);
+            Children.Add(tabs);
 
             // CHANGE ROUTE, as an icon: it goes back to the Run Login, as the button did.
             var route = new Label { Text = "", FontFamily = "FontAwesomeSolid", FontSize = 17, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
@@ -102,21 +72,14 @@ namespace Raphael.Driver.Controls
             Children.Add(routeBtn);
         }
 
-        /// <summary>The thumb slides to the tapped tab with a little bounce and its icon bumps, as in
-        /// the design; then the tab's page takes this one's place.</summary>
-        private async Task Go(string key, string page, int index)
+        /// <summary>The tab's page takes this one's place, after the slide of the tabs.</summary>
+        private async Task Go(string key)
         {
             if (_busy || key == Selected || string.IsNullOrWhiteSpace(RunLogin)) return;
             _busy = true;
             try
             {
-                var from = Array.FindIndex(Tabs, t => t.Key == Selected);
-                var step = _track.Width / 3;
-                _ = _thumb.TranslateTo((index - from) * step, 0, 380, Easing.SpringOut);
-                var icon = _icons[index];
-                await icon.ScaleTo(1.35, 140, Easing.CubicOut);
-                await icon.ScaleTo(1, 180, Easing.SpringOut);
-                await Task.Delay(80);
+                var page = Tabs.First(t => t.Key == key).Page;
                 await Shell.Current.GoToAsync($"../{page}", false, new Dictionary<string, object> { { "runLogin", RunLogin } });
             }
             catch (Exception)

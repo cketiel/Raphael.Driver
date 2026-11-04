@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
+             xmlns:controls="clr-namespace:Raphael.Driver.Controls"
+             xmlns:converters="clr-namespace:Raphael.Driver.Converters"
+             x:Class="Raphael.Driver.Views.DocumentUploadPage"
+             x:DataType="viewmodels:DocumentUploadViewModel"
+             BackgroundColor="{DynamicResource PageBackgroundColor}">
+
+    <Shell.TitleView>
+        <controls:PageTitleBar Title="UPLOAD DOCUMENT" Icon="&#xf093;" ShowBell="False" />
+    </Shell.TitleView>
+
+    <!--
+        RE-065. A one-page document: photo, gallery or PDF, the expiry and Send. The vehicle photos:
+        five guided steps, each with the outline of the side to frame (VehicleSilhouetteDrawable),
+        then the summary with the five photos, the expiry and Send.
+    -->
+    <ContentPage.Resources>
+        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        <!-- The accent, not the brand red: red in this app means an error or something to fix. -->
+        <Style TargetType="Button" x:Key="Primary">
+            <Setter Property="BackgroundColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="TextColor" Value="{DynamicResource CardBackgroundColor}" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="HeightRequest" Value="50" />
+        </Style>
+        <Style TargetType="Button" x:Key="Outline">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="BorderColor" Value="{DynamicResource BorderColor}" />
+            <Setter Property="BorderWidth" Value="1.5" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="HeightRequest" Value="46" />
+        </Style>
+        <Style TargetType="Label" x:Key="Section">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CharacterSpacing" Value="1.2" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+            <Setter Property="Margin" Value="4,14,0,6" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid>
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,40" Spacing="8">
+
+            <Label Text="{Binding Name}" FontSize="22" FontAttributes="Bold" TextColor="{DynamicResource InkColor}" />
+            <Label Text="{Binding OwnerLine}" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" />
+
+            <!-- ===== Guided photos: one step ===== -->
+            <VerticalStackLayout IsVisible="{Binding IsSummary, Converter={StaticResource InvertedBoolConverter}}" Spacing="10">
+                <Label Text="{Binding StepText}" Style="{StaticResource Section}" />
+
+                <!-- The dots of the five steps -->
+                <CollectionView ItemsSource="{Binding Slots}" ItemsLayout="HorizontalList" HeightRequest="12" HorizontalOptions="Center">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:DocumentSlot">
+                            <Grid Padding="4,0">
+                                <Ellipse WidthRequest="10" HeightRequest="10">
+                                    <Ellipse.Triggers>
+                                        <DataTrigger TargetType="Ellipse" Binding="{Binding IsCurrent}" Value="True">
+                                            <Setter Property="Fill" Value="{DynamicResource AccentColor}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Ellipse" Binding="{Binding IsCurrent}" Value="False">
+                                            <Setter Property="Fill" Value="{DynamicResource SeparatorColor}" />
+                                        </DataTrigger>
+                                    </Ellipse.Triggers>
+                                </Ellipse>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Border StrokeThickness="1.5" StrokeShape="RoundRectangle 14" Padding="12"
+                        BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource SeparatorColor}">
+                    <Grid HeightRequest="200">
+                        <!-- The outline of the side to frame, until the photo is taken -->
+                        <GraphicsView x:Name="Silhouette" IsVisible="{Binding Current.HasFile, Converter={StaticResource InvertedBoolConverter}}" />
+                        <Image Source="{Binding Current.Preview}" Aspect="AspectFit" IsVisible="{Binding Current.HasFile}" />
+                    </Grid>
+                </Border>
+                <Label Text="{Binding Current.Hint}" FontSize="14.5" HorizontalTextAlignment="Center"
+                       TextColor="{DynamicResource InkColor}" Margin="10,0" />
+
+                <Button Text="Take photo" Style="{StaticResource Primary}" Command="{Binding TakePhotoCommand}" />
+                <Button Text="Choose from gallery" Style="{StaticResource Outline}" Command="{Binding PickImageCommand}" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,6,0,0">
+                    <Button Text="Back" Style="{StaticResource Outline}" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}" />
+                    <Button Grid.Column="1" Text="{Binding NextText}" Style="{StaticResource Outline}" Command="{Binding NextCommand}" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- ===== Summary: the files, the expiry, Send ===== -->
+            <VerticalStackLayout IsVisible="{Binding IsSummary}" Spacing="8">
+
+                <Label Text="FILE" Style="{StaticResource Section}" IsVisible="{Binding IsGuided, Converter={StaticResource InvertedBoolConverter}}" />
+                <Label Text="PHOTOS" Style="{StaticResource Section}" IsVisible="{Binding IsGuided}" />
+
+                <CollectionView ItemsSource="{Binding Slots}" SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="10" VerticalItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:DocumentSlot">
+                            <Border StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8"
+                                    BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource SeparatorColor}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Grid HeightRequest="110">
+                                        <Image Source="{Binding Preview}" Aspect="AspectFill" IsVisible="{Binding IsImage}" />
+                                        <VerticalStackLayout IsVisible="{Binding IsPdf}" VerticalOptions="Center" Spacing="4">
+                                            <Label Text="&#xf1c1;" FontFamily="FontAwesomeSolid" FontSize="38" HorizontalOptions="Center"
+                                                   TextColor="{DynamicResource AccentColor}" />
+                                            <Label Text="PDF" FontSize="12" HorizontalOptions="Center" TextColor="{DynamicResource SecondaryTextColor}" />
+                                        </VerticalStackLayout>
+                                        <Label Text="Missing" IsVisible="{Binding HasFile, Converter={StaticResource InvertedBoolConverter}}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" FontSize="14"
+                                               TextColor="{DynamicResource TertiaryTextColor}" />
+                                    </Grid>
+                                    <Label Text="{Binding Title}" FontSize="13.5" FontAttributes="Bold" TextColor="{DynamicResource InkColor}" />
+                                    <Button Text="Retake" FontSize="13" Padding="0" HeightRequest="34" CornerRadius="10"
+                                            BackgroundColor="Transparent" TextColor="{DynamicResource AccentColor}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DocumentUploadViewModel}}, Path=IsGuided}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DocumentUploadViewModel}}, Path=RetakeCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- One page: how to add it -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding IsGuided, Converter={StaticResource InvertedBoolConverter}}">
+                    <Button Text="Take photo" Style="{StaticResource Outline}" Command="{Binding TakePhotoCommand}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Text="Gallery" Style="{StaticResource Outline}" Command="{Binding PickImageCommand}" />
+                        <Button Grid.Column="1" Text="PDF file" Style="{StaticResource Outline}" Command="{Binding PickPdfCommand}" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <Label Text="EXPIRATION DATE" Style="{StaticResource Section}" />
+                <Border StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="14,4"
+                        BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource SeparatorColor}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Label Text="&#xf073;" FontFamily="FontAwesomeSolid" FontSize="18" VerticalOptions="Center"
+                               TextColor="{DynamicResource AccentColor}" />
+                        <DatePicker Grid.Column="1" Date="{Binding ExpiresOn}" MinimumDate="{Binding MinimumDate}"
+                                    Format="MMMM d, yyyy" FontSize="17" TextColor="{DynamicResource InkColor}" />
+                    </Grid>
+                </Border>
+                <Label Text="The last day it is valid, as printed on the document. Required."
+                       FontSize="12.5" TextColor="{DynamicResource TertiaryTextColor}" Margin="4,0" />
+
+                <Label Text="{Binding Error}" IsVisible="{Binding Error, Converter={StaticResource IsNotNullConverter}}"
+                       FontSize="14" TextColor="{DynamicResource DangerTextColor}" Margin="4,6,4,0" />
+
+                <Button Text="Send for approval" Style="{StaticResource Primary}" Margin="0,12,0,0"
+                        Command="{Binding SubmitCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+                <Label Text="It counts once an admin approves it. Until then, the one you have keeps counting."
+                       FontSize="12.5" HorizontalTextAlignment="Center" TextColor="{DynamicResource TertiaryTextColor}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+    <!-- While the files go up: the page is covered so nothing is tapped twice, and says how far it is. -->
+    <Grid IsVisible="{Binding IsBusy}">
+        <BoxView Color="{DynamicResource OverlayColor}" />
+        <Border Padding="28,24" StrokeThickness="0" StrokeShape="RoundRectangle 20" WidthRequest="260"
+                HorizontalOptions="Center" VerticalOptions="Center" BackgroundColor="{DynamicResource CardBackgroundColor}">
+            <VerticalStackLayout Spacing="14">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{DynamicResource AccentColor}" HeightRequest="44" WidthRequest="44" />
+                <Label Text="{Binding UploadStatus}" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"
+                       TextColor="{DynamicResource InkColor}" />
+                <Label Text="Keep the app open until it finishes." FontSize="13" HorizontalTextAlignment="Center"
+                       TextColor="{DynamicResource SecondaryTextColor}" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+    </Grid>
+</ContentPage>

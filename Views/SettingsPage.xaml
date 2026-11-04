@@ -7,6 +7,7 @@
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              xmlns:cards="clr-namespace:Raphael.Driver.Controls.ScheduleCards"
              xmlns:menu="clr-namespace:Raphael.Driver.Controls.Menu"
+             xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.SettingsPage"
              x:DataType="viewmodels:SettingsViewModel"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
@@ -22,205 +23,424 @@
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding LoadMapAppsCommand}" />
+        <toolkit:EventToCommandBehavior EventName="Appearing" Command="{Binding LoadProfileCommand}" />
     </ContentPage.Behaviors>
 
     <!--
-        V7 Settings (COMPONENTES.md, «.opt»): small upper-case section titles, each option a
-        rounded card. The chosen map gets the accent border, a 10 % accent tint and a filled dot.
+        RE-065 layout: who is signed in at the top, then three tabs.
+          Account    — my documents, username, change password, version.
+          Appearance — theme, schedule style, menu style.
+          Navigation — the default maps app.
+        Change password opens a sheet from the bottom, over the menu.
 
         ⚠️ The selected / not-selected colours come from two DataTriggers, never from a local
         value plus one trigger: leaving a trigger, MAUI removes every DynamicResource on the
         properties it set, and the local one with it (see Styles.xaml, buttons).
     -->
     <ContentPage.Resources>
+        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
         <Style TargetType="Label" x:Key="SectionTitleStyle">
             <Setter Property="FontSize" Value="12.5" />
             <Setter Property="FontAttributes" Value="Bold" />
             <Setter Property="CharacterSpacing" Value="1.2" />
             <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
-            <Setter Property="Margin" Value="4,22,0,10" />
+            <Setter Property="Margin" Value="4,20,0,10" />
+        </Style>
+        <Style TargetType="Label" x:Key="Glyph">
+            <Setter Property="FontFamily" Value="FontAwesomeSolid" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Border" x:Key="Card">
+            <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
+            <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+            <Setter Property="StrokeThickness" Value="1.5" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+        </Style>
+        <Style TargetType="Border" x:Key="IconTile">
+            <Setter Property="WidthRequest" Value="38" />
+            <Setter Property="HeightRequest" Value="38" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 11" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource TintColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style TargetType="Label" x:Key="RowTitle">
+            <Setter Property="FontSize" Value="15.5" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+        </Style>
+        <Style TargetType="Label" x:Key="RowCaption">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+        </Style>
+        <Style TargetType="Label" x:Key="PasswordLabel">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CharacterSpacing" Value="0.8" />
+            <Setter Property="TextColor" Value="{DynamicResource SecondaryTextColor}" />
+            <Setter Property="Margin" Value="2,0,0,4" />
+        </Style>
+        <Style TargetType="Border" x:Key="Field">
+            <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
+            <Setter Property="Stroke" Value="{DynamicResource BorderColor}" />
+            <Setter Property="StrokeThickness" Value="1.2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+            <Setter Property="Padding" Value="12,2" />
         </Style>
     </ContentPage.Resources>
 
-    <!-- RE-064: in a ScrollView now that MENU STYLE lists its styles; it no longer fit on a phone. -->
+    <Grid x:Name="Root">
+
     <ScrollView>
-    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" Padding="16,0,16,16">
+    <VerticalStackLayout Padding="16,14,16,24">
 
-        <!-- Theme. The same switch as the sign-in page; the choice is kept on this phone. -->
-        <Label Grid.Row="0" Text="THEME" Style="{StaticResource SectionTitleStyle}" />
-
-        <Border Grid.Row="1"
-                BackgroundColor="{DynamicResource CardBackgroundColor}"
-                Stroke="{DynamicResource SeparatorColor}"
-                StrokeThickness="1.5"
-                StrokeShape="RoundRectangle 12"
-                Padding="14,10">
-            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                <controls:ThemeSwitcher CapsuleColor="{DynamicResource TintColor}"
-                                        RingColor="{DynamicResource InkColor}" />
-                <Button Grid.Column="1"
-                        Text="Use phone setting"
-                        Command="{Binding FollowPhoneThemeCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="{DynamicResource TertiaryTextColor}"
-                        FontSize="14"
-                        Padding="0"
-                        HorizontalOptions="End"
-                        VerticalOptions="Center" />
+        <!-- Who is signed in: a soft tint of the theme, the initials on the accent. -->
+        <Border Padding="0" StrokeThickness="1" StrokeShape="RoundRectangle 20"
+                BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource SeparatorColor}">
+            <Border.Shadow>
+                <Shadow Brush="Black" Opacity="0.08" Radius="10" Offset="0,3" />
+            </Border.Shadow>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" Padding="18" BackgroundColor="{DynamicResource TintColor}">
+                <Border WidthRequest="60" HeightRequest="60" StrokeThickness="3" StrokeShape="RoundRectangle 30"
+                        Stroke="{DynamicResource CardBackgroundColor}" BackgroundColor="{DynamicResource AccentColor}">
+                    <Label Text="{Binding Initials}" FontSize="22" FontAttributes="Bold"
+                           TextColor="{DynamicResource CardBackgroundColor}" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                    <Label Text="{Binding DriverName}" FontSize="20" FontAttributes="Bold"
+                           TextColor="{DynamicResource InkColor}" LineBreakMode="TailTruncation" />
+                    <HorizontalStackLayout Spacing="8">
+                        <Border Padding="8,3" StrokeThickness="0" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource CardBackgroundColor}">
+                            <Label FontSize="12.5" TextColor="{DynamicResource SecondaryTextColor}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="&#xf007;  " FontFamily="FontAwesomeSolid" FontSize="10.5" TextColor="{DynamicResource AccentColor}" />
+                                        <Span Text="{Binding Username}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </Border>
+                        <Border Padding="8,3" StrokeThickness="0" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource CardBackgroundColor}"
+                                IsVisible="{Binding HasVehicleLine}">
+                            <Label FontSize="12.5" TextColor="{DynamicResource SecondaryTextColor}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="&#xf5e4;  " FontFamily="FontAwesomeSolid" FontSize="10.5" TextColor="{DynamicResource AccentColor}" />
+                                        <Span Text="{Binding VehicleLine}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </Border>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
             </Grid>
         </Border>
 
-        <!--
-            How the stops look in Today's Schedule and on each stop (Controls/ScheduleCards). Each
-            tile is a real card in that style, shrunk; a tap opens a preview with "Use this style".
-            Kept on this phone, like the theme. Until a driver picks one it is Map Pin.
-        -->
-        <Label Grid.Row="2" Text="SCHEDULE STYLE" Style="{StaticResource SectionTitleStyle}" />
+        <!-- The tabs: the same style as the schedule's, everywhere in the app. -->
+        <controls:SegmentedTabs Margin="0,14,0,0"
+                                Items="account|&#xf2bd;|Account;appearance|&#xf53f;|Appearance;navigation|&#xf14e;|Navigation"
+                                Selected="{Binding Tab, Mode=TwoWay}" />
 
-        <Border Grid.Row="3"
-                BackgroundColor="{DynamicResource CardBackgroundColor}"
-                Stroke="{DynamicResource SeparatorColor}"
-                StrokeThickness="1.5"
-                StrokeShape="RoundRectangle 12"
-                Padding="12,10">
-            <VerticalStackLayout Spacing="10">
-                <Label Text="How stops look in Today's Schedule and on each stop. Tap one to preview it."
-                       FontSize="13"
-                       TextColor="{DynamicResource SecondaryTextColor}" />
-                <CollectionView x:Name="StylesList"
-                                ItemsSource="{Binding ScheduleStyles}"
-                                SelectionMode="None"
-                                HeightRequest="146">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:ScheduleStyleOption">
-                            <Border WidthRequest="126"
-                                    Padding="6,6,6,8"
-                                    StrokeThickness="2"
-                                    StrokeShape="RoundRectangle 12"
-                                    BackgroundColor="{DynamicResource PageBackgroundColor}">
+        <!-- ACCOUNT ======================================================================= -->
+        <VerticalStackLayout IsVisible="{Binding IsAccount}">
+
+            <!-- RE-065: the way into MY DOCUMENTS. -->
+            <Label Text="DOCUMENTS" Style="{StaticResource SectionTitleStyle}" />
+            <controls:DocumentsStatusCard />
+
+            <Label Text="SIGN-IN AND SECURITY" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="0">
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Padding="14,12">
+                        <Border Style="{StaticResource IconTile}">
+                            <Label Text="&#xf007;" Style="{StaticResource Glyph}" FontSize="15" TextColor="{DynamicResource AccentColor}" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                            <Label Text="Username" Style="{StaticResource RowCaption}" />
+                            <Label Text="{Binding Username}" Style="{StaticResource RowTitle}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{DynamicResource SeparatorColor}" Margin="64,0,0,0" />
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="14,12">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenPasswordSheetCommand}" />
+                        </Grid.GestureRecognizers>
+                        <Border Style="{StaticResource IconTile}">
+                            <Label Text="&#xf023;" Style="{StaticResource Glyph}" FontSize="15" TextColor="{DynamicResource AccentColor}" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                            <Label Text="Change password" Style="{StaticResource RowTitle}" />
+                            <Label Text="You need your current password" Style="{StaticResource RowCaption}" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="&#xf054;" Style="{StaticResource Glyph}" FontSize="13" TextColor="{DynamicResource TertiaryTextColor}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="ABOUT" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="14,12">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Style="{StaticResource IconTile}">
+                        <Label Text="&#xf05a;" Style="{StaticResource Glyph}" FontSize="15" TextColor="{DynamicResource AccentColor}" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                        <Label Text="Version" Style="{StaticResource RowCaption}" />
+                        <Label Text="{Binding AppVersionText}" Style="{StaticResource RowTitle}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- APPEARANCE ==================================================================== -->
+        <VerticalStackLayout IsVisible="{Binding IsAppearance}">
+
+            <!-- Theme. The same switch as the sign-in page; the choice is kept on this phone. -->
+            <Label Text="THEME" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <controls:ThemeSwitcher CapsuleColor="{DynamicResource TintColor}"
+                                            RingColor="{DynamicResource InkColor}" />
+                    <Button Grid.Column="1"
+                            Text="Use phone setting"
+                            Command="{Binding FollowPhoneThemeCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{DynamicResource TertiaryTextColor}"
+                            FontSize="14"
+                            Padding="0"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!--
+                How the stops look in Today's Schedule and on each stop (Controls/ScheduleCards). Each
+                tile is a real card in that style, shrunk; a tap opens a preview with "Use this style".
+                Kept on this phone, like the theme. Until a driver picks one it is Map Pin.
+            -->
+            <Label Text="SCHEDULE STYLE" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="12,10">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="How stops look in Today's Schedule and on each stop. Tap one to preview it."
+                           FontSize="13"
+                           TextColor="{DynamicResource SecondaryTextColor}" />
+                    <CollectionView x:Name="StylesList"
+                                    ItemsSource="{Binding ScheduleStyles}"
+                                    SelectionMode="None"
+                                    HeightRequest="146">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ScheduleStyleOption">
+                                <Border WidthRequest="126"
+                                        Padding="6,6,6,8"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{DynamicResource PageBackgroundColor}">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                            <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStyleTapped" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="5">
+                                        <cards:StyleThumbnail CardStyle="{Binding Style}" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}" FontSize="12.5" FontAttributes="Bold"
+                                                   TextColor="{DynamicResource InkColor}" LineBreakMode="TailTruncation" />
+                                            <Label Grid.Column="1" Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12"
+                                                   TextColor="{DynamicResource AccentColor}" IsVisible="{Binding IsSelected}"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                        <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <!--
+                RE-064: how the menu at the bottom of the main pages looks: four cards, each with the
+                real menu shrunk, like SCHEDULE STYLE. A tap uses it at once; kept on this phone.
+            -->
+            <Label Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
+            <Border Style="{StaticResource Card}" Padding="12,10">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="How the menu at the bottom looks. Tap one to use it."
+                           FontSize="13"
+                           TextColor="{DynamicResource SecondaryTextColor}" />
+                    <menu:MenuStylePicker />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- NAVIGATION ==================================================================== -->
+        <VerticalStackLayout IsVisible="{Binding IsNavigation}">
+            <Label Text="DEFAULT MAPS APP" Style="{StaticResource SectionTitleStyle}" />
+            <Label Text="The app that opens when you tap Navigate on a stop."
+                   FontSize="13" TextColor="{DynamicResource SecondaryTextColor}" Margin="4,0,0,10" />
+
+            <CollectionView ItemsSource="{Binding AvailableMaps}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:MapApp">
+                        <Grid Padding="0,0,0,10">
+                            <Border StrokeThickness="1.5"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="14">
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
                                         <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                        <Setter Property="BackgroundColor" Value="{DynamicResource AccentSoftColor}" />
                                     </DataTrigger>
                                     <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
                                         <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
+                                        <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
                                     </DataTrigger>
                                 </Border.Triggers>
+
+                                <!-- SINGLE SOURCE OF INTERACTION: The Border TapGesture -->
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnStyleTapped" />
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:SettingsViewModel}}, Path=SelectMapCommand}"
+                                                          CommandParameter="{Binding .}"/>
                                 </Border.GestureRecognizers>
-                                <VerticalStackLayout Spacing="5">
-                                    <cards:StyleThumbnail CardStyle="{Binding Style}" />
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Text="{Binding Name}" FontSize="12.5" FontAttributes="Bold"
-                                               TextColor="{DynamicResource InkColor}" LineBreakMode="TailTruncation" />
-                                        <Label Grid.Column="1" Text="&#xf00c;" FontFamily="FontAwesomeSolid" FontSize="12"
-                                               TextColor="{DynamicResource AccentColor}" IsVisible="{Binding IsSelected}"
-                                               VerticalOptions="Center" />
+
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                                    <!-- The app's own icon, in a rounded tile. -->
+                                    <Border StrokeShape="RoundRectangle 10"
+                                            StrokeThickness="0"
+                                            BackgroundColor="White"
+                                            HeightRequest="40"
+                                            WidthRequest="40"
+                                            VerticalOptions="Center">
+                                        <Image Source="{Binding Icon}" Aspect="AspectFill" />
+                                    </Border>
+
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Name}"
+                                           TextColor="{DynamicResource InkColor}"
+                                           FontSize="16"
+                                           FontAttributes="Bold"
+                                           VerticalOptions="Center"/>
+
+                                    <!-- The radio dot, in the accent colour. -->
+                                    <Grid Grid.Column="2" WidthRequest="22" HeightRequest="22" VerticalOptions="Center">
+                                        <Ellipse StrokeThickness="2" Fill="Transparent">
+                                            <Ellipse.Triggers>
+                                                <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="False">
+                                                    <Setter Property="Stroke" Value="{DynamicResource BorderColor}" />
+                                                </DataTrigger>
+                                            </Ellipse.Triggers>
+                                        </Ellipse>
+                                        <Ellipse WidthRequest="10" HeightRequest="10"
+                                                 HorizontalOptions="Center" VerticalOptions="Center"
+                                                 Fill="{DynamicResource AccentColor}"
+                                                 IsVisible="{Binding IsSelected}" />
                                     </Grid>
-                                    <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
-                                </VerticalStackLayout>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </VerticalStackLayout>
-        </Border>
-
-        <!--
-            RE-064: how the menu at the bottom of the main pages looks: four cards, each with the
-            real menu shrunk, like SCHEDULE STYLE. The default is Angel; a tap uses it at once and
-            it is kept on this phone. The other styles stay in the code, not offered.
-        -->
-        <Label Grid.Row="4" Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
-
-        <Border Grid.Row="5"
-                BackgroundColor="{DynamicResource CardBackgroundColor}"
-                Stroke="{DynamicResource SeparatorColor}"
-                StrokeThickness="1.5"
-                StrokeShape="RoundRectangle 12"
-                Padding="12,10">
-            <VerticalStackLayout Spacing="10">
-                <Label Text="How the menu at the bottom looks. Tap one to use it."
-                       FontSize="13"
-                       TextColor="{DynamicResource SecondaryTextColor}" />
-                <menu:MenuStylePicker />
-            </VerticalStackLayout>
-        </Border>
-
-        <Label Grid.Row="6" Text="SELECT DEFAULT MAPS TYPE" Style="{StaticResource SectionTitleStyle}" />
-
-        <CollectionView Grid.Row="7"
-                        ItemsSource="{Binding AvailableMaps}"
-                        SelectionMode="None">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:MapApp">
-                    <Grid Padding="0,0,0,10">
-                        <Border StrokeThickness="1.5"
-                                StrokeShape="RoundRectangle 12"
-                                Padding="14">
-                            <Border.Triggers>
-                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
-                                    <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
-                                    <Setter Property="BackgroundColor" Value="{DynamicResource AccentSoftColor}" />
-                                </DataTrigger>
-                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
-                                    <Setter Property="Stroke" Value="{DynamicResource SeparatorColor}" />
-                                    <Setter Property="BackgroundColor" Value="{DynamicResource CardBackgroundColor}" />
-                                </DataTrigger>
-                            </Border.Triggers>
-
-                            <!-- SINGLE SOURCE OF INTERACTION: The Border TapGesture -->
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:SettingsViewModel}}, Path=SelectMapCommand}"
-                                                      CommandParameter="{Binding .}"/>
-                            </Border.GestureRecognizers>
-
-                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-
-                                <!-- The app's own icon, in a rounded tile. -->
-                                <Border StrokeShape="RoundRectangle 10"
-                                        StrokeThickness="0"
-                                        BackgroundColor="White"
-                                        HeightRequest="40"
-                                        WidthRequest="40"
-                                        VerticalOptions="Center">
-                                    <Image Source="{Binding Icon}" Aspect="AspectFill" />
-                                </Border>
-
-                                <Label Grid.Column="1"
-                                       Text="{Binding Name}"
-                                       TextColor="{DynamicResource InkColor}"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
-                                       VerticalOptions="Center"/>
-
-                                <!-- The radio dot, in the accent colour (it was always red before). -->
-                                <Grid Grid.Column="2" WidthRequest="22" HeightRequest="22" VerticalOptions="Center">
-                                    <Ellipse StrokeThickness="2" Fill="Transparent">
-                                        <Ellipse.Triggers>
-                                            <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="True">
-                                                <Setter Property="Stroke" Value="{DynamicResource AccentColor}" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="False">
-                                                <Setter Property="Stroke" Value="{DynamicResource BorderColor}" />
-                                            </DataTrigger>
-                                        </Ellipse.Triggers>
-                                    </Ellipse>
-                                    <Ellipse WidthRequest="10" HeightRequest="10"
-                                             HorizontalOptions="Center" VerticalOptions="Center"
-                                             Fill="{DynamicResource AccentColor}"
-                                             IsVisible="{Binding IsSelected}" />
                                 </Grid>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+    </VerticalStackLayout>
     </ScrollView>
+
+    <!--
+        Change password: a sheet from the bottom. The code-behind moves it above the menu, which
+        Attach lays over the page's content.
+    -->
+    <Grid x:Name="PasswordSheet" IsVisible="{Binding IsPasswordSheetOpen}" RowDefinitions="*,Auto">
+        <BoxView Grid.RowSpan="2" Color="{DynamicResource OverlayColor}">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding ClosePasswordSheetCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+        <Border Grid.Row="1" x:Name="SheetPanel" Padding="20,10,20,24" StrokeThickness="0"
+                StrokeShape="RoundRectangle 24,24,0,0" BackgroundColor="{DynamicResource CardBackgroundColor}">
+            <VerticalStackLayout Spacing="14">
+                <BoxView WidthRequest="40" HeightRequest="5" CornerRadius="3" Color="{DynamicResource BorderColor}" HorizontalOptions="Center" />
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Border Style="{StaticResource IconTile}" WidthRequest="44" HeightRequest="44">
+                        <Label Text="&#xf084;" Style="{StaticResource Glyph}" FontSize="17" TextColor="{DynamicResource AccentColor}" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                        <Label Text="Change password" FontSize="19" FontAttributes="Bold" TextColor="{DynamicResource InkColor}" />
+                        <Label Text="At least 8 characters" Style="{StaticResource RowCaption}" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="&#xf00d;" Style="{StaticResource Glyph}" FontSize="18" Padding="8"
+                           TextColor="{DynamicResource TertiaryTextColor}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ClosePasswordSheetCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
+
+                <VerticalStackLayout>
+                    <Label Text="CURRENT PASSWORD" Style="{StaticResource PasswordLabel}" />
+                    <Border Style="{StaticResource Field}">
+                        <Entry Text="{Binding CurrentPassword}" IsPassword="{Binding HidePasswords}" FontSize="16"
+                               Placeholder="Your current password" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
+                    </Border>
+                </VerticalStackLayout>
+                <VerticalStackLayout>
+                    <Label Text="NEW PASSWORD" Style="{StaticResource PasswordLabel}" />
+                    <Border Style="{StaticResource Field}">
+                        <Entry Text="{Binding NewPassword}" IsPassword="{Binding HidePasswords}" FontSize="16"
+                               Placeholder="At least 8 characters" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
+                    </Border>
+                </VerticalStackLayout>
+                <VerticalStackLayout>
+                    <Label Text="CONFIRM NEW PASSWORD" Style="{StaticResource PasswordLabel}" />
+                    <Border Style="{StaticResource Field}">
+                        <Entry Text="{Binding ConfirmPassword}" IsPassword="{Binding HidePasswords}" FontSize="16"
+                               Placeholder="Type it again" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <HorizontalStackLayout Spacing="8">
+                    <HorizontalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleRevealCommand}" />
+                    </HorizontalStackLayout.GestureRecognizers>
+                    <Label Text="&#xf06e;" Style="{StaticResource Glyph}" FontSize="14" TextColor="{DynamicResource AccentColor}" />
+                    <Label Text="Show passwords" FontSize="14" TextColor="{DynamicResource AccentColor}" VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding RevealPasswords}" Value="True"><Setter Property="Text" Value="Hide passwords" /></DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </HorizontalStackLayout>
+
+                <Border Padding="12,9" StrokeThickness="0" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource DangerSoftColor}"
+                        IsVisible="{Binding PasswordError, Converter={StaticResource IsNotNullConverter}}">
+                    <Label Text="{Binding PasswordError}" FontSize="13.5" TextColor="{DynamicResource DangerTextColor}" />
+                </Border>
+
+                <Grid ColumnDefinitions="*,2*" ColumnSpacing="10">
+                    <Button Text="Cancel" FontSize="15" CornerRadius="14" Padding="0,12" BorderWidth="1.5"
+                            BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}" BorderColor="{DynamicResource BorderColor}"
+                            Command="{Binding ClosePasswordSheetCommand}" />
+                    <Button Grid.Column="1" Text="Save password" FontSize="15" FontAttributes="Bold" CornerRadius="14" Padding="0,12"
+                            BackgroundColor="{DynamicResource AccentColor}" TextColor="{DynamicResource CardBackgroundColor}"
+                            Command="{Binding SavePasswordCommand}" />
+                    <ActivityIndicator Grid.Column="1" IsRunning="{Binding IsSavingPassword}" IsVisible="{Binding IsSavingPassword}"
+                                       Color="{DynamicResource CardBackgroundColor}" HorizontalOptions="End" Margin="0,0,14,0" HeightRequest="22" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+    </Grid>
 </ContentPage>

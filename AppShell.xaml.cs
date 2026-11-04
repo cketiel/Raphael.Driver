@@ -54,6 +54,8 @@ namespace Raphael.Driver
             Routing.RegisterRoute(nameof(HistoryPage), typeof(HistoryPage));
             Routing.RegisterRoute(nameof(TripNotesPage), typeof(TripNotesPage)); // RE-054
             Routing.RegisterRoute(nameof(ContactPage), typeof(ContactPage));
+            Routing.RegisterRoute(nameof(DocumentsPage), typeof(DocumentsPage)); // RE-065
+            Routing.RegisterRoute(nameof(DocumentUploadPage), typeof(DocumentUploadPage));
 
             //Routing.RegisterRoute("LoginPage", typeof(Views.LoginPage));
             //Routing.RegisterRoute("HomePage", typeof(Views.HomePage));
