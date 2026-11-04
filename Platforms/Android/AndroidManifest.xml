@@ -17,6 +17,9 @@
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 	<!-- RE-062: the vehicle inspection takes a photo of every problem, with the camera only. -->
 	<uses-permission android:name="android.permission.CAMERA" />
+	<!-- Android 12 and lower: MediaPicker.CapturePhotoAsync fails without these. -->
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 		
 	<application
 		android:allowBackup="false"

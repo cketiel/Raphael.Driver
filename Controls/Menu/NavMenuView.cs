@@ -182,6 +182,8 @@ namespace Raphael.Driver.Controls.Menu
             _settles.Clear();
             _placers.Clear();
             _arrivals.Clear();
+            _panel = null!;
+            _confirm = null!;
             _onOpen = _onClose = _onCancelOut = null;
             _fanAt = null;
             _center = null;
@@ -260,8 +262,6 @@ namespace Raphael.Driver.Controls.Menu
                 Add(_center);
             }
 
-            BuildPanel();
-            BuildConfirm();
         }
 
         // ---------------- General ----------------
@@ -1374,6 +1374,8 @@ namespace Raphael.Driver.Controls.Menu
                 _onOpen?.Invoke();
             }
             if (!_panelOpen) return;
+            // Built the first time it opens: every page pays for its menu, not for this.
+            if (_panel == null) BuildPanel();
             _panel.IsVisible = true;
             _panel.TranslationY = 0;
             _panel.Opacity = 1;
@@ -1383,8 +1385,11 @@ namespace Raphael.Driver.Controls.Menu
         {
             if (_panelOpen && _fan.Count == 0) _onClose?.Invoke();
             _panelOpen = false;
-            _panel.Opacity = 0;
-            _panel.IsVisible = false;
+            if (_panel != null)
+            {
+                _panel.Opacity = 0;
+                _panel.IsVisible = false;
+            }
             if (_center != null) _center.ZIndex = 12;
         }
 
@@ -1392,6 +1397,7 @@ namespace Raphael.Driver.Controls.Menu
         {
             _confirmOpen = true;
             ShowVeil();
+            if (_confirm == null) BuildConfirm();
             _confirm.IsVisible = true;
             _confirm.Scale = 1;
             _confirm.Opacity = 1;
@@ -1402,8 +1408,11 @@ namespace Raphael.Driver.Controls.Menu
             _ = CloseFan();
             HidePanel();
             _confirmOpen = false;
-            _confirm.Opacity = 0;
-            _confirm.IsVisible = false;
+            if (_confirm != null)
+            {
+                _confirm.Opacity = 0;
+                _confirm.IsVisible = false;
+            }
             _veil.Opacity = 0;
             _veil.IsVisible = false;
         }

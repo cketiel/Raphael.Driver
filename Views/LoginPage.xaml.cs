@@ -16,6 +16,5 @@ public partial class LoginPage : ContentPage
     {
         base.OnAppearing();
         _viewModel?.OnAppearing(); // Call the ViewModel method
-        (Shell.Current as AppShell)?.WarmUpPages(); // Ready before the driver signs in.
     }
 }

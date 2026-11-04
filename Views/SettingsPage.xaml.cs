@@ -44,7 +44,14 @@ public partial class SettingsPage : ContentPage
         AppearanceHost.Content = view;
         _stylesList = view.GetVisualTreeDescendants().OfType<CollectionView>().First();
         Console.WriteLine($"RAPHAEL-PERF: appearance {(long)System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds} ms");
-        Dispatcher.Dispatch(() => _stylesList.ItemsSource = vm.ScheduleStyles);
+        Dispatcher.Dispatch(() =>
+        {
+            _stylesList.ItemsSource = vm.ScheduleStyles;
+            // The page grew after it was measured: without this the new sections cannot be scrolled to.
+            ((IView)view).InvalidateMeasure();
+            ((IView)PageScroll.Content).InvalidateMeasure();
+            ((IView)PageScroll).InvalidateMeasure();
+        });
     }
 
     // The driver's style in view, wherever it sits in the strip. After the first layout:

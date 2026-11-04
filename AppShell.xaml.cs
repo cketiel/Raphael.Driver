@@ -78,7 +78,7 @@ namespace Raphael.Driver
             _warmed = true;
             var context = Handler?.MauiContext;
             if (context is null) return;
-            string[] routes = ["DashboardPage", "SchedulePage", "ContactPage", "TodaySchedulePage", "NotificationsPage", "SettingsPage", "HistoryPage", "FutureSchedulePage"];
+            string[] routes = ["DashboardPage", "TodaySchedulePage", "NotificationsPage", "SettingsPage", "HistoryPage", "FutureSchedulePage"];
             foreach (var item in Items)
                 foreach (var section in item.Items)
                     foreach (var content in section.Items)

@@ -268,7 +268,7 @@ namespace Raphael.Driver.ViewModels
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Photo: {ex.GetType().Name}");
+                Console.WriteLine($"RAPHAEL-PHOTO: {ex.GetType().Name}");
                 await Shell.Current.DisplayAlert("Photo", "The photo could not be taken. Try again.", "OK");
                 return null;
             }

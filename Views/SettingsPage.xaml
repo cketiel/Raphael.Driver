@@ -150,7 +150,14 @@
                                                    VerticalOptions="Center" />
                                         </Grid>
                                         <Label Text="{Binding Caption}" FontSize="10.5" TextColor="{DynamicResource SecondaryTextColor}" />
-                                    <Label Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+        <Label Text="MENU STYLE" Style="{StaticResource SectionTitleStyle}" />
             <Border Style="{StaticResource Card}" Padding="12,10">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="How the menu at the bottom looks. Tap one to use it."
@@ -160,19 +167,12 @@
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
-            </Border>
-        </VerticalStackLayout>
         </DataTemplate>
     </ContentPage.Resources>
 
     <Grid x:Name="Root">
 
-    <ScrollView>
+    <ScrollView x:Name="PageScroll">
     <VerticalStackLayout Padding="16,14,16,24">
 
         <!-- Who is signed in: a soft tint of the theme, the initials on the accent. -->

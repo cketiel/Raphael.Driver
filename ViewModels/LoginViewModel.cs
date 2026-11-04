@@ -97,6 +97,7 @@ public partial class LoginViewModel : ObservableObject
         }
 
         IsBusy = true; // Start charging indicator
+        (Shell.Current as AppShell)?.WarmUpPages(); // While the driver waits for the answer, not while typing.
 
         try
         {
@@ -114,6 +115,7 @@ public partial class LoginViewModel : ObservableObject
                 await Services.Auth.TokenRenewal.StoreAsync(result.Token, result.RefreshToken);
 
                 Preferences.Set("Username", Username);
+                Password = string.Empty; // Never left on the sign-in page for the next visit.
                 Preferences.Set("UserId", result.UserId);
                 Preferences.Set("RememberMe", RememberMe);
 
