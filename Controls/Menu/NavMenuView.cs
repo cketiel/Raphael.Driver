@@ -162,8 +162,16 @@ namespace Raphael.Driver.Controls.Menu
             page.Content = null;
             page.Content = new Grid { Children = { content, menu } };
             page.Disappearing += (_, _) => menu.CloseAll();
-            page.Appearing += (_, _) => menu.Settle();
+            page.Appearing += (_, _) =>
+            {
+                Console.WriteLine($"RAPHAEL-PERF: {current} appearing {Since()} ms");
+                menu.Settle();
+                page.Dispatcher.Dispatch(() => Console.WriteLine($"RAPHAEL-PERF: {current} shown {Since()} ms"));
+            };
         }
+
+        private static long _tapTicks;
+        private static long Since() => (long)System.Diagnostics.Stopwatch.GetElapsedTime(_tapTicks).TotalMilliseconds;
 
         private void Rebuild()
         {
@@ -1301,6 +1309,7 @@ namespace Raphael.Driver.Controls.Menu
                     try { await Shell.Current.GoToAsync($"//SettingsPage/{nameof(Views.DocumentsPage)}"); } catch (Exception) { }
                     return;
             }
+            _tapTicks = System.Diagnostics.Stopwatch.GetTimestamp();
             CloseAll();
             if (it.Key == _current || it.Route == null) return;
             try

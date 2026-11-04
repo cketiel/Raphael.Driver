@@ -220,7 +220,7 @@
                            FontSize="13"
                            TextColor="{DynamicResource SecondaryTextColor}" />
                     <CollectionView x:Name="StylesList"
-                                    ItemsSource="{Binding ScheduleStyles}"
+                                    
                                     SelectionMode="None"
                                     HeightRequest="146">
                         <CollectionView.ItemsLayout>
@@ -272,7 +272,7 @@
                     <Label Text="How the menu at the bottom looks. Tap one to use it."
                            FontSize="13"
                            TextColor="{DynamicResource SecondaryTextColor}" />
-                    <menu:MenuStylePicker />
+                    <ContentView x:Name="MenuPickerHost" />
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>

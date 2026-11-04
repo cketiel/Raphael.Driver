@@ -27,9 +27,18 @@ public partial class SettingsPage : ContentPage
             }
             else if (e.PropertyName == nameof(SettingsViewModel.Tab) && viewModel.IsAppearance)
             {
+                LoadAppearance();
                 ScrollToChosenStyle();
             }
         };
+    }
+
+    // Built the first time Appearance opens; the other tabs never pay for it.
+    private void LoadAppearance()
+    {
+        if (MenuPickerHost.Content is not null || BindingContext is not SettingsViewModel vm) return;
+        StylesList.ItemsSource = vm.ScheduleStyles;
+        MenuPickerHost.Content = new Controls.Menu.MenuStylePicker();
     }
 
     // The driver's style in view, wherever it sits in the strip. After the first layout:
