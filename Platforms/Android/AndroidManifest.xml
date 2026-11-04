@@ -22,7 +22,6 @@
 		android:allowBackup="false"
 		android:icon="@mipmap/appicon"
 		android:supportsRtl="true"
-		android:usesCleartextTraffic="true"
 		android:label="Raphael.Driver">
 
 		<!-- Channel a push lands on when it does not name one. Must match the id created in
