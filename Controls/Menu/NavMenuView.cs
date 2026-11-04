@@ -1345,11 +1345,17 @@ namespace Raphael.Driver.Controls.Menu
         {
             if (!_fanOpen) return Task.CompletedTask;
             _fanOpen = false;
-            
-            foreach (var v in _fan) v.IsVisible = false;
-            
-            foreach (var v in _fan) v.Opacity = 0;
-            return Task.CompletedTask;(bool skipDelay = false)
+            _onClose?.Invoke();
+            foreach (var v in _fan)
+            {
+                v.Opacity = 0;
+                v.IsVisible = false;
+            }
+            if (_center != null) _center.ZIndex = 12;
+            return Task.CompletedTask;
+        }
+
+        private void OpenPanel(bool skipDelay = false)
         {
             _panelOpen = true;
             ShowVeil();
@@ -1384,7 +1390,9 @@ namespace Raphael.Driver.Controls.Menu
 
         private void CloseAll()
         {
-            _ = CloseFan();
+            _ = CloseFan();
+            HidePanel();
+            _confirmOpen = false;
             _confirm.Opacity = 0;
             _confirm.IsVisible = false;
             _veil.Opacity = 0;

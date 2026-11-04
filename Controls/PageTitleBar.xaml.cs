@@ -109,9 +109,7 @@ namespace Raphael.Driver.Controls
         /// </remarks>
         private void ScheduleCentring()
         {
-            Dispatcher.DispatchDelayed(
-                TimeSpan.FromMilliseconds(50),
-                CentreTitleOnScreen);
+            Dispatcher.Dispatch(CentreTitleOnScreen);
         }
 
         /// <summary>
