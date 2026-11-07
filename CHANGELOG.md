@@ -5,6 +5,8 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-07
+
 ### Changed (RE-066 — navigation)
 - Native bottom bar and tabs: main pages and Today, History and Future are built once and reused.
 - Pages are prepared at the sign-in screen; Appearance is built when it first opens.
