@@ -24,6 +24,7 @@ public partial class FutureSchedulePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        if (BindingContext is FutureScheduleViewModel future && !string.IsNullOrWhiteSpace(Raphael.Driver.Services.ActiveRun.RunLogin) && future.RunLogin != Raphael.Driver.Services.ActiveRun.RunLogin) future.RunLogin = Raphael.Driver.Services.ActiveRun.RunLogin;
 
         if (BindingContext is FutureScheduleViewModel vm && vm.LoadEventsCommand.CanExecute(null))
         {

@@ -72,7 +72,7 @@ namespace Raphael.Driver.ViewModels
             {
                 Events.Clear();
                 await Shell.Current.DisplayAlert(RouteNotAllowedException.Title, RouteNotAllowedException.Explanation, "OK");
-                await Shell.Current.GoToAsync("..");
+                await Shell.Current.GoToAsync("//SchedulePage");
             }
             catch (Exception ex)
             {

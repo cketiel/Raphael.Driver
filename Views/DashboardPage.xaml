@@ -27,12 +27,6 @@
         </controls:PageTitleBar><!-- RE-064: no bell (Alerts is in the menu); Call me sits in its place instead of floating over the cards -->
     </Shell.TitleView>
 
-    <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            Command="{Binding InitializeCommand}" />
-    </ContentPage.Behaviors>
-
     <ContentPage.Resources>
         <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
 

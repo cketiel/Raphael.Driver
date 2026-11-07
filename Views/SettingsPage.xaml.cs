@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui.Views;
+﻿using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using Raphael.Driver.Models;
 using Raphael.Driver.ViewModels;
 
@@ -26,9 +27,29 @@ public partial class SettingsPage : ContentPage
             }
             else if (e.PropertyName == nameof(SettingsViewModel.Tab) && viewModel.IsAppearance)
             {
+                LoadAppearance();
                 ScrollToChosenStyle();
             }
         };
+    }
+
+    private CollectionView? _stylesList;
+
+    // Built the first time Appearance opens, and the tiles right after it shows.
+    private void LoadAppearance()
+    {
+        if (AppearanceHost.Content is not null || BindingContext is not SettingsViewModel vm) return;
+        var view = (View)((DataTemplate)Resources["AppearanceTemplate"]).CreateContent();
+        AppearanceHost.Content = view;
+        _stylesList = view.GetVisualTreeDescendants().OfType<CollectionView>().First();
+        Dispatcher.Dispatch(() =>
+        {
+            _stylesList.ItemsSource = vm.ScheduleStyles;
+            // The page grew after it was measured: without this the new sections cannot be scrolled to.
+            ((IView)view).InvalidateMeasure();
+            ((IView)PageScroll.Content).InvalidateMeasure();
+            ((IView)PageScroll).InvalidateMeasure();
+        });
     }
 
     // The driver's style in view, wherever it sits in the strip. After the first layout:
@@ -36,12 +57,18 @@ public partial class SettingsPage : ContentPage
     private void ScrollToChosenStyle()
     {
         if (BindingContext is SettingsViewModel vm && vm.ScheduleStyles.FirstOrDefault(o => o.IsSelected) is { } chosen)
-            Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(300), () => StylesList.ScrollTo(chosen, position: ScrollToPosition.Center, animate: false));
+            Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(300), () => _stylesList?.ScrollTo(chosen, position: ScrollToPosition.Center, animate: false));
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        Helpers.ReadyPages.Documents.PrepareSoon(Dispatcher);
+        if (BindingContext is SettingsViewModel loading)
+        {
+            loading.LoadMapAppsCommand.Execute(null);
+            loading.LoadProfileCommand.Execute(null);
+        }
         if (BindingContext is SettingsViewModel { IsAppearance: true }) ScrollToChosenStyle();
     }
 
@@ -51,6 +78,6 @@ public partial class SettingsPage : ContentPage
         if ((sender as BindableObject)?.BindingContext is not ScheduleStyleOption option || BindingContext is not SettingsViewModel vm)
             return;
 
-        this.ShowPopup(new ScheduleStylePreviewPopup(option.Info, () => vm.UseScheduleStyleCommand.Execute(option.Style)));
+        this.ShowPopup(new ScheduleStylePreviewPopup(option.Info, () => vm.UseScheduleStyleCommand.Execute(option.Style)), new CommunityToolkit.Maui.PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true, Shape = null, Shadow = null });
     }
 }

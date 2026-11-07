@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.DocumentUploadPage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:DocumentUploadViewModel"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
@@ -57,8 +58,8 @@
                 <Label Text="{Binding StepText}" Style="{StaticResource Section}" />
 
                 <!-- The dots of the five steps -->
-                <CollectionView ItemsSource="{Binding Slots}" ItemsLayout="HorizontalList" HeightRequest="12" HorizontalOptions="Center">
-                    <CollectionView.ItemTemplate>
+                <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Slots}" HeightRequest="12" HorizontalOptions="Center">
+                    <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:DocumentSlot">
                             <Grid Padding="4,0">
                                 <Ellipse WidthRequest="10" HeightRequest="10">
@@ -73,8 +74,8 @@
                                 </Ellipse>
                             </Grid>
                         </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                    </BindableLayout.ItemTemplate>
+                </HorizontalStackLayout>
 
                 <Border StrokeThickness="1.5" StrokeShape="RoundRectangle 14" Padding="12"
                         BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource SeparatorColor}">
@@ -101,13 +102,10 @@
                 <Label Text="FILE" Style="{StaticResource Section}" IsVisible="{Binding IsGuided, Converter={StaticResource InvertedBoolConverter}}" />
                 <Label Text="PHOTOS" Style="{StaticResource Section}" IsVisible="{Binding IsGuided}" />
 
-                <CollectionView ItemsSource="{Binding Slots}" SelectionMode="None">
-                    <CollectionView.ItemsLayout>
-                        <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="10" VerticalItemSpacing="10" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
+                <FlexLayout BindableLayout.ItemsSource="{Binding Slots}" Wrap="Wrap">
+                    <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:DocumentSlot">
-                            <Border StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8"
+                            <Border FlexLayout.Basis="50%" Margin="0,0,0,10" StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="8"
                                     BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource SeparatorColor}">
                                 <VerticalStackLayout Spacing="6">
                                     <Grid HeightRequest="110">
@@ -130,8 +128,8 @@
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
 
                 <!-- One page: how to add it -->
                 <VerticalStackLayout Spacing="8" IsVisible="{Binding IsGuided, Converter={StaticResource InvertedBoolConverter}}">

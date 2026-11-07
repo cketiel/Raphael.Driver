@@ -80,7 +80,7 @@ namespace Raphael.Driver.Controls
             try
             {
                 var page = Tabs.First(t => t.Key == key).Page;
-                await Shell.Current.GoToAsync($"../{page}", false, new Dictionary<string, object> { { "runLogin", RunLogin } });
+                await Shell.Current.GoToAsync($"//{page}", false, new Dictionary<string, object> { { "runLogin", RunLogin } });
             }
             catch (Exception)
             {

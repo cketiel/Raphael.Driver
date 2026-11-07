@@ -85,6 +85,7 @@ namespace Raphael.Driver
         /// </summary>
         protected override void OnResume()
         {
+            ThemeManager.ApplyStatusBar();
             var store = ServiceHelper.GetService<CallRequestStore>();
 
             if (store is not null)

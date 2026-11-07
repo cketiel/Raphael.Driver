@@ -1,4 +1,4 @@
-﻿ using CommunityToolkit.Maui;
+ using CommunityToolkit.Maui;
 using Raphael.Driver.Models;
 using Raphael.Driver.Configuration;
 using Raphael.Driver.Services;
@@ -222,7 +222,7 @@ namespace Raphael.Driver
             {
 #if ANDROID
                 
-                return MainActivity.GpsService ?? new Raphael.Driver.Services.GpsServiceAndroid();
+                return new Raphael.Driver.Services.GpsServiceProxy();
 #elif IOS
     return new Raphael.Driver.Services.GpsServiceIos();
 #else

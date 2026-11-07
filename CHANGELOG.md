@@ -1,9 +1,34 @@
-﻿# Changelog
+# Changelog
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
+
+## [2.0.0] - 2026-11-07
+
+### Changed (RE-066 — navigation)
+- Native bottom bar and tabs: main pages and Today, History and Future are built once and reused.
+- Pages are prepared at the sign-in screen; Appearance is built when it first opens.
+- Settings › Account has Contact, Messages, Change route and Sign out.
+- The GPS service no longer stops the app when Android refuses to start it in the background.
+
+### Fixed (RE-066 — speed)
+- Route tracking now runs as a real foreground service: Android shows the location notice while a route is in progress and no longer stops the GPS in the background.
+- The page keeps its height when the bar above changes after a dialog or the keyboard.
+- The bottom menu no longer shows cut off or stretched when changing section: pages keep the height of the visible window area.
+- Internal pages open without animation and the next one is prepared in advance; returning to Today redraws only the rows that changed.
+- The status bar no longer turns red when the app is reopened.
+- The menu changes page at once: no wait of 440 ms for its animation, no page transition, and the
+  full menu and its dialogs open without delays or fades.
+
+### Changed (RE-066 — Google Play)
+- Targets Android 16 (API 36) on .NET 10, as Google Play requires. CommunityToolkit.Maui 14.
+- The stamp's wait explanation opens centered: the toolkit no longer anchors popups.
+
+### Security (RE-066)
+- `allowBackup=false`: patient data is not copied to Android backups. A reinstall signs in again.
+- Removed the `QUERY_ALL_PACKAGES` permission.
 
 ⚠️ **RE-062 needs the Raphael.Backend release with RE-062.** Against an older backend the inspection
 cannot be sent and the outbox keeps it; switch the inspection on for a Provider only once its drivers

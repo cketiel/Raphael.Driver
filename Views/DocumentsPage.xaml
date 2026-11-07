@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              x:Class="Raphael.Driver.Views.DocumentsPage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:DocumentsViewModel"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 

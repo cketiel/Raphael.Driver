@@ -160,10 +160,59 @@ namespace Raphael.Driver.Controls.Menu
             // content afterwards cut the old content off from its parent: it stopped following the
             // theme (Settings kept its light cards in Dark) and never raised Loaded.
             page.Content = null;
-            page.Content = new Grid { Children = { content, menu } };
+            var root = new Grid { Children = { content, menu } };
+            page.Content = root;
+            KeepHeight(page, root);
             page.Disappearing += (_, _) => menu.CloseAll();
-            page.Appearing += (_, _) => menu.Settle();
+            page.Appearing += (_, _) =>
+            {
+                menu.Settle();
+            };
         }
+
+        private static double _visibleHeight;
+
+        /// <summary>
+        /// Android measures a page for a moment with the wrong height when its section is shown
+        /// again. The menu follows the height of its page, so it was drawn cut off or stretched
+        /// until the next pass. The page takes its height from the visible area of the window
+        /// instead, which that pass does not change and the keyboard does.
+        /// </summary>
+        private static void KeepHeight(ContentPage page, Grid root)
+        {
+#if ANDROID
+            if (_visibleHeight > 0)
+            {
+                root.VerticalOptions = LayoutOptions.Start;
+                root.HeightRequest = _visibleHeight;
+            }
+
+            void Measure()
+            {
+                if (root.Handler?.PlatformView is not Android.Views.View view || !view.IsShown) return;
+                var frame = new Android.Graphics.Rect();
+                view.GetWindowVisibleDisplayFrame(frame);
+                var at = new int[2];
+                view.GetLocationOnScreen(at);
+                var height = (frame.Bottom - at[1]) / DeviceDisplay.Current.MainDisplayInfo.Density;
+                if (height < 100 || Math.Abs(height - root.HeightRequest) < .5) return;
+                _visibleHeight = height;
+                root.VerticalOptions = LayoutOptions.Start;
+                root.HeightRequest = height;
+            }
+
+            root.SizeChanged += (_, _) => Measure();
+            // The bar above can change height after a dialog or the keyboard; the page moves
+            // without changing size, so its position is checked on every layout as well.
+            root.HandlerChanged += (_, _) =>
+            {
+                if (root.Handler?.PlatformView is Android.Views.View view)
+                    view.ViewTreeObserver!.GlobalLayout += (_, _) => Measure();
+            };
+            page.Appearing += (_, _) => page.Dispatcher.Dispatch(Measure);
+#endif
+        }
+
 
         private void Rebuild()
         {
@@ -174,6 +223,8 @@ namespace Raphael.Driver.Controls.Menu
             _settles.Clear();
             _placers.Clear();
             _arrivals.Clear();
+            _panel = null!;
+            _confirm = null!;
             _onOpen = _onClose = _onCancelOut = null;
             _fanAt = null;
             _center = null;
@@ -252,8 +303,6 @@ namespace Raphael.Driver.Controls.Menu
                 Add(_center);
             }
 
-            BuildPanel();
-            BuildConfirm();
         }
 
         // ---------------- General ----------------
@@ -658,8 +707,7 @@ namespace Raphael.Driver.Controls.Menu
             _placers.Add(() => At(light, Cx - 20, Height - BarH - 36));
             void Lit(int k) { for (var i = 0; i < 3; i++) lamps[i].Fill = new SolidColorBrush(i == k ? Color.FromArgb(lamps[i].ClassId) : Color.FromArgb("#2B3A42")); }
             Lit(0);
-            _panelDelay = 520;
-            _onOpen = async () => { Lit(1); await Task.Delay(260); Lit(2); };
+            _onOpen = () => Lit(2);
             _onClose = () => Lit(0);
         }
 
@@ -1304,21 +1352,14 @@ namespace Raphael.Driver.Controls.Menu
             }
             CloseAll();
             if (it.Key == _current || it.Route == null) return;
-            var from = Index(_current);
-            var to = Index(it.Key);
-            if (from >= 0 && to >= 0 && _arrivals.Count > 0)
-            {
-                foreach (var move in _arrivals) move(from, to);
-                await Task.Delay(440);
-            }
             try
             {
                 // Schedule opens Today, with its History · Today · Future tabs, when the run is
                 // known, as the Dashboard's SCHEDULE button does; otherwise the Run Login page.
                 if (it.Key == "schedule" && !string.IsNullOrWhiteSpace(ActiveRun.RunLogin))
-                    await Shell.Current.GoToAsync($"//SchedulePage/{nameof(Views.TodaySchedulePage)}", new Dictionary<string, object> { { "runLogin", ActiveRun.RunLogin! } });
+                    await Shell.Current.GoToAsync($"//{nameof(Views.TodaySchedulePage)}", animate: false, new Dictionary<string, object> { { "runLogin", ActiveRun.RunLogin! } });
                 else
-                    await Shell.Current.GoToAsync("//" + it.Route);
+                    await Shell.Current.GoToAsync("//" + it.Route, animate: false);
             }
             catch (Exception) { /* stays on this page; the menu is still there to try again */ }
         }
@@ -1326,7 +1367,7 @@ namespace Raphael.Driver.Controls.Menu
         private void ShowVeil()
         {
             _veil.IsVisible = true;
-            _veil.FadeTo(.32, 200);
+            _veil.Opacity = .32;
         }
 
         private void OpenFan()
@@ -1342,33 +1383,28 @@ namespace Raphael.Driver.Controls.Menu
                 v.TranslationX = Cx - (v.Margin.Left + _fanW / 2);
                 v.TranslationY = Cy - (v.Margin.Top + _fanH / 2);
                 v.Scale = .3;
-                var delay = _fanFirst + i * _fanStep;
-                Task.Delay(delay).ContinueWith(_ => MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    if (!_fanOpen) return;
-                    v.TranslateTo(0, 0, 420, Easing.SpringOut);
-                    v.ScaleTo(1, 420, Easing.SpringOut);
-                    v.FadeTo(1, 200);
-                }));
+                v.TranslationX = 0;
+                v.TranslationY = 0;
+                v.Scale = 1;
+                v.Opacity = 1;
             }
         }
 
-        private async Task CloseFan()
+        private Task CloseFan()
         {
-            if (!_fanOpen) return;
+            if (!_fanOpen) return Task.CompletedTask;
             _fanOpen = false;
+            _onClose?.Invoke();
             foreach (var v in _fan)
             {
-                _ = v.FadeTo(0, 150);
-                _ = v.TranslateTo(Cx - (v.Margin.Left + _fanW / 2), Cy - (v.Margin.Top + _fanH / 2), 200, Easing.CubicIn);
+                v.Opacity = 0;
+                v.IsVisible = false;
             }
-            _onClose?.Invoke();
-            await Task.Delay(220);
-            foreach (var v in _fan) v.IsVisible = false;
             if (_center != null) _center.ZIndex = 12;
+            return Task.CompletedTask;
         }
 
-        private async void OpenPanel(bool skipDelay = false)
+        private void OpenPanel(bool skipDelay = false)
         {
             _panelOpen = true;
             ShowVeil();
@@ -1376,21 +1412,24 @@ namespace Raphael.Driver.Controls.Menu
             if (!skipDelay)
             {
                 _onOpen?.Invoke();
-                if (_panelDelay > 0) await Task.Delay(_panelDelay);
             }
             if (!_panelOpen) return;
+            // Built the first time it opens: every page pays for its menu, not for this.
+            if (_panel == null) BuildPanel();
             _panel.IsVisible = true;
-            _panel.TranslationY = 24;
-            _ = _panel.FadeTo(1, 200);
-            _ = _panel.TranslateTo(0, 0, 320, Easing.SpringOut);
+            _panel.TranslationY = 0;
+            _panel.Opacity = 1;
         }
 
         private void HidePanel()
         {
             if (_panelOpen && _fan.Count == 0) _onClose?.Invoke();
             _panelOpen = false;
-            _panel.Opacity = 0;
-            _panel.IsVisible = false;
+            if (_panel != null)
+            {
+                _panel.Opacity = 0;
+                _panel.IsVisible = false;
+            }
             if (_center != null) _center.ZIndex = 12;
         }
 
@@ -1398,21 +1437,24 @@ namespace Raphael.Driver.Controls.Menu
         {
             _confirmOpen = true;
             ShowVeil();
+            if (_confirm == null) BuildConfirm();
             _confirm.IsVisible = true;
-            _confirm.Scale = .92;
-            _confirm.FadeTo(1, 180);
-            _confirm.ScaleTo(1, 220, Easing.CubicOut);
+            _confirm.Scale = 1;
+            _confirm.Opacity = 1;
         }
 
-        private async void CloseAll()
+        private void CloseAll()
         {
-            await CloseFan();
+            _ = CloseFan();
             HidePanel();
             _confirmOpen = false;
-            _confirm.Opacity = 0;
-            _confirm.IsVisible = false;
-            await _veil.FadeTo(0, 150);
-            if (!_fanOpen && !_panelOpen && !_confirmOpen) _veil.IsVisible = false;
+            if (_confirm != null)
+            {
+                _confirm.Opacity = 0;
+                _confirm.IsVisible = false;
+            }
+            _veil.Opacity = 0;
+            _veil.IsVisible = false;
         }
 
         // ---------------- animations ----------------

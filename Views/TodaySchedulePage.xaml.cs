@@ -28,6 +28,8 @@ public partial class TodaySchedulePage : ContentPage, IRouteSignalHandler
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        if (BindingContext is TodayScheduleViewModel { RunLogin: null or "" } && string.IsNullOrWhiteSpace(ActiveRun.RunLogin)) { _ = Shell.Current.GoToAsync("//SchedulePage"); return; }
+        if (BindingContext is TodayScheduleViewModel today && !string.IsNullOrWhiteSpace(ActiveRun.RunLogin) && today.RunLogin != ActiveRun.RunLogin) today.RunLogin = ActiveRun.RunLogin;
 
         // Back from Settings with another style or theme: the cards are drawn again from the
         // events already in memory. Nothing is asked of the server for it.
@@ -45,6 +47,10 @@ public partial class TodaySchedulePage : ContentPage, IRouteSignalHandler
         {
             vm.LoadEventsCommand.Execute(null);
         }
+
+        // The stop or garage page a tap here opens.
+        Helpers.ReadyPages.EventDetail.PrepareSoon(Dispatcher);
+        Helpers.ReadyPages.PullOutDetail.PrepareSoon(Dispatcher);
 
         _signals.Register(this);
     }

@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Maui.Views;
 using System.Diagnostics;
 
@@ -67,7 +68,7 @@ namespace Raphael.Driver.Controls
 
             try
             {
-                await page.ShowPopupAsync(popup);
+                await page.ShowPopupAsync(popup, new CommunityToolkit.Maui.PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false, Shape = null, Shadow = null });
             }
             catch (Exception ex)
             {

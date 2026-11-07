@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Maui.Core;    
+﻿using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Core.Views;
+using CommunityToolkit.Maui.Core;    
 using CommunityToolkit.Maui.Views;   
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -112,7 +114,7 @@ namespace Raphael.Driver.ViewModels
             try
             {
                 // Convert the signature to a stream image
-                var signatureStream = await DrawingView.GetImageStream(Lines, new Size(600, 300), Colors.White);
+                var signatureStream = await DrawingViewService.GetImageStream(ImageLineOptions.JustLines(Lines.ToList(), new Size(600, 300), new SolidColorBrush(Colors.White)));
 
                 // Convert stream to byte[]
                 using var memoryStream = new MemoryStream();

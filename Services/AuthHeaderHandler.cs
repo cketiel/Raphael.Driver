@@ -109,7 +109,7 @@ public class AuthHeaderHandler : DelegatingHandler
             {
                 if (Shell.Current?.CurrentPage is not Views.LoginPage)
                 {
-                    await Shell.Current.GoToAsync("///LoginPage");
+                    await Shell.Current.GoToAsync("///LoginPage", false);
                 }
             }
             finally

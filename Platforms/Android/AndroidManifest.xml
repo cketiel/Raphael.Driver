@@ -17,13 +17,14 @@
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 	<!-- RE-062: the vehicle inspection takes a photo of every problem, with the camera only. -->
 	<uses-permission android:name="android.permission.CAMERA" />
-	<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+	<!-- Android 12 and lower: MediaPicker.CapturePhotoAsync fails without these. -->
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 		
 	<application
-		android:allowBackup="true"
+		android:allowBackup="false"
 		android:icon="@mipmap/appicon"
 		android:supportsRtl="true"
-		android:usesCleartextTraffic="true"
 		android:label="Raphael.Driver">
 
 		<!-- Channel a push lands on when it does not name one. Must match the id created in

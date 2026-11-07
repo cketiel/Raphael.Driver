@@ -11,5 +11,11 @@ public partial class DashboardPage : ContentPage
 		Controls.Menu.NavMenuView.Attach(this, "home");
         BindingContext = viewModel;
     }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (BindingContext is DashboardViewModel vm) vm.InitializeCommand.Execute(null);
+    }
   
 }

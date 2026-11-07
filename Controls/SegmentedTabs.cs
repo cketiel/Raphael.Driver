@@ -118,30 +118,14 @@ namespace Raphael.Driver.Controls
             Content = _track;
         }
 
-        private async Task TapAsync(int index)
+        private Task TapAsync(int index)
         {
             var key = _tabs[index].Key;
-            if (_busy || key == Selected) return;
-            _busy = true;
-            try
-            {
-                var from = Array.FindIndex(_tabs, t => t.Key == Selected);
-                if (from >= 0)
-                {
-                    var step = _track.Width / _tabs.Length;
-                    _ = _thumb.TranslateTo((index - from) * step, 0, 320, Easing.SpringOut);
-                }
-                var icon = _icons[index];
-                await icon.ScaleTo(1.35, 120, Easing.CubicOut);
-                await icon.ScaleTo(1, 160, Easing.SpringOut);
-                if (AutoSelect) Selected = key;
-                else TabTapped?.Invoke(this, key);
-            }
-            catch (Exception)
-            {
-                // The tabs stay as they were; a second tap tries again.
-            }
-            finally { _busy = false; }
+            if (key == Selected) return Task.CompletedTask;
+            // At once: nothing waits for an animation.
+            if (AutoSelect) Selected = key;
+            else TabTapped?.Invoke(this, key);
+            return Task.CompletedTask;
         }
     }
 }

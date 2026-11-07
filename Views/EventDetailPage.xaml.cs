@@ -10,6 +10,7 @@ public partial class EventDetailPage : ContentPage, IRouteSignalHandler
 {
     private readonly EventDetailPageViewModel _viewModel;
     private readonly RouteSignalCoordinator _signals;
+    private bool _shown;
 
     public EventDetailPage(EventDetailPageViewModel viewModel, RouteSignalCoordinator signals)
     {
@@ -29,8 +30,17 @@ public partial class EventDetailPage : ContentPage, IRouteSignalHandler
         var legacy = ScheduleStyleManager.Current == ScheduleStyle.Legacy;
         LegacyActions.IsVisible = legacy;
         StyledActions.IsVisible = !legacy;
-        Hero.Build();
-        StyledActions.Build();
+        // The first time, the bindings have just drawn both; again only on coming back to the page.
+        if (_shown)
+        {
+            Hero.Build();
+            StyledActions.Build();
+        }
+        else
+        {
+            Dispatcher.Dispatch(() => DetailsHost.Content ??= (View)((DataTemplate)Resources["DetailsTemplate"]).CreateContent());
+        }
+        _shown = true;
 
         _signals.Register(this);
     }

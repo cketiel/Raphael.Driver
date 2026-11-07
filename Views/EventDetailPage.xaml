@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
              xmlns:models="clr-namespace:Raphael.Driver.Models"
              x:Class="Raphael.Driver.Views.EventDetailPage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:EventDetailPageViewModel"
              xmlns:enums="clr-namespace:Raphael.Driver.Models"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
@@ -49,62 +50,8 @@
             <Setter Property="Color" Value="{DynamicResource SeparatorColor}" />
             <Setter Property="HorizontalOptions" Value="Fill" />
         </Style>
-    </ContentPage.Resources>
-
-    <!-- A grid only so the Call me button can float over the page. -->
-    <Grid>
-
-    <ScrollView>
-        <VerticalStackLayout Spacing="1">
-
-            <!-- The card that was tapped, in the driver's schedule style, with the wait written
-                 out under it. Legacy never had it and shows nothing here. -->
-            <cards:EventCardView x:Name="Hero" Event="{Binding Event}" IsHero="True" Margin="0,10,0,0" />
-
-            <!-- ACTION LIST: these rows for Legacy, ActionListView below for the other styles. -->
-            <CollectionView x:Name="LegacyActions" ItemsSource="{Binding Actions}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:EventAction">
-                        <!-- We use a VerticalStackLayout as the main container of the entire item -->
-                        <VerticalStackLayout Spacing="0">
-                          
-                            <Grid Style="{StaticResource NavRowStyle}" ColumnDefinitions="7,*" IsEnabled="{Binding IsEnabled}">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Command}"/>
-                                </Grid.GestureRecognizers>
-
-                                <!-- A disabled row stays where the driver expects it, faded, saying what replaced it. -->
-                                <Grid.Triggers>
-                                    <DataTrigger TargetType="Grid" Binding="{Binding IsEnabled}" Value="False">
-                                        <Setter Property="Opacity" Value="0.45" />
-                                    </DataTrigger>
-                                </Grid.Triggers>
-
-                                <!-- The color bar in Column 0 -->
-                                <BoxView Grid.Column="0" 
-                                    Color="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:EventDetailPageViewModel}}, Path=EventColor}"/>
-
-                                <!-- The content (icon, text, arrow) in Column 1 -->
-                                <Grid Grid.Column="1" Padding="15" ColumnDefinitions="Auto, *, Auto">
-                                    <Label Grid.Column="0" Text="{Binding IconGlyph}" Style="{StaticResource NavIconStyle}"/>
-                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                        <Label Text="{Binding Text}" Style="{StaticResource NavLabelStyle}"/>
-                                        <Label Text="{Binding Hint}" IsVisible="{Binding HasHint}" FontSize="13" TextColor="{DynamicResource SecondaryTextColor}"/>
-                                    </VerticalStackLayout>
-                                    <Label Grid.Column="2" Text="" FontFamily="FontAwesomeSolid" VerticalOptions="Center" IsVisible="{Binding IsEnabled}"/>
-                                </Grid>
-                            </Grid>
-
-                            <!-- The separator is now outside the Grid, spanning the full width -->
-                            <BoxView HeightRequest="3" Color="{DynamicResource SeparatorColor}" HorizontalOptions="Fill"/>
-
-                        </VerticalStackLayout>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <cards:ActionListView x:Name="StyledActions" Actions="{Binding Actions}" Event="{Binding Event}" />
-
+        <DataTemplate x:Key="DetailsTemplate" x:DataType="viewmodels:EventDetailPageViewModel">
+            <VerticalStackLayout>
             <!-- DETAILS SECTION -->
             <Label Text="DETAILS" Margin="15,20,15,5" FontSize="14" TextColor="{DynamicResource SecondaryTextColor}" HorizontalOptions="Center" FontAttributes="Bold"/>
 
@@ -235,6 +182,66 @@
 
                 </VerticalStackLayout>
             </Border>
+            </VerticalStackLayout>
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <!-- A grid only so the Call me button can float over the page. -->
+    <Grid>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="1">
+
+            <!-- The card that was tapped, in the driver's schedule style, with the wait written
+                 out under it. Legacy never had it and shows nothing here. -->
+            <cards:EventCardView x:Name="Hero" Event="{Binding Event}" IsHero="True" Margin="0,10,0,0" />
+
+            <!-- ACTION LIST: these rows for Legacy, ActionListView below for the other styles. -->
+            <VerticalStackLayout x:Name="LegacyActions" BindableLayout.ItemsSource="{Binding Actions}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="models:EventAction">
+                        <!-- We use a VerticalStackLayout as the main container of the entire item -->
+                        <VerticalStackLayout Spacing="0">
+                          
+                            <Grid Style="{StaticResource NavRowStyle}" ColumnDefinitions="7,*" IsEnabled="{Binding IsEnabled}">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Command}"/>
+                                </Grid.GestureRecognizers>
+
+                                <!-- A disabled row stays where the driver expects it, faded, saying what replaced it. -->
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding IsEnabled}" Value="False">
+                                        <Setter Property="Opacity" Value="0.45" />
+                                    </DataTrigger>
+                                </Grid.Triggers>
+
+                                <!-- The color bar in Column 0 -->
+                                <BoxView Grid.Column="0" 
+                                    Color="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:EventDetailPageViewModel}}, Path=EventColor}"/>
+
+                                <!-- The content (icon, text, arrow) in Column 1 -->
+                                <Grid Grid.Column="1" Padding="15" ColumnDefinitions="Auto, *, Auto">
+                                    <Label Grid.Column="0" Text="{Binding IconGlyph}" Style="{StaticResource NavIconStyle}"/>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Text}" Style="{StaticResource NavLabelStyle}"/>
+                                        <Label Text="{Binding Hint}" IsVisible="{Binding HasHint}" FontSize="13" TextColor="{DynamicResource SecondaryTextColor}"/>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" Text="" FontFamily="FontAwesomeSolid" VerticalOptions="Center" IsVisible="{Binding IsEnabled}"/>
+                                </Grid>
+                            </Grid>
+
+                            <!-- The separator is now outside the Grid, spanning the full width -->
+                            <BoxView HeightRequest="3" Color="{DynamicResource SeparatorColor}" HorizontalOptions="Fill"/>
+
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <cards:ActionListView x:Name="StyledActions" Actions="{Binding Actions}" Event="{Binding Event}" />
+
+<!-- DETAILS: drawn right after the page shows (DetailsTemplate). -->
+            <ContentView x:Name="DetailsHost" />
 
             <!-- Room to scroll the comment out from under the Call me button. -->
             <BoxView HeightRequest="96" Color="Transparent" />

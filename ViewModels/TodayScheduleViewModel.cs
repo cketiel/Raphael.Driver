@@ -13,6 +13,7 @@ namespace Raphael.Driver.ViewModels
     {
         private readonly IScheduleService _scheduleService;
         private readonly ISessionManagerService _sessionManager;
+        private readonly Dictionary<ScheduleDto, string> _drawn = new(ReferenceEqualityComparer.Instance);
 
         [ObservableProperty]
         private bool _isHistoryAvailable;
@@ -51,6 +52,53 @@ namespace Raphael.Driver.ViewModels
             ShowNoEventsMessage = !HasEvents && !IsBusy;
         }
 
+        /// <summary>
+        /// Brings the list to what the server sent, touching only the rows that differ, so coming
+        /// back from a stop does not draw every card again. A row whose object was changed in
+        /// memory since it was drawn counts as different.
+        /// </summary>
+        private void SyncEvents(List<ScheduleDto> fresh)
+        {
+            try
+            {
+                var freshJson = fresh.Select(e => System.Text.Json.JsonSerializer.Serialize(e)).ToList();
+                var wanted = fresh.Select((e, i) => (e.Id, Json: freshJson[i])).ToHashSet();
+
+                for (var i = Events.Count - 1; i >= 0; i--)
+                {
+                    var row = Events[i];
+                    if (!_drawn.TryGetValue(row, out var drawn)
+                        || drawn != System.Text.Json.JsonSerializer.Serialize(row)
+                        || !wanted.Contains((row.Id, drawn)))
+                    {
+                        _drawn.Remove(row);
+                        Events.RemoveAt(i);
+                    }
+                }
+
+                for (var i = 0; i < fresh.Count; i++)
+                {
+                    if (i < Events.Count && Events[i].Id == fresh[i].Id) continue;
+                    if (Events.Skip(i).Any(e => e.Id == fresh[i].Id))
+                        throw new InvalidOperationException("The order changed.");
+                    Events.Insert(i, fresh[i]);
+                    _drawn[fresh[i]] = freshJson[i];
+                }
+                return;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Schedule redrawn in full: {ex.GetType().Name}");
+            }
+
+            _drawn.Clear();
+            Events.Clear();
+            foreach (var ev in fresh)
+                Events.Add(ev);
+            foreach (var ev in fresh)
+                try { _drawn[ev] = System.Text.Json.JsonSerializer.Serialize(ev); } catch (Exception) { }
+        }
+
         [RelayCommand]
         private async Task LoadEventsAsync()
         {
@@ -65,11 +113,7 @@ namespace Raphael.Driver.ViewModels
                 var pendingEvents = await _scheduleService.GetPendingSchedulesByRunAsync(RunLogin, DateTime.Today);
                 // var pendingEvents = allScheduleEvents.Where(ev => !ev.Performed).ToList();
 
-                Events.Clear();
-                foreach (var ev in pendingEvents)
-                {
-                    Events.Add(ev);
-                }
+                SyncEvents(pendingEvents.ToList());
 
                 if (Events.FirstOrDefault() is { } first)
                     VehicleRouteId = first.VehicleRouteId;
@@ -103,7 +147,7 @@ namespace Raphael.Driver.ViewModels
                 // RE-063: CHANGE ROUTE to another company's route. Back to where it was typed.
                 Events.Clear();
                 await Shell.Current.DisplayAlert(RouteNotAllowedException.Title, RouteNotAllowedException.Explanation, "OK");
-                await Shell.Current.GoToAsync("..");
+                await Shell.Current.GoToAsync("//SchedulePage");
             }
             catch (Exception ex)
             {
@@ -163,7 +207,7 @@ namespace Raphael.Driver.ViewModels
         {
             if (string.IsNullOrWhiteSpace(RunLogin)) return;
           
-            await Shell.Current.GoToAsync(nameof(HistoryPage), new Dictionary<string, object>
+            await Shell.Current.GoToAsync("//" + nameof(HistoryPage), new Dictionary<string, object>
             {
                 { "runLogin", RunLogin }
             });

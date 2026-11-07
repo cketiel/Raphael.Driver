@@ -107,11 +107,18 @@ namespace Raphael.Driver.Controls
         /// position, and a correction computed from that would push the title further off than
         /// it started.
         /// </remarks>
+#if ANDROID
+        protected override void OnHandlerChanged()
+        {
+            base.OnHandlerChanged();
+            if (Handler?.PlatformView is Android.Views.View native)
+                native.LayoutChange += (_, _) => CentreTitleOnScreen();
+        }
+#endif
+
         private void ScheduleCentring()
         {
-            Dispatcher.DispatchDelayed(
-                TimeSpan.FromMilliseconds(50),
-                CentreTitleOnScreen);
+            Dispatcher.Dispatch(CentreTitleOnScreen);
         }
 
         /// <summary>

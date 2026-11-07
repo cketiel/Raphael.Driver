@@ -91,7 +91,10 @@ namespace Raphael.Driver
 
             // Simply start the service. It's not forced to the foreground yet.
             // Binding (BindService) will keep it alive as long as the app is open.
-            StartService(serviceIntent);
+            // Android refuses this while the app is not in the foreground (screen off, for one)
+            // and the exception would kill the app; StartTracking starts it again when needed.
+            try { StartService(serviceIntent); }
+            catch (Java.Lang.IllegalStateException ex) { Console.WriteLine($"RAPHAEL-GPS: service not started: {ex.Message}"); }
 
             // Start the service so it can run indefinitely
             // StartForegroundService is required for API 26+

@@ -6,7 +6,8 @@
     xmlns:views="clr-namespace:Raphael.Driver.Views"
     xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Title="Raphael.Driver"
-    FlyoutBehavior="Disabled">
+    FlyoutBehavior="Disabled"
+    Shell.TabBarIsVisible="False">
 
     <!-- RE-064: no side menu. The menu at the bottom of the main pages (Controls/Menu/NavMenuView)
          reaches every item below; the items stay because they define the pages and their routes. -->
@@ -169,41 +170,18 @@
 
     <!-- DEFINITION OF MENU ITEMS -->
 
-    <FlyoutItem Title="DASHBOARD"
-                Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-
-        <ShellContent Route="DashboardPage"
-                      ContentTemplate="{DataTemplate views:DashboardPage}" />
-
-    </FlyoutItem>
-
-
-    <!-- RE-062: no INSPECTIONS item. It opened Samsara Driver; the vehicle is now inspected
-         inside the Pull-out and the Pull-in. -->
-
-
-    <FlyoutItem Title="SCHEDULE"
-                Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-
-        <ShellContent Route="SchedulePage"
-                      ContentTemplate="{DataTemplate views:SchedulePage}" />
-
-    </FlyoutItem>
-
-
-    <FlyoutItem Title="NOTIFICATIONS"
-                Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='&#xf0f3;', Color={StaticResource PrimaryTextColor}}">
-
-        <ShellContent Route="NotificationsPage"
-                      ContentTemplate="{DataTemplate views:NotificationsPage}" />
-
-    </FlyoutItem>
-
-
-    <!--<FlyoutItem Title="MESSAGES" Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-        <ShellContent Route="MessagesPage" ContentTemplate="{DataTemplate views:ComingSoonPage}" />
-    </FlyoutItem>-->
-
+    <!-- One item, one section per page: changing page only swaps a section already built. Sign-in first: the app opens on it. -->
+<TabBar Shell.TabBarIsVisible="False">
+        <ShellContent Route="LoginPage" ContentTemplate="{DataTemplate views:LoginPage}" />
+        <ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" />
+        <ShellContent Route="SchedulePage" ContentTemplate="{DataTemplate views:SchedulePage}" />
+        <ShellContent Route="TodaySchedulePage" ContentTemplate="{DataTemplate views:TodaySchedulePage}" />
+        <ShellContent Route="HistoryPage" ContentTemplate="{DataTemplate views:HistoryPage}" />
+        <ShellContent Route="FutureSchedulePage" ContentTemplate="{DataTemplate views:FutureSchedulePage}" />
+        <ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" />
+        <ShellContent Route="ContactPage" ContentTemplate="{DataTemplate views:ContactPage}" />
+        <ShellContent Route="SettingsPage" ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </TabBar>
 
     <MenuItem
         Text="MESSAGES"
@@ -215,26 +193,6 @@
         </MenuItem.Command>
 
     </MenuItem>
-
-
-    <FlyoutItem Title="CONTACT"
-                Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-
-        <ShellContent
-            Route="ContactPage"
-            ContentTemplate="{DataTemplate views:ContactPage}" />
-
-    </FlyoutItem>
-
-
-    <FlyoutItem Title="SETTINGS"
-                Icon="{FontImageSource FontFamily=FontAwesomeSolid, Glyph='', Color={StaticResource PrimaryTextColor}}">
-
-        <ShellContent Route="SettingsPage"
-                      ContentTemplate="{DataTemplate views:SettingsPage}" />
-
-    </FlyoutItem>
-
 
     <!-- Logout Item (MenuItem) -->
 
@@ -251,11 +209,5 @@
 
 
     <!-- Pages that do not appear in the menu but are navigable -->
-
-    <ShellContent
-        Route="LoginPage"
-        ContentTemplate="{DataTemplate views:LoginPage}"
-        FlyoutItemIsVisible="False"
-        IsEnabled="False" />
 
 </Shell>

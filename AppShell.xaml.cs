@@ -42,20 +42,16 @@ namespace Raphael.Driver
 
             //Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
             //Routing.RegisterRoute(nameof(SchedulePage), typeof(SchedulePage));
-            Routing.RegisterRoute(nameof(TodaySchedulePage), typeof(TodaySchedulePage));
-            Routing.RegisterRoute(nameof(Views.PullOutDetailPage), typeof(Views.PullOutDetailPage));
+            Routing.RegisterRoute(nameof(Views.PullOutDetailPage), ReadyPages.PullOutDetail);
             //Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
-            Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
+            Routing.RegisterRoute(nameof(EventDetailPage), ReadyPages.EventDetail);
             Routing.RegisterRoute(nameof(SignaturePage), typeof(SignaturePage));
             Routing.RegisterRoute(nameof(Views.VehicleInspectionPage), typeof(Views.VehicleInspectionPage));
 
-            Routing.RegisterRoute(nameof(FutureSchedulePage), typeof(FutureSchedulePage));
             Routing.RegisterRoute(nameof(FutureDetailPage), typeof(FutureDetailPage));
-            Routing.RegisterRoute(nameof(HistoryPage), typeof(HistoryPage));
             Routing.RegisterRoute(nameof(TripNotesPage), typeof(TripNotesPage)); // RE-054
-            Routing.RegisterRoute(nameof(ContactPage), typeof(ContactPage));
-            Routing.RegisterRoute(nameof(DocumentsPage), typeof(DocumentsPage)); // RE-065
-            Routing.RegisterRoute(nameof(DocumentUploadPage), typeof(DocumentUploadPage));
+            Routing.RegisterRoute(nameof(DocumentsPage), ReadyPages.Documents); // RE-065
+            Routing.RegisterRoute(nameof(DocumentUploadPage), ReadyPages.DocumentUpload);
 
             //Routing.RegisterRoute("LoginPage", typeof(Views.LoginPage));
             //Routing.RegisterRoute("HomePage", typeof(Views.HomePage));
@@ -70,6 +66,37 @@ namespace Raphael.Driver
         /// Shell, a theme change left the bar of the theme the app started with: the Shell reads
         /// its appearance from the page first, and does not repaint for a resource it already used.
         /// </summary>
+        private bool _warmed;
+
+        /// <summary>
+        /// Prepares the main pages after sign-in, one at a time, so the first tap finds them ready.
+        /// A page that fails here is simply built when it is opened.
+        /// </summary>
+        public async void WarmUpPages()
+        {
+            if (_warmed) return;
+            _warmed = true;
+            var context = Handler?.MauiContext;
+            if (context is null) return;
+            string[] routes = ["DashboardPage", "TodaySchedulePage", "NotificationsPage", "SettingsPage", "HistoryPage", "FutureSchedulePage"];
+            foreach (var item in Items)
+                foreach (var section in item.Items)
+                    foreach (var content in section.Items)
+                    {
+                        if (!routes.Contains(content.Route)) continue;
+                        await Task.Yield();
+                        try
+                        {
+                            if (((IShellContentController)content).GetOrCreateContent() is Page page)
+                                _ = Microsoft.Maui.Platform.ElementExtensions.ToPlatform(page, context);
+                        }
+                        catch (Exception)
+                        {
+                            // built when it is opened
+                        }
+                    }
+        }
+
         protected override void OnNavigated(ShellNavigatedEventArgs args)
         {
             base.OnNavigated(args);

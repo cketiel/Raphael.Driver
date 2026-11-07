@@ -14,8 +14,8 @@ namespace Raphael.Driver.Views
     {
         public ScheduleStylePreviewPopup(ScheduleStyleInfo info, Action use)
         {
-            Color = Colors.Transparent;
-            CanBeDismissedByTappingOutsideOfPopup = true;
+            BackgroundColor = Colors.Transparent;
+            Padding = 0;
 
             var title = new Label { Text = info.Name, FontSize = 19, FontAttributes = FontAttributes.Bold, Margin = new Thickness(14, 0, 14, 0) };
             title.SetDynamicResource(Label.TextColorProperty, "InkColor");
@@ -36,11 +36,11 @@ namespace Raphael.Driver.Views
 
             var close = new Button { Text = "Close", Style = (Style)Application.Current!.Resources["SecondaryButtonStyle"] };
             var choose = new Button { Text = "Use this style", Style = (Style)Application.Current!.Resources["PrimaryActionButtonStyle"] };
-            close.Clicked += (_, _) => Close();
-            choose.Clicked += (_, _) =>
+            close.Clicked += async (_, _) => await CloseAsync();
+            choose.Clicked += async (_, _) =>
             {
                 use();
-                Close();
+                await CloseAsync();
             };
             var buttons = new Grid { ColumnDefinitions = { new(GridLength.Star), new(GridLength.Star) }, ColumnSpacing = 10, Margin = new Thickness(12, 10, 12, 0) };
             buttons.Add(close, 0);

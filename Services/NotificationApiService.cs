@@ -31,7 +31,7 @@ namespace Raphael.Driver.Services
                 {
                     // Null, not an empty list. Reporting a refusal as "you have nothing" is how
                     // a misconfigured DriverRoleIds would hide itself for ever.
-                    Debug.WriteLine($"Error fetching notifications: {response.StatusCode}");
+                    Console.WriteLine($"RAPHAEL-NOTIF: {response.StatusCode}");
                     return null;
                 }
 

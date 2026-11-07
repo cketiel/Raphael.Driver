@@ -14,6 +14,7 @@ namespace Raphael.Driver.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            Helpers.ReadyPages.DocumentUpload.PrepareSoon(Dispatcher);
             if (BindingContext is ViewModels.DocumentsViewModel vm) await vm.LoadIfNeededAsync();
         }
     }

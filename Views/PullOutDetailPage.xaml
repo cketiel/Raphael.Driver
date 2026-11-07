@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Raphael.Driver.ViewModels"
              x:Class="Raphael.Driver.Views.PullOutDetailPage"
+             Shell.PresentationMode="NotAnimated"
              x:DataType="viewmodels:PullOutDetailPageViewModel"
              xmlns:converters="clr-namespace:Raphael.Driver.Converters"
              xmlns:controls="clr-namespace:Raphael.Driver.Controls"
