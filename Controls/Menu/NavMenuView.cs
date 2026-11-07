@@ -202,6 +202,13 @@ namespace Raphael.Driver.Controls.Menu
             }
 
             root.SizeChanged += (_, _) => Measure();
+            // The bar above can change height after a dialog or the keyboard; the page moves
+            // without changing size, so its position is checked on every layout as well.
+            root.HandlerChanged += (_, _) =>
+            {
+                if (root.Handler?.PlatformView is Android.Views.View view)
+                    view.ViewTreeObserver!.GlobalLayout += (_, _) => Measure();
+            };
             page.Appearing += (_, _) => page.Dispatcher.Dispatch(Measure);
 #endif
         }

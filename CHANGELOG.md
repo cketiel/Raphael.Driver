@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The record starts at version `1.1.0`; earlier history is not reconstructed.
@@ -12,6 +12,8 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 - The GPS service no longer stops the app when Android refuses to start it in the background.
 
 ### Fixed (RE-066 — speed)
+- Route tracking now runs as a real foreground service: Android shows the location notice while a route is in progress and no longer stops the GPS in the background.
+- The page keeps its height when the bar above changes after a dialog or the keyboard.
 - The bottom menu no longer shows cut off or stretched when changing section: pages keep the height of the visible window area.
 - Internal pages open without animation and the next one is prepared in advance; returning to Today redraws only the rows that changed.
 - The status bar no longer turns red when the app is reopened.

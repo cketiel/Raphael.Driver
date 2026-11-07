@@ -1,4 +1,4 @@
-﻿using Android.App;
+using Android.App;
 using Android.Content;
 using Android.OS;
 using Raphael.Driver.DTOs;
@@ -19,11 +19,17 @@ namespace Raphael.Driver.Services
 
         private const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
         private const string NOTIFICATION_CHANNEL_ID = "com.Raphael.Driver.gps";
-        private const string NOTIFICATION_CHANNEL_NAME = "Gps Service";
+        private const string NOTIFICATION_CHANNEL_NAME = "Route tracking";
 
         public bool IsTracking => _timer?.Enabled ?? false;
 
         public event Action<bool> IsTrackingChanged;
+
+        /// <summary>For <see cref="GpsServiceProxy"/>: the same change, for whoever holds the proxy.</summary>
+        public static event Action<bool>? TrackingChanged;
+
+        public const string ExtraVehicleRouteId = "vehicle_route_id";
+        public const string ExtraStop = "stop_tracking";
 
         public GpsServiceAndroid()
         {
@@ -44,6 +50,11 @@ namespace Raphael.Driver.Services
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
             // The service now starts "empty" and waits for orders.
+            if (intent != null && intent.GetBooleanExtra(ExtraStop, false))
+            {
+                StopTracking();
+                return StartCommandResult.NotSticky;
+            }
             if (intent != null && intent.HasExtra("vehicle_route_id"))
             {
                 int vehicleRouteId = intent.GetIntExtra("vehicle_route_id", 0);
@@ -71,6 +82,7 @@ namespace Raphael.Driver.Services
             Task.Run(SendLocationAsync);
 
             IsTrackingChanged?.Invoke(true);
+            TrackingChanged?.Invoke(true);
         }
 
         public void StopTracking()
@@ -83,21 +95,22 @@ namespace Raphael.Driver.Services
             StopSelf();
 
             IsTrackingChanged?.Invoke(false);
+            TrackingChanged?.Invoke(false);
         }
 
         private void PromoteToForegroundService()
         {
             if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             {
-                var channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, NotificationImportance.Default);
+                var channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, NotificationImportance.Low);
                 var notificationManager = (NotificationManager)GetSystemService(NotificationService);
                 notificationManager.CreateNotificationChannel(channel);
             }
 
             var notification = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .SetContentTitle("Raphael Driver")
-                .SetContentText("Route tracking is active..")
-                .SetSmallIcon(global::Raphael.Driver.Resource.Drawable.dotnet_bot)
+                .SetContentText("Sharing your location with dispatch while your route is in progress.")
+                .SetSmallIcon(global::Raphael.Driver.Resource.Drawable.ic_stat_notification)
                 .SetOngoing(true)
                 .Build();
 
