@@ -7,6 +7,10 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ### Fixed
 
+- An odometer reading the server refuses (below the vehicle's last reading, or below the day's
+  Pull-out) now says why and asks for it again. Until now the reading stayed on the phone and Perform
+  unlocked as if it had been saved (RE-070).
+
 - A refusal from the server is no longer taken for "no coverage". When the server answers that a
   Pull-out or Pull-in has no inspection for this driver, the app no longer opens the checklist kept
   on the phone as a required inspection, which blocked the Pull-out with an inspection the server

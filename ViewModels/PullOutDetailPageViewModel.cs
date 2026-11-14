@@ -365,6 +365,24 @@ namespace Raphael.Driver.ViewModels
             }
         }       
 
+        /// <summary>
+        /// RE-070: the server's reason for refusing a reading (422 odometer_*), e.g. that this vehicle
+        /// last read more. Null for any other failure.
+        /// </summary>
+        private static string? OdometerRefusal(Services.Offline.OutboxResult result)
+        {
+            if (result.Status != 422 || string.IsNullOrWhiteSpace(result.Body)) return null;
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(result.Body);
+                return doc.RootElement.TryGetProperty("message", out var message) ? message.GetString() : null;
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return null;
+            }
+        }
+
         private async Task EnterOdometer()
         {
             // To avoid double clicks.
@@ -384,11 +402,12 @@ namespace Raphael.Driver.ViewModels
 
                 if (long.TryParse(result, out long odometerValue) && odometerValue > -1)
                 {
+                    var previous = Event.Odometer;
                     Event.Odometer = odometerValue;
 
-                    bool success = await _scheduleService.UpdateScheduleAsync(Event);
+                    var saved = await _scheduleService.SaveScheduleAsync(Event);
 
-                    if (success)
+                    if (saved.Accepted)
                     {
                         //IsOdometerEntered = true;
                         await RefreshStates();
@@ -396,7 +415,11 @@ namespace Raphael.Driver.ViewModels
                     }
                     else
                     {
-                        await Shell.Current.DisplayAlert("Error", "Could not save the odometer reading. Please try again.", "OK");
+                        // RE-070: a refused reading must not unlock Perform on this phone.
+                        Event.Odometer = previous;
+                        await RefreshStates();
+                        await Shell.Current.DisplayAlert("Odometer not accepted",
+                            OdometerRefusal(saved) ?? "Could not save the odometer reading. Please try again.", "OK");
                     }
                 }
                 else
