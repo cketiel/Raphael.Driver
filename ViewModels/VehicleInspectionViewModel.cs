@@ -380,7 +380,7 @@ namespace Raphael.Driver.ViewModels
 
                 if (!result.Accepted)
                 {
-                    await Shell.Current.DisplayAlert("Inspection not saved", ErrorText(result.Body), "OK");
+                    await Shell.Current.DisplayAlert("Inspection not saved", Services.InspectionService.ReasonFor(result.Status, result.Body), "OK");
                     return;
                 }
 
@@ -424,19 +424,6 @@ namespace Raphael.Driver.ViewModels
         /// </summary>
         private string PullOutOdometerKey => $"PullOutOdometer:{Event?.VehicleRouteId}:{Event?.Date:yyyyMMdd}";
 
-        private static string ErrorText(string? body)
-        {
-            if (string.IsNullOrWhiteSpace(body)) return "The server did not accept the inspection.";
-            try
-            {
-                using var doc = System.Text.Json.JsonDocument.Parse(body);
-                if (doc.RootElement.TryGetProperty("message", out var m)) return m.GetString() ?? body;
-            }
-            catch (System.Text.Json.JsonException)
-            {
-            }
-            return "The server did not accept the inspection.";
-        }
 
         /// <summary>The camera, a JPEG at most 1600 px on its long side. Null when the driver cancels.</summary>
         private static async Task<byte[]?> CaptureAsync()
