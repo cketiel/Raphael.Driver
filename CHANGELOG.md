@@ -5,6 +5,16 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Fixed
+
+- A refusal from the server is no longer taken for "no coverage". When the server answers that a
+  Pull-out or Pull-in has no inspection for this driver, the app no longer opens the checklist kept
+  on the phone as a required inspection, which blocked the Pull-out with an inspection the server
+  then refused. The checklist on the phone is used only without coverage (RE-067).
+- Every refused inspection says why: the server's own reason, or what the answer means (route you
+  cannot drive, session expired, photo too large, server problem). The generic "The server did not
+  accept the inspection" is gone (RE-067).
+
 ## [2.0.0] - 2026-11-07
 
 ### Changed (RE-066 — navigation)

@@ -16,12 +16,24 @@ namespace Raphael.Driver.Services
         public byte[] Signature { get; init; } = Array.Empty<byte>();
     }
 
+    /// <summary>
+    /// The server answered and said no (RE-067): this is not "no coverage", so the phone's copy of
+    /// the checklist must not stand in for it. <see cref="Exception.Message"/> is for the driver.
+    /// </summary>
+    public sealed class InspectionRefusedException : Exception
+    {
+        public int Status { get; }
+
+        public InspectionRefusedException(int status, string message) : base(message) => Status = status;
+    }
+
     public interface IInspectionService
     {
         /// <summary>
         /// What this Pull-out or Pull-in asks of the driver. From the server, or from the phone's copy
         /// without coverage; with neither, the inspection is asked for (see remarks of the class).
         /// </summary>
+        /// <exception cref="InspectionRefusedException">The server answered with a refusal (4xx).</exception>
         Task<VehicleInspectionRequirementDto> GetRequirementAsync(int scheduleId, string eventName);
 
         /// <summary>Fetches and keeps the requirement while there is coverage. Never throws.</summary>
@@ -86,8 +98,8 @@ namespace Raphael.Driver.Services
 
         public async Task<VehicleInspectionRequirementDto> GetRequirementAsync(int scheduleId, string eventName)
         {
-            // ⚠️ Never throws: a failure here would fall back to the old flow, which the server
-            // refuses when the Provider requires the inspection.
+            // ⚠️ Throws only when the server said no (RE-067). Any other failure falls back to the
+            // phone's copy: guessing "not required" would make a Pull-out the server later refuses.
             try
             {
                 Directory.CreateDirectory(_folder);
@@ -108,7 +120,7 @@ namespace Raphael.Driver.Services
                     return sibling;
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not InspectionRefusedException)
             {
                 Debug.WriteLine($"Inspection requirement: {ex.Message}");
             }
@@ -164,6 +176,17 @@ namespace Raphael.Driver.Services
             {
                 var http = _factory.CreateClient(nameof(Outbox));
                 var response = await http.GetAsync($"api/vehicle-inspections/requirement?scheduleId={scheduleId}");
+
+                // A 4xx is the server's answer, not a lack of coverage (RE-067): the copy kept on the
+                // phone is dropped, and the driver is told why instead of being handed a checklist
+                // the server will refuse. A 5xx is "cannot know": the copy still answers.
+                var status = (int)response.StatusCode;
+                if (status is >= 400 and < 500)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    try { File.Delete(Path.Combine(_folder, $"{scheduleId}.json")); } catch (IOException) { }
+                    throw new InspectionRefusedException(status, ReasonFor(status, body));
+                }
                 if (!response.IsSuccessStatusCode) return null;
 
                 var content = await response.Content.ReadAsStringAsync();
@@ -182,6 +205,46 @@ namespace Raphael.Driver.Services
                 Debug.WriteLine($"Inspection requirement from the phone's copy: {ex.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Why the server did not take an inspection, in the driver's words (RE-067). The server's own
+        /// <c>message</c> when it sent one; otherwise what the status means here. Never a generic line.
+        /// </summary>
+        public static string ReasonFor(int? status, string? body)
+        {
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                    {
+                        if (doc.RootElement.TryGetProperty("message", out var m) && m.GetString() is { Length: > 0 } message)
+                            return message;
+                        // ASP.NET's validation answer: a title and the fields it could not read.
+                        if (doc.RootElement.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Object)
+                        {
+                            var fields = string.Join(", ", errors.EnumerateObject().Select(e => e.Name.TrimStart('$', '.')));
+                            return $"The server could not read part of the inspection ({fields}). Update the app; if it keeps happening, call dispatch. (HTTP {status})";
+                        }
+                    }
+                }
+                catch (JsonException)
+                {
+                }
+            }
+
+            return status switch
+            {
+                401 => "Your session has expired. Sign out, sign in again and repeat the inspection.",
+                403 => "Your account is not allowed to send vehicle inspections. Call dispatch.",
+                404 => "This Pull-out or Pull-in is not on a route you can drive. If you are covering a colleague's route, open it with CHANGE ROUTE; if the route belongs to another company, or dispatch removed it, call dispatch.",
+                413 => "A photo is too large. Retake it and try again.",
+                >= 500 => $"The server had a problem (HTTP {status}). Try again in a minute; if it keeps happening, call dispatch.",
+                null => "The server did not answer. Check the connection and try again.",
+                _ => $"The server refused the inspection (HTTP {status}). Call dispatch."
+            };
         }
 
         private static VehicleInspectionRequirementDto? TryRead(string file)

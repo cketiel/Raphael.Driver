@@ -235,7 +235,16 @@ namespace Raphael.Driver.ViewModels
         {
             if (IsBusy || Event is null) return;
 
-            _requirement ??= await _inspections.GetRequirementAsync(Event.Id, Event.Name);
+            try
+            {
+                _requirement ??= await _inspections.GetRequirementAsync(Event.Id, Event.Name);
+            }
+            catch (InspectionRefusedException refused)
+            {
+                // RE-067: the server said no; a checklist it will refuse is never handed out.
+                await Shell.Current.DisplayAlert("Inspection not available", refused.Message, "OK");
+                return;
+            }
 
             await Shell.Current.GoToAsync(nameof(VehicleInspectionPage), new Dictionary<string, object>
             {
@@ -259,6 +268,17 @@ namespace Raphael.Driver.ViewModels
                 InspectionRequired = requirement.Required;
                 IsInspected = requirement.Existing is not null || _inspections.IsDoneOnPhone(value.Id);
                 if (requirement.Existing is not null && value.Odometer is null) value.Odometer = requirement.Existing.Odometer;
+                await RefreshStates();
+            }
+            catch (InspectionRefusedException refused)
+            {
+                // RE-067: the server answered and does not offer this inspection to this driver. The
+                // Pull-out goes on as without the module; if the server does require it, Perform comes
+                // back with 409 inspection_required and the reason is shown then.
+                Debug.WriteLine($"Inspection requirement refused ({refused.Status})");
+                if (Event?.Id != value.Id) return;
+                _requirement = null;
+                InspectionRequired = false;
                 await RefreshStates();
             }
             catch (Exception ex)
