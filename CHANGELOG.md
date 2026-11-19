@@ -5,6 +5,10 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-11-19
+
+APK only (sideload), not uploaded to Google Play. **Needs:** Raphael.Backend 2.10.7 for the odometer check.
+
 ### Fixed
 
 - An odometer reading the server refuses (below the vehicle's last reading, or below the day's

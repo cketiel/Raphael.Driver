@@ -14,8 +14,8 @@
 		<!-- Propiedades Generales -->
 		<ApplicationTitle>Raphael.Driver</ApplicationTitle>
 		<ApplicationId>com.raphael.driver</ApplicationId>
-		<ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
-		<ApplicationVersion>22</ApplicationVersion>
+		<ApplicationDisplayVersion>2.1.1</ApplicationDisplayVersion>
+		<ApplicationVersion>23</ApplicationVersion>
 		<AssemblyVersion>1.2.0</AssemblyVersion>
 		<FileVersion>1.2.0</FileVersion>
 
@@ -108,8 +108,8 @@
 		     ApplicationVersion is the Android versionCode: Google Play refuses an upload whose
 		     versionCode is not strictly greater than the last one, so it only ever goes up,
 		     never back, and never repeats — even for a build that is thrown away. -->
-		<ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
-		<ApplicationVersion>22</ApplicationVersion>
+		<ApplicationDisplayVersion>2.1.1</ApplicationDisplayVersion>
+		<ApplicationVersion>23</ApplicationVersion>
 
 		<!-- Aquí irán las propiedades de firma que el asistente de publicación añade automáticamente -->
 		<!-- Ejemplo: -->
