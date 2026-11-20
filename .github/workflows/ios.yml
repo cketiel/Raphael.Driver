@@ -54,4 +54,4 @@ jobs:
           fi
 
       - name: Build for the iOS simulator (no signing)
-        run: dotnet build Raphael.Driver.csproj -f net10.0-ios -c Release -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
+        run: dotnet build Raphael.Driver.csproj -f net10.0-ios -c Release -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -p:CodesignEntitlements= -p:EnableCodeSigning=false
