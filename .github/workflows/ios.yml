@@ -53,5 +53,16 @@ jobs:
             echo "::warning::GOOGLE_SERVICE_INFO_PLIST secret not set: this build has no push."
           fi
 
+      # PrivateSettings.cs (Zonitel) is not in git either: it holds a private token.
+      - name: Restore PrivateSettings.cs
+        env:
+          PRIVATE_SETTINGS_CS: ${{ secrets.PRIVATE_SETTINGS_CS }}
+        run: |
+          if [ -z "$PRIVATE_SETTINGS_CS" ]; then
+            echo "::error::PRIVATE_SETTINGS_CS secret not set: the app cannot compile without it."
+            exit 1
+          fi
+          echo "$PRIVATE_SETTINGS_CS" | base64 --decode > PrivateSettings.cs
+
       - name: Build for the iOS simulator (no signing)
         run: dotnet build Raphael.Driver.csproj -f net10.0-ios -c Release -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -p:CodesignEntitlements= -p:EnableCodeSigning=false

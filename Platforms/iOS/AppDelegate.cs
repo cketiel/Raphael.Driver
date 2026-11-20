@@ -80,7 +80,7 @@ namespace Raphael.Driver
             {
                 try
                 {
-                    if (response.ActionIdentifier == UNNotificationAction.DefaultActionIdentifier)
+                    if (response.IsDefaultAction)
                         NotificationRouter.RequestOpen();
                 }
                 catch (Exception ex)
