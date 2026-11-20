@@ -5,6 +5,8 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>samsara</string>
+		<string>comgooglemaps</string>
+		<string>waze</string>
 	</array>
 	<!-- Tells iOS that your app has special background capabilities. The location value is specific to location tracking.-->
 	<key>UIBackgroundModes</key>
@@ -22,12 +24,29 @@
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs continuous access to your location to accurately record your route, even if the app is in the background.</string>
 
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>comgooglemaps</string>
-		<string>waze</string>
-	</array>
-	
+	<!-- Xcode 27: UIKit requires the scene life cycle; without it the app closes after the splash. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>__MAUI_DEFAULT_SCENE_CONFIGURATION__</string>
+					<key>UISceneDelegateClassName</key>
+					<string>SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+
+	<!-- Only HTTPS/TLS from the OS: exempt, so App Store Connect does not ask on every upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIDeviceFamily</key>

@@ -1,7 +1,10 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 #if ANDROID
 using Firebase.Messaging;
+#endif
+#if IOS
+using UserNotifications;
 #endif
 
 namespace Raphael.Driver.Services
@@ -14,8 +17,15 @@ namespace Raphael.Driver.Services
         /// </summary>
         public const string TokenPreferenceKey = "FcmToken";
 
+#if IOS
+        /// <summary>Set by AppDelegate once Firebase started (GoogleService-Info.plist present).</summary>
+        public static bool FirebaseConfigured { get; set; }
+#endif
+
 #if ANDROID
         public bool IsSupported => true;
+#elif IOS
+        public bool IsSupported => FirebaseConfigured;
 #else
         public bool IsSupported => false;
 #endif
@@ -33,6 +43,18 @@ namespace Raphael.Driver.Services
                     status = await Permissions.RequestAsync<Permissions.PostNotifications>();
 
                 return status == PermissionStatus.Granted;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PushTokenProvider: permission request failed. {ex.Message}");
+                return false;
+            }
+#elif IOS
+            try
+            {
+                var (granted, _) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(
+                    UNAuthorizationOptions.Alert | UNAuthorizationOptions.Sound | UNAuthorizationOptions.Badge);
+                return granted;
             }
             catch (Exception ex)
             {
@@ -70,6 +92,26 @@ namespace Raphael.Driver.Services
             {
                 // No Firebase configuration on the device means no push. The inbox and the live
                 // channel keep working, so this is degraded, not broken.
+                Debug.WriteLine($"PushTokenProvider: could not get the FCM token. {ex.Message}");
+                return null;
+            }
+#elif IOS
+            if (!FirebaseConfigured)
+                return null;
+
+            try
+            {
+                var completion = new TaskCompletionSource<string?>();
+
+                Firebase.CloudMessaging.Messaging.SharedInstance.FetchToken((token, error) =>
+                    completion.TrySetResult(error is null ? token : null));
+
+                // Same 15 s limit as Android: no network must not block the sign in.
+                var finished = await Task.WhenAny(completion.Task, Task.Delay(TimeSpan.FromSeconds(15)));
+                return finished == completion.Task ? await completion.Task : null;
+            }
+            catch (Exception ex)
+            {
                 Debug.WriteLine($"PushTokenProvider: could not get the FCM token. {ex.Message}");
                 return null;
             }

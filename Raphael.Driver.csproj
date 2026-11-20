@@ -64,7 +64,8 @@
 
 	<!-- Configuración para iOS -->
 	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-ios'">
-		<SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>
+		<!-- 15.0: the floor of the Xcode 27 SDK and of the UIKit scene life cycle. -->
+		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<!-- Configuración para Mac Catalyst -->
@@ -125,8 +126,8 @@
 	  <ApplicationVersion>9</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-ios|AnyCPU'">
-	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.1.1</ApplicationDisplayVersion>
+	  <ApplicationVersion>23</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-maccatalyst|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
@@ -137,8 +138,8 @@
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-ios|AnyCPU'">
-	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.1.1</ApplicationDisplayVersion>
+	  <ApplicationVersion>23</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-maccatalyst|AnyCPU'">
 	  <ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
@@ -212,6 +213,20 @@
 
 		<GoogleServicesJson Include="Platforms\Android\google-services.json" Condition="Exists('Platforms\Android\google-services.json')" />
 	</ItemGroup>
+
+	<!-- =================================================================== -->
+	<!-- PUSH NOTIFICATIONS (iOS) — RE-079                                  -->
+	<!-- Same Firebase project "raphael-nemt" as Android; FCM relays to     -->
+	<!-- APNs with the APNs key uploaded in the Firebase console. Without   -->
+	<!-- GoogleService-Info.plist the app starts without push.              -->
+	<!-- =================================================================== -->
+	<ItemGroup Condition="'$(TargetFramework)'=='net10.0-ios'">
+		<PackageReference Include="AdamE.Firebase.iOS.CloudMessaging" Version="12.19.3" />
+		<BundleResource Include="Platforms\iOS\GoogleService-Info.plist" Link="GoogleService-Info.plist" Condition="Exists('Platforms\iOS\GoogleService-Info.plist')" />
+	</ItemGroup>
+	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-ios'">
+		<CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
+	</PropertyGroup>
 
 	<!-- Se eliminaron los ItemGroup duplicados e innecesarios para MauiFont y MauiImage -->
 

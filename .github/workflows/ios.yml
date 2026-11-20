@@ -1,0 +1,51 @@
+name: iOS build
+
+# RE-079 — compile check of the iOS app. No signing yet: this proves the code builds with the
+# Xcode the App Store requires. Signing and the TestFlight upload come in a later step, once the
+# Apple certificate, profile and API key are stored as repository secrets.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'feat/RE-079-*' ]
+    paths: [ 'Platforms/iOS/**', '**/*.cs', '**/*.xaml', 'Raphael.Driver.csproj', '.github/workflows/ios.yml' ]
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select the newest Xcode on the runner
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install the MAUI iOS workload
+        run: dotnet workload install maui-ios
+
+      - name: Show the toolchain
+        run: dotnet workload list
+
+      # GoogleService-Info.plist is not in git (same rule as google-services.json). It comes from
+      # the repository secret GOOGLE_SERVICE_INFO_PLIST (base64). Without it the build still
+      # passes and the app simply starts without push.
+      - name: Restore the Firebase configuration
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
+            echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > Platforms/iOS/GoogleService-Info.plist
+            echo "Firebase configuration restored."
+          else
+            echo "::warning::GOOGLE_SERVICE_INFO_PLIST secret not set: this build has no push."
+          fi
+
+      - name: Build for the iOS simulator (no signing)
+        run: dotnet build Raphael.Driver.csproj -f net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64
