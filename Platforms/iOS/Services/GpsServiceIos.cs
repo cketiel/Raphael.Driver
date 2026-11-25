@@ -16,6 +16,13 @@ namespace Raphael.Driver.Services
         private int _idVehicleRoute;
         private bool _isTracking = false;
 
+        // Same cadence as Android (GpsServiceAndroid): one fix every 30 seconds. CoreLocation keeps
+        // delivering updates so iOS keeps the app alive in the background; the timer decides when
+        // the latest one is sent, so the server sees the same rhythm from both platforms.
+        private const int SendIntervalMs = 30000;
+        private System.Timers.Timer? _timer;
+        private IosLocation? _lastLocation;
+
         public bool IsTracking => _isTracking;
 
         public event Action<bool> IsTrackingChanged;
@@ -51,8 +58,16 @@ namespace Raphael.Driver.Services
             _locationManager.PausesLocationUpdatesAutomatically = false;
             _locationManager.AllowsBackgroundLocationUpdates = true;
             _locationManager.DesiredAccuracy = CLLocation.AccuracyBest;
-            _locationManager.DistanceFilter = CLLocation.AccuracyHundredMeters; 
+            // No distance filter: a driver waiting at a pickup must still report every 30 s,
+            // exactly as on Android. Sending is throttled by the timer, not by CoreLocation.
+            _locationManager.DistanceFilter = CLLocationDistance.FilterNone;
+            _locationManager.ShowsBackgroundLocationIndicator = true;
             _locationManager.StartUpdatingLocation();
+
+            _timer = new System.Timers.Timer(SendIntervalMs);
+            _timer.Elapsed += async (s, e) => await SendLatestAsync();
+            _timer.Start();
+            _ = SendNowAsync();
 
             _isTracking = true;
             Debug.WriteLine("iOS GPS Tracking Started");
@@ -64,25 +79,35 @@ namespace Raphael.Driver.Services
             if (!_isTracking) return;
 
             _locationManager?.StopUpdatingLocation();
+            _timer?.Stop();
+            _timer?.Dispose();
+            _timer = null;
+            _lastLocation = null;
             _isTracking = false;
             Debug.WriteLine("iOS GPS Tracking Stopped");
             IsTrackingChanged?.Invoke(false);
         }
 
-        // This is the delegate method that the OS calls with new locations
+        // CoreLocation calls this with every new fix; it is only kept. The timer sends it.
         [Export("locationManager:didUpdateLocations:")]
         public void LocationsUpdated(CLLocationManager manager, IosLocation[] locations)
         {
-            var lastLocation = locations.LastOrDefault();
-            if (lastLocation == null) return;
+            var last = locations.LastOrDefault();
+            if (last != null)
+                _lastLocation = last;
+        }
 
-            Debug.WriteLine($"New location received: Lat {lastLocation.Coordinate.Latitude}, Lon {lastLocation.Coordinate.Longitude}");
+        private async Task SendLatestAsync()
+        {
+            var last = _lastLocation;
+            if (last == null)
+            {
+                await SendNowAsync();
+                return;
+            }
 
-            // Convert native location to MAUI location to maintain common logic
-            var mauiLocation = new Location(lastLocation.Coordinate.Latitude, lastLocation.Coordinate.Longitude);
-
-            // Send the location to the server (without waiting, so as not to block the UI thread)
-            _ = SendLocationAsync(mauiLocation, lastLocation.Speed, lastLocation.Course);
+            var location = new Location(last.Coordinate.Latitude, last.Coordinate.Longitude);
+            await SendLocationAsync(location, Math.Max(last.Speed, 0), last.Course);
         }
 
         public async Task SendNowAsync()
@@ -116,7 +141,8 @@ namespace Raphael.Driver.Services
                     Speed = speed,
                     Latitude = location.Latitude,
                     Longitude = location.Longitude,
-                    Direction = GetCardinalDirection(course)
+                    Direction = GetCardinalDirection(course),
+                    Address = await GetReadableAddressAsync(location.Latitude, location.Longitude)
                 };
 
                 // RE-062: a fix that cannot be sent is kept on the phone and goes with the next one
@@ -149,6 +175,29 @@ namespace Raphael.Driver.Services
         public async Task<Location> GetCurrentLocationAsync()
         {
             return await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium));
+        }
+
+        // Same format as Android: "6010 Pointe West Blvd, Bradenton, FL 34209, United States".
+        private static async Task<string> GetReadableAddressAsync(double latitude, double longitude)
+        {
+            try
+            {
+                var place = (await Geocoding.Default.GetPlacemarksAsync(latitude, longitude))?.FirstOrDefault();
+                if (place != null)
+                {
+                    string street = $"{place.SubThoroughfare} {place.Thoroughfare}".Trim();
+                    if (string.IsNullOrEmpty(street))
+                        street = place.FeatureName;
+
+                    return $"{street}, {place.Locality}, {place.AdminArea} {place.PostalCode}, {place.CountryName}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting address: {ex.Message}");
+            }
+
+            return "Address not available";
         }
 
         private string GetCardinalDirection(double? bearing)

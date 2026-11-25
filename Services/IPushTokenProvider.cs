@@ -4,8 +4,8 @@ namespace Raphael.Driver.Services
     /// The identifier this device is reachable by for push notifications.
     /// </summary>
     /// <remarks>
-    /// Only Android has an implementation today: the app ships as an Android APK and there is
-    /// no APNs setup. Elsewhere this returns nothing and the in-app channel carries everything.
+    /// Android and iOS (RE-079) share the same Firebase project. Where Firebase is not
+    /// configured this returns nothing and the in-app channel carries everything.
     /// </remarks>
     public interface IPushTokenProvider
     {

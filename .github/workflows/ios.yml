@@ -1,0 +1,68 @@
+name: iOS build
+
+# RE-079 — compile check of the iOS app. No signing yet: this proves the code builds with the
+# Xcode the App Store requires. Signing and the TestFlight upload come in a later step, once the
+# Apple certificate, profile and API key are stored as repository secrets.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 'feat/RE-079-*' ]
+    paths: [ 'Platforms/iOS/**', '**/*.cs', '**/*.xaml', 'Raphael.Driver.csproj', '.github/workflows/ios.yml' ]
+
+jobs:
+  build:
+    runs-on: xcode-27   # GitHub image per Xcode major (arm64, macOS 27); .NET for iOS 27.2 needs Xcode 27.2
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select the newest Xcode on the runner
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
+
+      - uses: actions/setup-dotnet@v4
+        id: dotnet
+        with:
+          dotnet-version: '10.0.x'
+
+      # The runner also ships a newer SDK (11.x), which would win. Pin the build to .NET 10
+      # for this job only, without a global.json in the repo that would bind local builds too.
+      - name: Pin the .NET 10 SDK
+        run: echo '{"sdk":{"version":"${{ steps.dotnet.outputs.dotnet-version }}","rollForward":"latestFeature"}}' > global.json && dotnet --version
+
+      - name: Install the MAUI iOS workload
+        run: dotnet workload install maui-ios
+
+      - name: Show the toolchain
+        run: dotnet workload list
+
+      # GoogleService-Info.plist is not in git (same rule as google-services.json). It comes from
+      # the repository secret GOOGLE_SERVICE_INFO_PLIST (base64). Without it the build still
+      # passes and the app simply starts without push.
+      - name: Restore the Firebase configuration
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
+            echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > Platforms/iOS/GoogleService-Info.plist
+            echo "Firebase configuration restored."
+          else
+            echo "::warning::GOOGLE_SERVICE_INFO_PLIST secret not set: this build has no push."
+          fi
+
+      # PrivateSettings.cs (Zonitel) is not in git either: it holds a private token.
+      - name: Restore PrivateSettings.cs
+        env:
+          PRIVATE_SETTINGS_CS: ${{ secrets.PRIVATE_SETTINGS_CS }}
+        run: |
+          if [ -z "$PRIVATE_SETTINGS_CS" ]; then
+            echo "::error::PRIVATE_SETTINGS_CS secret not set: the app cannot compile without it."
+            exit 1
+          fi
+          echo "$PRIVATE_SETTINGS_CS" | base64 --decode > PrivateSettings.cs
+
+      - name: Build for the iOS simulator (no signing)
+        run: dotnet build Raphael.Driver.csproj -f net10.0-ios -c Release -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -p:CodesignEntitlements= -p:EnableCodeSigning=false

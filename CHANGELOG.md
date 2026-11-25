@@ -5,6 +5,24 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 
 ## [Unreleased]
 
+### Added
+
+- iOS push notifications through the same Firebase project as Android. Pushes also show while the
+  app is open, and tapping one opens Notifications, with the app running or closed, as on Android.
+  Without `GoogleService-Info.plist` the app starts without push, as before (RE-079).
+- iOS build workflow on GitHub Actions (compile check, no signing yet) (RE-079).
+
+### Changed
+
+- iOS GPS now sends one fix every 30 seconds, like Android, including while the driver is stopped,
+  and includes the readable address. Until now it sent only after moving about 100 m (RE-079).
+- iOS adopts the UIKit scene life cycle required by Xcode 27; minimum iOS raised to 15.0 (RE-079).
+
+### Fixed
+
+- iOS `Info.plist` declared `LSApplicationQueriesSchemes` twice, so the Samsara scheme was lost (RE-079).
+- iOS builds reported version 1.1.0 instead of the app's version (RE-079).
+
 ## [2.1.1] - 2026-11-19
 
 APK only (sideload), not uploaded to Google Play. **Needs:** Raphael.Backend 2.10.7 for the odometer check.
