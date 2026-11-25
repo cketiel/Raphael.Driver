@@ -304,7 +304,7 @@ namespace Raphael.Driver.ViewModels
                 var distanceInMiles = Location.CalculateDistance(currentLocation, eventLocation, DistanceUnits.Miles);
 
                 // Distance threshold for warning
-                const double ProximityThresholdInMiles = 0.1;
+                const double ProximityThresholdInMiles = 0.2; // RE-092: as the report counts it
 
                 if (distanceInMiles > ProximityThresholdInMiles)
                 {
@@ -360,7 +360,7 @@ namespace Raphael.Driver.ViewModels
                 var distanceInMiles = Location.CalculateDistance(currentLocation, eventLocation, DistanceUnits.Miles);
 
                 
-                const double ProximityThresholdInMiles = 0.1;
+                const double ProximityThresholdInMiles = 0.2; // RE-092: as the report counts it
 
                 if (distanceInMiles > ProximityThresholdInMiles)
                 {

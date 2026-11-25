@@ -23,6 +23,18 @@ The record starts at version `1.1.0`; earlier history is not reconstructed.
 - iOS `Info.plist` declared `LSApplicationQueriesSchemes` twice, so the Samsara scheme was lost (RE-079).
 - iOS builds reported version 1.1.0 instead of the app's version (RE-079).
 
+### Added (RE-092)
+- An odometer reading that does not add up (lower than the last one, too many miles since it, or a Pull-in far
+  from the route's miles) asks for a second look before saving. It can always be saved. Needs Raphael.Backend 2.14.0;
+  without it, or without coverage, only the Pull-in is compared with the Pull-out typed on the phone.
+- A card on Today when yesterday's route was driven and never closed, to do its Pull-in. It can be hidden, and it
+  never stops today's GPS.
+- What an older server refused is sent again, once per app version, when it is safe to.
+
+### Changed (RE-092)
+- The "too far" question before Arrive and Perform starts at 0.2 miles instead of 0.1.
+- The vehicle inspection no longer refuses a Pull-in reading below the Pull-out's.
+
 ## [2.1.1] - 2026-11-19
 
 APK only (sideload), not uploaded to Google Play. **Needs:** Raphael.Backend 2.10.7 for the odometer check.

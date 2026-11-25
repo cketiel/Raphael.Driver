@@ -15,6 +15,7 @@ namespace Raphael.Driver.ViewModels
     [QueryProperty(nameof(Event), "EventDetail")]
     [QueryProperty(nameof(IsFirstEvent), "IsFirstEvent")]
     [QueryProperty(nameof(Events), "Events")]
+    [QueryProperty(nameof(KeepTracking), "KeepTracking")]
     public partial class PullOutDetailPageViewModel : ObservableObject, IDisposable, IQueryAttributable
     {
         private readonly IScheduleService _scheduleService;
@@ -93,8 +94,9 @@ namespace Raphael.Driver.ViewModels
         /// </summary>
         public ObservableCollection<EventAction> Actions { get; } = new();
 
-        public PullOutDetailPageViewModel(IScheduleService scheduleService, IGpsService gpsService, IMapService mapService, IInspectionService inspections)
+        public PullOutDetailPageViewModel(IScheduleService scheduleService, IGpsService gpsService, IMapService mapService, IInspectionService inspections, IOdometerCheck odometerCheck)
         {
+            _odometerCheck = odometerCheck;
             _scheduleService = scheduleService;
             _inspections = inspections;
             _gpsService = gpsService;
@@ -108,6 +110,10 @@ namespace Raphael.Driver.ViewModels
                 IsTracking = _gpsService.IsTracking;
             }
         }
+
+        /// <summary>RE-092: this Pull-in is yesterday's and today's route is under way.</summary>
+        [ObservableProperty]
+        private bool _keepTracking;
 
         partial void OnIsFirstEventChanged(bool value) => UpdateUIState();
         //partial void OnEventChanged(ScheduleDto value) => UpdateUIState();
@@ -383,6 +389,8 @@ namespace Raphael.Driver.ViewModels
             }
         }
 
+        private readonly IOdometerCheck _odometerCheck;
+
         private async Task EnterOdometer()
         {
             // To avoid double clicks.
@@ -402,6 +410,9 @@ namespace Raphael.Driver.ViewModels
 
                 if (long.TryParse(result, out long odometerValue) && odometerValue > -1)
                 {
+                    // RE-092: a reading that does not add up is only asked about; the driver may always save it.
+                    if (!await _odometerCheck.ConfirmAsync(Event, odometerValue)) return;
+
                     var previous = Event.Odometer;
                     Event.Odometer = odometerValue;
 
@@ -410,6 +421,7 @@ namespace Raphael.Driver.ViewModels
                     if (saved.Accepted)
                     {
                         //IsOdometerEntered = true;
+                        _odometerCheck.RememberPullOut(Event, odometerValue);
                         await RefreshStates();
                         await Shell.Current.DisplayAlert("Success", "Odometer reading has been saved.", "OK");
                     }
@@ -487,7 +499,8 @@ namespace Raphael.Driver.ViewModels
                     }
                     else if (Event.Name == "Pull-in")
                     {
-                        _gpsService.StopTracking();
+                        // RE-092: closing yesterday's route must not stop the GPS of the one being driven today.
+                        if (!(KeepTracking && Event.Date?.Date < DateTime.Today)) _gpsService.StopTracking();
                     }
                     await Shell.Current.GoToAsync("..");
                 }
@@ -663,6 +676,7 @@ namespace Raphael.Driver.ViewModels
         {
             if (value != null)
             {
+                if (value.Odometer is null) _ = _odometerCheck.PrefetchAsync(value.Id);
                 PageTitle = value.Name; // "Pull-out" o "Pull-in"
                 MapActionText = $"Maps - {value.Name} Address";
 

@@ -55,13 +55,31 @@
     <!-- We use a RefreshView to enable reloading and handle the loading indicator -->
     <RefreshView Command="{Binding LoadEventsCommand}" IsRefreshing="{Binding IsBusy}">
 
-        <Grid RowDefinitions="Auto, *" RowSpacing="10" BackgroundColor="{DynamicResource PageBackgroundColor}">
+        <Grid RowDefinitions="Auto, Auto, *" RowSpacing="10" BackgroundColor="{DynamicResource PageBackgroundColor}">
           
             <!-- RE-064: History · Today · Future, and the route icon that was CHANGE ROUTE. -->
             <controls:ScheduleTabs Grid.Row="0" Selected="today" RunLogin="{Binding RunLogin}" />
            
-            <Grid Grid.Row="1">
-              
+            <!-- RE-092: yesterday's route was driven and never closed. Only a reminder: it can be hidden. -->
+            <Border Grid.Row="1" IsVisible="{Binding HasOpenYesterday}" Margin="12,0" Padding="14,10" StrokeThickness="1"
+                    Stroke="{DynamicResource WarnColor}" BackgroundColor="{DynamicResource WarnSoftColor}" StrokeShape="RoundRectangle 14">
+                <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto" ColumnSpacing="12" RowSpacing="8">
+                    <Label Text="&#xf071;" FontFamily="FontAwesomeSolid" FontSize="20" TextColor="{DynamicResource WarnColor}" VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Yesterday's route is still open" FontAttributes="Bold" FontSize="15" TextColor="{DynamicResource PrimaryTextColor}" />
+                        <Label Text="{Binding OpenYesterdayText}" FontSize="13" TextColor="{DynamicResource SecondaryTextColor}" />
+                    </VerticalStackLayout>
+                    <ImageButton Grid.Column="2" BackgroundColor="Transparent" WidthRequest="40" HeightRequest="40" VerticalOptions="Start"
+                                 Command="{Binding HideYesterdayCommand}" SemanticProperties.Description="Hide">
+                        <ImageButton.Source><FontImageSource Glyph="&#xf00d;" FontFamily="FontAwesomeSolid" Size="16" Color="{DynamicResource SecondaryTextColor}" /></ImageButton.Source>
+                    </ImageButton>
+                    <Button Grid.Row="1" Grid.ColumnSpan="3" Text="CLOSE YESTERDAY'S ROUTE" FontAttributes="Bold" CornerRadius="12" HeightRequest="46"
+                            BackgroundColor="{DynamicResource WarnColor}" TextColor="White" Command="{Binding CloseYesterdayCommand}" />
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2">
+
                 <CollectionView x:Name="EventsList" ItemsSource="{Binding Events}"
                                 SelectionMode="None"
                                 IsVisible="{Binding HasEvents}">

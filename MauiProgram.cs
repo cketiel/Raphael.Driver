@@ -178,6 +178,8 @@ namespace Raphael.Driver
             builder.Services.AddTransient<SignatureViewModel>();
             // RE-062: the vehicle inspection.
             builder.Services.AddSingleton<IInspectionService, InspectionService>();
+            builder.Services.AddSingleton<IOdometerCheck, OdometerCheck>();
+            builder.Services.AddSingleton<Raphael.Driver.Services.Offline.RejectedResend>();
             builder.Services.AddTransient<VehicleInspectionViewModel>();
             builder.Services.AddTransient<VehicleInspectionPage>();
             builder.Services.AddTransient<FutureScheduleViewModel>();

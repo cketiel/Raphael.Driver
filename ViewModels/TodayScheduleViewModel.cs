@@ -40,8 +40,66 @@ namespace Raphael.Driver.ViewModels
         [ObservableProperty]
         private int _vehicleRouteId;
 
-        public TodayScheduleViewModel(IScheduleService scheduleService, ISessionManagerService sessionManager)
+        // ---- RE-092: yesterday's route, left without its Pull-in -----------------------------------
+
+        private readonly Services.Offline.RejectedResend _resend;
+        private List<ScheduleDto> _yesterday = new();
+        private string? _checked;
+
+        [ObservableProperty]
+        private bool _hasOpenYesterday;
+
+        [ObservableProperty]
+        private string _openYesterdayText = string.Empty;
+
+        /// <summary>
+        /// Looks once per route and day, after today's list is on screen, whether yesterday's route was driven
+        /// and never closed. Never waits nor blocks anything.
+        /// </summary>
+        private async Task CheckYesterdayAsync()
         {
+            var day = DateTime.Today.AddDays(-1);
+            var key = $"{RunLogin}:{day:yyyyMMdd}";
+            if (_checked == key || Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return;
+            // In the small hours the list itself may still be yesterday's route, under way.
+            if (Events.Any(e => e.Date?.Date == day)) { HasOpenYesterday = false; return; }
+            _checked = key;
+            try
+            {
+                var left = await _scheduleService.GetOpenNowAsync(RunLogin, day);
+                if (left is null) { if (_checked == key) _checked = null; return; }
+                if (key != $"{RunLogin}:{day:yyyyMMdd}") return;
+                _yesterday = left;
+                // The Pull-out done and the Pull-in not: driven and not closed. A route nobody drove keeps both.
+                HasOpenYesterday = left.Any(e => e.Name == "Pull-in") && left.All(e => e.Name != "Pull-out");
+                OpenYesterdayText = $"{day:dddd, MMM d}: the Pull-in is missing. Close it so the day is complete.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Yesterday's route: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task CloseYesterday()
+        {
+            if (_yesterday.FirstOrDefault(e => e.Name == "Pull-in") is not { } pullIn) return;
+            _checked = null; // looked at again on the way back
+            await Shell.Current.GoToAsync(nameof(PullOutDetailPage), new Dictionary<string, object>
+            {
+                { "EventDetail", pullIn },
+                { "IsFirstEvent", true },
+                { "Events", new ObservableCollection<ScheduleDto>(_yesterday) },
+                { "KeepTracking", Events.Count > 0 && Events.All(e => e.Name != "Pull-out") }
+            });
+        }
+
+        [RelayCommand]
+        private void HideYesterday() => HasOpenYesterday = false;
+
+        public TodayScheduleViewModel(IScheduleService scheduleService, ISessionManagerService sessionManager, Services.Offline.RejectedResend resend)
+        {
+            _resend = resend;
             _scheduleService = scheduleService;
             _sessionManager = sessionManager;
             Events = new ObservableCollection<ScheduleDto>();
@@ -125,6 +183,10 @@ namespace Raphael.Driver.ViewModels
                     .GroupBy(ev => ev.TripId!.Value)
                     .ToDictionary(g => g.Key, g => g.First().Status);
                 _ = Helpers.StartedTrips.RetryPendingAsync(_scheduleService, serverStatuses);
+
+                // RE-092: neither makes the driver wait.
+                _ = _resend.RunAsync(RunLogin);
+                _ = CheckYesterdayAsync();
              
                 //SessionManagerService _sessionManager = new SessionManagerService(new GpsService());
                 //await _sessionManager.CheckAndResumeGpsTrackingAsync(Events);
@@ -187,7 +249,8 @@ namespace Raphael.Driver.ViewModels
                 {
                     { "EventDetail", selectedEvent },
                     { "IsFirstEvent", isFirstEvent },
-                    { "Events", Events }
+                    { "Events", Events },
+                    { "KeepTracking", false }
                 });
             }
             else
@@ -223,6 +286,7 @@ namespace Raphael.Driver.ViewModels
         partial void OnRunLoginChanged(string value)
         {
             if (!string.IsNullOrWhiteSpace(value)) Services.ActiveRun.RunLogin = value; // RE-064: the menu's Schedule
+            HasOpenYesterday = false;
             // When the RunLogin property receives a value, events are loaded
             if (!string.IsNullOrWhiteSpace(value))
             {

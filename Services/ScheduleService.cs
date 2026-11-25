@@ -40,6 +40,24 @@ namespace Raphael.Driver.Services
         public Task<List<ScheduleDto>> GetPendingSchedulesByRunAsync(string runLogin, DateTime date) =>
             GetDayAsync("api/Schedules/driver/pending", "pending", runLogin, date, pendingOnly: true);
 
+        /// <remarks>Never the phone's copy: what is decided with it must not rest on an old one.</remarks>
+        public async Task<List<ScheduleDto>?> GetOpenNowAsync(string runLogin, DateTime date)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/Schedules/by-run-login?runLogin={HttpUtility.UrlEncode(runLogin)}&date={date:yyyy-MM-dd}");
+                if (!response.IsSuccessStatusCode) return null;
+                var rows = JsonSerializer.Deserialize<List<ScheduleDto>>(await response.Content.ReadAsStringAsync(), _serializerOptions) ?? new List<ScheduleDto>();
+                var waiting = _outbox.Pending<ScheduleDto>(ScheduleKind).Where(p => p.Body.Performed).Select(p => p.Body.Id).ToHashSet();
+                return rows.Where(r => !r.Performed && !waiting.Contains(r.Id)).ToList();
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or JsonException)
+            {
+                Debug.WriteLine($"Open stops: {ex.Message}");
+                return null;
+            }
+        }
+
         /// <summary>
         /// The day's stops, from the server when it answers and from the phone's last copy when it
         /// does not (RE-062), with the changes still waiting to be sent laid on top.

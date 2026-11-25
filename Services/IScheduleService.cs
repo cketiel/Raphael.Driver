@@ -7,6 +7,9 @@ namespace Raphael.Driver.Services
     {
         Task<List<ScheduleDto>> GetSchedulesByRunAsync(string runLogin, DateTime date);
         Task<List<ScheduleDto>> GetTodayScheduleAsync();
+
+        /// <summary>A day's stops not performed yet, as the server has them now; null when it did not answer (RE-092).</summary>
+        Task<List<ScheduleDto>?> GetOpenNowAsync(string runLogin, DateTime date);
         Task<bool> UpdateScheduleAsync(ScheduleDto scheduleToUpdate);
         Task<Offline.OutboxResult> SaveScheduleAsync(ScheduleDto schedule);
         Task<bool> PerformScheduleUpdateAsync(ScheduleDto scheduleToUpdate);

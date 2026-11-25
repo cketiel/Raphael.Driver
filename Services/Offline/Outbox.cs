@@ -44,6 +44,9 @@ namespace Raphael.Driver.Services.Offline
 
         public int Attempts { get; set; }
 
+        /// <summary>The app version that sent it again after a refusal (RE-092), so it is tried once each.</summary>
+        public string? RetriedVersion { get; set; }
+
         [System.Text.Json.Serialization.JsonIgnore]
         public byte[]? Body { get; set; }
 
@@ -269,10 +272,21 @@ namespace Raphael.Driver.Services.Offline
             Kept?.Invoke(this, EventArgs.Empty);
         }
 
-        private IEnumerable<(string Meta, OutboxRequest Request)> Items()
+        /// <summary>The changes the server refused, oldest first (RE-092).</summary>
+        public List<(string Meta, OutboxRequest Request)> Rejected() => Items(_rejected).ToList();
+
+        public byte[]? RejectedBody(string meta) => File.Exists(BodyFile(meta)) ? File.ReadAllBytes(BodyFile(meta)) : null;
+
+        public void MarkRejected(string meta, OutboxRequest request) => WriteMeta(meta, request);
+
+        public void ForgetRejected(string meta) => Delete(meta);
+
+        private IEnumerable<(string Meta, OutboxRequest Request)> Items() => Items(_folder);
+
+        private static IEnumerable<(string Meta, OutboxRequest Request)> Items(string folder)
         {
-            if (!Directory.Exists(_folder)) yield break;
-            foreach (var meta in Directory.GetFiles(_folder, "*.json").OrderBy(f => f, StringComparer.Ordinal))
+            if (!Directory.Exists(folder)) yield break;
+            foreach (var meta in Directory.GetFiles(folder, "*.json").OrderBy(f => f, StringComparer.Ordinal))
             {
                 OutboxRequest? request = null;
                 try

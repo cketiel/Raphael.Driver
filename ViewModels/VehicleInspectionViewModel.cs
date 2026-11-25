@@ -106,12 +106,14 @@ namespace Raphael.Driver.ViewModels
     {
         private const string VinCode = "vin";
         private readonly IInspectionService _inspections;
+        private readonly IOdometerCheck _odometerCheck;
         private readonly DateTime _startedAtUtc = DateTime.UtcNow;
         private byte[]? _signature;
 
-        public VehicleInspectionViewModel(IInspectionService inspections)
+        public VehicleInspectionViewModel(IInspectionService inspections, IOdometerCheck odometerCheck)
         {
             _inspections = inspections;
+            _odometerCheck = odometerCheck;
         }
 
         public ObservableCollection<InspectionLineViewModel> Lines { get; } = new();
@@ -268,7 +270,11 @@ namespace Raphael.Driver.ViewModels
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue("Requirement", out var r) && r is VehicleInspectionRequirementDto requirement) Requirement = requirement;
-            if (query.TryGetValue("EventDetail", out var e) && e is ScheduleDto schedule) Event = schedule;
+            if (query.TryGetValue("EventDetail", out var e) && e is ScheduleDto schedule)
+            {
+                Event = schedule;
+                _ = _odometerCheck.PrefetchAsync(schedule.Id);
+            }
 
             // Back from the signature pad with the drawn image.
             if (query.TryGetValue("InspectionSignature", out var png) && png is byte[] bytes && bytes.Length > 0)
@@ -342,6 +348,9 @@ namespace Raphael.Driver.ViewModels
 
             var odometer = long.Parse(OdometerText!.Trim());
 
+            // RE-092: a reading that does not add up is only asked about; the driver may always save it.
+            if (!await _odometerCheck.ConfirmAsync(Event, odometer)) return;
+
             IsBusy = true;
             try
             {
@@ -384,7 +393,7 @@ namespace Raphael.Driver.ViewModels
                     return;
                 }
 
-                if (Requirement.Kind != "PullIn") Preferences.Set(PullOutOdometerKey, odometer);
+                _odometerCheck.RememberPullOut(Event, odometer);
 
                 if (result.Outcome == Services.Offline.OutboxOutcome.Queued)
                     await Shell.Current.DisplayAlert("Inspection saved on the phone",
@@ -402,8 +411,6 @@ namespace Raphael.Driver.ViewModels
         {
             var missing = new List<string>();
             if (!long.TryParse(OdometerText?.Trim(), out var odometer) || odometer < 0) missing.Add("Odometer reading (miles)");
-            else if (Requirement?.Kind == "PullIn" && Preferences.Get(PullOutOdometerKey, -1L) is long start && start >= 0 && odometer < start)
-                missing.Add($"An odometer reading not below the Pull-out's ({start})");
             if (VinConfirmed is null) missing.Add("Confirm the VIN");
             if (VinConfirmed == false)
             {
@@ -417,13 +424,6 @@ namespace Raphael.Driver.ViewModels
             if (!IsSigned) missing.Add("Driver signature");
             return missing;
         }
-
-        /// <summary>
-        /// The Pull-out reading of this route and day, kept on the phone so the Pull-in is checked
-        /// against it even without coverage: the server refuses a day that ends with fewer miles.
-        /// </summary>
-        private string PullOutOdometerKey => $"PullOutOdometer:{Event?.VehicleRouteId}:{Event?.Date:yyyyMMdd}";
-
 
         /// <summary>The camera, a JPEG at most 1600 px on its long side. Null when the driver cancels.</summary>
         private static async Task<byte[]?> CaptureAsync()
